@@ -20,7 +20,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-    <RootNamespace>UniversalUnity</RootNamespace>
+    <RootNamespace>UniverseLib</RootNamespace>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -29,17 +29,17 @@
   <!-- IL2CPP -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_IL2CPP|AnyCPU' ">
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <OutputPath>..\Release\UniversalUnity.Il2Cpp\</OutputPath>
+    <OutputPath>..\Release\UniverseLib.Il2Cpp\</OutputPath>
     <DefineConstants>CPP</DefineConstants>
-    <AssemblyName>UniversalUnity.IL2CPP</AssemblyName>
+    <AssemblyName>UniverseLib.IL2CPP</AssemblyName>
     <IsCpp>true</IsCpp>
   </PropertyGroup>
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>..\Release\UniversalUnity.Mono\</OutputPath>
+    <OutputPath>..\Release\UniverseLib.Mono\</OutputPath>
     <DefineConstants>MONO</DefineConstants>
-    <AssemblyName>UniversalUnity.Mono</AssemblyName>
+    <AssemblyName>UniverseLib.Mono</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <IsCpp>false</IsCpp>
   </PropertyGroup>
