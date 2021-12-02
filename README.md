@@ -56,7 +56,7 @@ public class ExampleClass
 
     private static void Update()
     {
-        // Example of using InputManager and toggline our UI active state.
+        // Example of using InputManager and toggling our UI active state.
         if (InputManager.GetKeyDown(KeyCode.F5))
         {
             UniversalUI.SetUIActive(MyGUID, !MyUI.Enabled);
