@@ -69,3 +69,8 @@ public class ExampleClass
     }
 }
 ```
+
+## Acknowledgements
+
+* [HerpDerpenstine](https://github.com/HerpDerpinstine) for [MelonCoroutines](https://github.com/LavaGang/MelonLoader/blob/6cc958ec23b5e2e8453a73bc2e0d5aa353d4f0d1/MelonLoader.Support.Il2Cpp/MelonCoroutines.cs) \[[license](https://github.com/LavaGang/MelonLoader/blob/master/LICENSE.md)\], they were included for standalone IL2CPP coroutine support.
+
