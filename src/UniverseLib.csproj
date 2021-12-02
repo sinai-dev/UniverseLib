@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release_IL2CPP</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{49736F05-474F-49DA-ADB5-ED85BA079FFD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+    <DefineConstants>
+    </DefineConstants>
+    <IsCpp>false</IsCpp>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RootNamespace>UniversalUnity</RootNamespace>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <!-- CONFIGURATIONS -->
+  <!-- IL2CPP -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_IL2CPP|AnyCPU' ">
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <OutputPath>..\Release\UniversalUnity.Il2Cpp\</OutputPath>
+    <DefineConstants>CPP</DefineConstants>
+    <AssemblyName>UniversalUnity.IL2CPP</AssemblyName>
+    <IsCpp>true</IsCpp>
+  </PropertyGroup>
+  <!-- MONO -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <OutputPath>..\Release\UniversalUnity.Mono\</OutputPath>
+    <DefineConstants>MONO</DefineConstants>
+    <AssemblyName>UniversalUnity.Mono</AssemblyName>
+    <Prefer32Bit>false</Prefer32Bit>
+    <IsCpp>false</IsCpp>
+  </PropertyGroup>
+  <!-- Global refs, Mono and Il2Cpp -->
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="0Harmony">
+      <HintPath>packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <!-- Mono refs -->
+  <ItemGroup Condition="'$(IsCpp)'=='false'">
+    <Reference Include="UnityEngine">
+      <HintPath>..\lib\mono\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\lib\mono\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <!-- Il2Cpp refs -->
+  <ItemGroup Condition="'$(IsCpp)'=='true'">
+    <Reference Include="UnhollowerBaseLib">
+      <HintPath>..\lib\Il2CppAssemblyUnhollower\UnhollowerBaseLib\bin\Release\net4.7.2\UnhollowerBaseLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Il2Cppmscorlib">
+      <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Il2CppSystem.Core">
+      <HintPath>..\lib\unhollowed\Il2CppSystem.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\lib\unhollowed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\lib\unhollowed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\lib\unhollowed\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\lib\unhollowed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\lib\unhollowed\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\lib\unhollowed\UnityEngine.UIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\lib\unhollowed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Config\ConfigManager.cs" />
+    <Compile Include="UniversalBehaviour.cs" />
+    <Compile Include="Input\CursorUnlocker.cs" />
+    <Compile Include="Input\IHandleInput.cs" />
+    <Compile Include="Input\InputManager.cs" />
+    <Compile Include="Input\InputSystem.cs" />
+    <Compile Include="Input\LegacyInput.cs" />
+    <Compile Include="Input\NoInput.cs" />
+    <Compile Include="Reflection\Extensions.cs" />
+    <Compile Include="Reflection\Il2CppReflection.cs" />
+    <Compile Include="Reflection\Patches.cs" />
+    <Compile Include="Reflection\ReflectionUtility.cs" />
+    <Compile Include="Runtime\Il2Cpp\AssetBundle.cs" />
+    <Compile Include="Runtime\Il2Cpp\ICallManager.cs" />
+    <Compile Include="Runtime\Il2Cpp\Il2CppCoroutine.cs" />
+    <Compile Include="Runtime\Il2Cpp\Il2CppProvider.cs" />
+    <Compile Include="Runtime\Il2Cpp\Il2CppTextureUtil.cs" />
+    <Compile Include="Runtime\Mono\MonoProvider.cs" />
+    <Compile Include="Runtime\Mono\MonoTextureUtil.cs" />
+    <Compile Include="Runtime\RuntimeContext.cs" />
+    <Compile Include="Runtime\RuntimeProvider.cs" />
+    <Compile Include="Runtime\TextureUtilProvider.cs" />
+    <Compile Include="Utility\ArgumentUtility.cs" />
+    <Compile Include="Utility\IOUtility.cs" />
+    <Compile Include="Utility\MiscUtility.cs" />
+    <Compile Include="Utility\ParseUtility.cs" />
+    <Compile Include="Utility\SignatureHighlighter.cs" />
+    <Compile Include="Utility\ToStringUtility.cs" />
+    <Compile Include="Utility\UnityHelpers.cs" />
+    <Compile Include="UI\UIBase.cs" />
+    <Compile Include="Universe.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\UniversalUI.cs" />
+    <Compile Include="UI\Models\ButtonRef.cs" />
+    <Compile Include="UI\Models\InputFieldRef.cs" />
+    <Compile Include="UI\Models\UIBehaviourModel.cs" />
+    <Compile Include="UI\Models\UIModel.cs" />
+    <Compile Include="UI\Pool.cs" />
+    <Compile Include="UI\UIFactory.cs" />
+    <Compile Include="UI\Widgets\AutoSliderScrollbar.cs" />
+    <Compile Include="UI\Widgets\ButtonList\ButtonCell.cs" />
+    <Compile Include="UI\Widgets\ButtonList\ButtonListHandler.cs" />
+    <Compile Include="UI\Widgets\InputFieldScroller.cs" />
+    <Compile Include="UI\Widgets\ScrollPool\DataHeightCache.cs" />
+    <Compile Include="UI\Widgets\ScrollPool\ICell.cs" />
+    <Compile Include="UI\Widgets\ScrollPool\ICellPoolDataSource.cs" />
+    <Compile Include="UI\Widgets\ScrollPool\ScrollPool.cs" />
+    <Compile Include="UI\Widgets\ScrollPool\UIExtensions.cs" />
+    <EmbeddedResource Include="Resources\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
