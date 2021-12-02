@@ -25,7 +25,7 @@ namespace UniverseLib
         public const string NAME = "UniverseLib";
         public const string VERSION = "1.0.0";
         public const string AUTHOR = "Sinai";
-        public const string GUID = "com.sinai.universalunity";
+        public const string GUID = "com.sinai.universelib";
 
         public static RuntimeContext Context { get; internal set; }
         public static HarmonyLib.Harmony Harmony { get; } = new HarmonyLib.Harmony(GUID);
