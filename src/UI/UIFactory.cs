@@ -716,7 +716,7 @@ namespace UniverseLib.UI
             var sliderContainer = CreateVerticalGroup(mainObj, "SliderContainer",
                 false, false, true, true, 0, default, new Color(0.05f, 0.05f, 0.05f));
             SetLayoutElement(sliderContainer, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
-            sliderContainer.AddComponent<Mask>();
+            sliderContainer.AddComponent<Mask>().showMaskGraphic = false;
 
             CreateSliderScrollbar(sliderContainer, out Slider slider);
 
@@ -736,7 +736,7 @@ namespace UniverseLib.UI
         public static GameObject CreateSliderScrollbar(GameObject parent, out Slider slider)
         {
             GameObject mainObj = CreateUIObject("SliderScrollbar", parent, _smallElementSize);
-            mainObj.AddComponent<Mask>();
+            mainObj.AddComponent<Mask>().showMaskGraphic = false;
             mainObj.AddComponent<Image>().color = Color.white;
 
             GameObject bgImageObj = CreateUIObject("Background", mainObj);
@@ -939,7 +939,7 @@ namespace UniverseLib.UI
 
             var sliderContainer = autoScroller.Slider.m_HandleContainerRect.gameObject;
             SetLayoutElement(sliderContainer, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
-            sliderContainer.AddComponent<Mask>();
+            //sliderContainer.AddComponent<Mask>().showMaskGraphic = false;
 
             // Set up the InputFieldScroller module
 
