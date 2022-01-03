@@ -2,7 +2,13 @@
 
 Library used by [UnityExplorer](https://github.com/sinai-dev/UnityExplorer), [BepInExConfigManager](https://github.com/sinai-dev/BepInExConfigManager) and [MelonPreferencesManager](https://github.com/sinai-dev/MelonPreferencesManager).
 
-* **No documentation or guaranteed stability**, this is just for my own personal use.
+## How do I use this? Is there documentation? Examples?
+
+Not at the moment. I made this to handle conflicts between 3 similar tools I have released. It's for making "universal" Unity mods which work on IL2CPP and Mono games. It contains a UI and Input framework, and other tools for making universal mods.
+
+Currently I don't have the time to deal with documentation or making this user-friendly, but it's here if you want to try to use it. You can look at UnityExplorer or my mod config managers to see examples.
+
+Nuget package available [here](https://www.nuget.org/packages/UniverseLib/).
 
 ## Acknowledgements
 
