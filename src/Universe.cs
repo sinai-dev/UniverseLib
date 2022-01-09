@@ -23,7 +23,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.0.0";
+        public const string VERSION = "1.0.2";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -68,7 +68,7 @@ namespace UniverseLib
 
                 RuntimeProvider.Instance.StartCoroutine(SetupCoroutine());
 
-                Log($"Finished core setup, waiting for delayed setup...");
+                Log($"Finished UniverseLib initial setup");
             }
         }
 
