@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UniverseLib;
@@ -83,22 +84,60 @@ namespace UniverseLib.Input
 
         // Event system overrides
 
+
+        private static PropertyInfo EventSystemCurrentInfo
+        {
+            get => pi_currentEventSystem
+                    ?? (pi_currentEventSystem = ReflectionUtility.GetPropertyInfo(typeof(EventSystem), "current"))
+                    ?? (pi_currentEventSystem = ReflectionUtility.GetPropertyInfo(typeof(EventSystem), "main"))
+                    ?? throw new MissingMemberException("This game has no EventSystem.current or EventSystem.main property!");
+        }
+        private static PropertyInfo pi_currentEventSystem;
+
+        public static EventSystem CurrentEventSystem
+        {
+            get => (EventSystem)EventSystemCurrentInfo.GetValue(null, null);
+            set => EventSystemCurrentInfo.SetValue(null, value, null);
+        }
+
         private static bool settingEventSystem;
         private static EventSystem lastEventSystem;
         private static BaseInputModule lastInputModule;
 
         public static void SetEventSystem()
         {
-            if (EventSystem.current && EventSystem.current != UniversalUI.EventSys)
+            var current = CurrentEventSystem;
+            if (current && current != UniversalUI.EventSys)
             {
-                lastEventSystem = EventSystem.current;
+                lastEventSystem = current;
+                lastInputModule = current.currentInputModule;
                 lastEventSystem.enabled = false;
             }
+            if (!lastEventSystem)
+            {
+                var allSystems = RuntimeProvider.Instance.FindObjectsOfTypeAll(typeof(EventSystem));
+                foreach (var obj in allSystems)
+                {
+                    var system = obj.TryCast<EventSystem>();
+                    if (system == UniversalUI.EventSys)
+                        continue;
+                    if (system.isActiveAndEnabled)
+                    {
+                        lastEventSystem = system;
+                        lastInputModule = system.currentInputModule;
+                        lastEventSystem.enabled = false;
+                        break;
+                    }
+                }
+            }
+
+            if (current == UniversalUI.EventSys)
+                return;
 
             // Set to our current system
             settingEventSystem = true;
             UniversalUI.EventSys.enabled = true;
-            EventSystem.current = UniversalUI.EventSys;
+            CurrentEventSystem = UniversalUI.EventSys;
             InputManager.ActivateUIModule();
             settingEventSystem = false;
         }
@@ -111,7 +150,7 @@ namespace UniverseLib.Input
 
                 settingEventSystem = true;
                 UniversalUI.EventSys.enabled = false;
-                EventSystem.current = lastEventSystem;
+                CurrentEventSystem = lastEventSystem;
                 lastInputModule?.ActivateModule();
                 settingEventSystem = false;
             }
@@ -212,7 +251,7 @@ namespace UniverseLib.Input
 
         public static void Prefix_EventSystem_set_current(ref EventSystem value)
         {
-            if (!settingEventSystem && value)
+            if (!settingEventSystem && value && value != UniversalUI.EventSys)
             {
                 lastEventSystem = value;
                 lastInputModule = value.currentInputModule;

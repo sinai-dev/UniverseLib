@@ -102,7 +102,7 @@ namespace UniverseLib.UI
                 return;
 
             // check event system state
-            if (!ConfigManager.Disable_EventSystem_Override && EventSystem.current != EventSys)
+            if (!ConfigManager.Disable_EventSystem_Override && CursorUnlocker.CurrentEventSystem != EventSys)
                 CursorUnlocker.SetEventSystem();
 
             InputManager.Update();
