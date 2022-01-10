@@ -144,16 +144,19 @@ namespace UniverseLib.Input
 
         public static void ReleaseEventSystem()
         {
+            settingEventSystem = true;
+
+            UniversalUI.EventSys.enabled = false;
+            UniversalUI.EventSys.currentInputModule?.DeactivateModule();
+
             if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
             {
-                lastEventSystem.enabled = true;
-
-                settingEventSystem = true;
-                UniversalUI.EventSys.enabled = false;
                 CurrentEventSystem = lastEventSystem;
+                lastEventSystem.enabled = true;
                 lastInputModule?.ActivateModule();
-                settingEventSystem = false;
             }
+
+            settingEventSystem = false;
         }
 
         // Patches
@@ -170,9 +173,18 @@ namespace UniverseLib.Input
                     "visible",
                     new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_set_visible))));
 
-                PrefixPropertySetter(typeof(EventSystem),
-                    "current",
-                    new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_set_current))));
+                if (typeof(EventSystem).GetProperty("current") != null)
+                {
+                    PrefixPropertySetter(typeof(EventSystem),
+                        "current",
+                        new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_set_current))));
+                }
+                else
+                {
+                    PrefixPropertySetter(typeof(EventSystem),
+                       "main",
+                       new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_set_current))));
+                }
 
                 PrefixMethod(typeof(EventSystem),
                     "SetSelectedGameObject",
@@ -181,12 +193,6 @@ namespace UniverseLib.Input
                     new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_SetSelectedGameObject))),
                     // most games use these arguments, we'll use them as our "backup".
                     new Type[] { typeof(GameObject), typeof(BaseEventData) });
-
-                //// Not sure if this one is needed.
-                //PrefixMethod(typeof(PointerInputModule),
-                //    "ClearSelection",
-                //    new Type[0],
-                //    new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_PointerInputModule_ClearSelection))));
             }
             catch (Exception ex)
             {
@@ -241,11 +247,6 @@ namespace UniverseLib.Input
 
             return __0 && __0.transform.root.gameObject.GetInstanceID() == UniversalUI.CanvasRoot.GetInstanceID();
         }
-
-        //public static bool Prefix_PointerInputModule_ClearSelection()
-        //{
-        //    return !(UIManager.ShowMenu && UIManager.CanvasRoot);
-        //}
 
         // Force EventSystem.current to be UniverseLib's when menu is open
 
