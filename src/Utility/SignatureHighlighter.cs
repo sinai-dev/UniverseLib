@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -234,15 +235,57 @@ namespace UniverseLib
 
         public static string GetMemberInfoColor(MemberTypes type)
         {
-            switch (type)
+            return type switch
             {
-                case MemberTypes.Method: return METHOD_INSTANCE;
-                case MemberTypes.Property: return PROP_INSTANCE;
-                case MemberTypes.Field: return FIELD_INSTANCE;
-                default: return null;
-            }
+                MemberTypes.Method => METHOD_INSTANCE,
+                MemberTypes.Property => PROP_INSTANCE,
+                MemberTypes.Field => FIELD_INSTANCE,
+                _ => null,
+            };
         }
 
+        private static readonly Dictionary<string, string> highlightedMethods = new();
+
+        public static string HighlightMethod(MethodInfo method)
+        {
+            var sig = method.FullDescription();
+            if (highlightedMethods.ContainsKey(sig))
+                return highlightedMethods[sig];
+
+            var sb = new StringBuilder();
+
+            // declaring type
+            sb.Append(Parse(method.DeclaringType, false));
+            sb.Append('.');
+
+            // method name
+            var color = !method.IsStatic
+                    ? METHOD_INSTANCE
+                    : METHOD_STATIC;
+            sb.Append($"<color={color}>{method.Name}</color>");
+
+            // arguments
+            sb.Append('(');
+            var args = method.GetParameters();
+            if (args != null && args.Any())
+            {
+                int i = 0;
+                foreach (var param in args)
+                {
+                    sb.Append(Parse(param.ParameterType, false));
+                    sb.Append(' ');
+                    sb.Append($"<color={LOCAL_ARG}>{param.Name}</color>");
+                    i++;
+                    if (i < args.Length)
+                        sb.Append(", ");
+                }
+            }
+            sb.Append(')');
+
+            var ret = sb.ToString();
+            highlightedMethods.Add(sig, ret);
+            return ret;
+        }
 
         public static string GetMemberInfoColor(MemberInfo memberInfo, out bool isStatic)
         {
