@@ -38,6 +38,10 @@ namespace UniverseLib.UI
             return obj;
         }
 
+        #endregion
+
+        #region Default component initializers
+
         internal static void SetDefaultTextValues(Text text)
         {
             text.color = _defaultTextColor;
@@ -45,8 +49,12 @@ namespace UniverseLib.UI
             text.fontSize = 14;
         }
 
-        internal static void SetDefaultSelectableColors(Selectable selectable)
+        internal static void SetDefaultSelectableValues(Selectable selectable)
         {
+            var nav = selectable.navigation;
+            nav.mode = Navigation.Mode.Explicit;
+            selectable.navigation = nav;
+
             RuntimeProvider.Instance.SetColorBlock(selectable, new Color(0.2f, 0.2f, 0.2f),
                 new Color(0.3f, 0.3f, 0.3f), new Color(0.15f, 0.15f, 0.15f));
         }
@@ -54,7 +62,7 @@ namespace UniverseLib.UI
         #endregion
 
 
-        #region Default Layout Components
+        #region Layout Components
 
         /// <summary>
         /// Get and/or Add a LayoutElement component to the GameObject, and set any of the values on it.
@@ -235,7 +243,7 @@ namespace UniverseLib.UI
         #endregion
 
 
-        #region Default Control Elements
+        #region Control and Graphic Components
 
         /// <summary>
         /// Create a Label object.
@@ -280,7 +288,7 @@ namespace UniverseLib.UI
             image.color = new Color(1, 1, 1, 1);
 
             var button = buttonObj.AddComponent<Button>();
-            SetDefaultSelectableColors(button);
+            SetDefaultSelectableValues(button);
 
             colors.colorMultiplier = 1;
             RuntimeProvider.Instance.SetColorBlock(button, colors);
@@ -394,7 +402,7 @@ namespace UniverseLib.UI
             scrollbar.handleRect = handleRect;
             scrollbar.targetGraphic = handleImage;
 
-            SetDefaultSelectableColors(scrollbar);
+            SetDefaultSelectableValues(scrollbar);
 
             return scrollObj;
         }
@@ -410,7 +418,7 @@ namespace UniverseLib.UI
             SetLayoutGroup<HorizontalLayoutGroup>(toggleObj, false, false, true, true, 5, 0,0,0,0, childAlignment: TextAnchor.MiddleLeft);
             toggle = toggleObj.AddComponent<Toggle>();
             toggle.isOn = true;
-            SetDefaultSelectableColors(toggle);
+            SetDefaultSelectableValues(toggle);
             // need a second reference so we can use it inside the lambda, since 'toggle' is an out var.
             Toggle t2 = toggle;
             toggle.onValueChanged.AddListener((bool _) => { t2.OnDeselect(null); });
