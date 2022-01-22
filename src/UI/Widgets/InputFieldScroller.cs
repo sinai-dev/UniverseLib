@@ -8,6 +8,9 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UniverseLib.UI.Models;
+#if CPP
+using UnhollowerRuntimeLib;
+#endif
 
 namespace UniverseLib.UI.Widgets
 {
@@ -29,11 +32,16 @@ namespace UniverseLib.UI.Widgets
 
         public AutoSliderScrollbar Slider;
         public InputFieldRef InputField;
-
         public RectTransform ContentRect;
         public RectTransform ViewportRect;
-
         public static CanvasScaler RootScaler;
+
+        internal string lastText;
+        internal bool updateWanted;
+        internal bool wantJumpToBottom;
+        private float desiredContentHeight;
+        private float lastContentPosition;
+        private float lastViewportHeight;
 
         public InputFieldScroller(AutoSliderScrollbar sliderScroller, InputFieldRef inputField)
         {
@@ -46,16 +54,12 @@ namespace UniverseLib.UI.Widgets
             ViewportRect = ContentRect.transform.parent.GetComponent<RectTransform>();
 
             if (!RootScaler)
-                RootScaler = UniversalUI.CanvasRoot.GetComponent<CanvasScaler>();
+#if CPP
+                RootScaler = inputField.Component.gameObject.GetComponentInParent(Il2CppType.Of<CanvasScaler>()).TryCast<CanvasScaler>();
+#else
+                RootScaler = inputField.Component.gameObject.GetComponentInParent<CanvasScaler>();
+#endif
         }
-
-        internal string m_lastText;
-        internal bool m_updateWanted;
-        internal bool m_wantJumpToBottom;
-        private float m_desiredContentHeight;
-
-        private float lastContentPosition;
-        private float lastViewportHeight;
 
         public override void Update()
         {
@@ -68,15 +72,15 @@ namespace UniverseLib.UI.Widgets
             if (ViewportRect.rect.height != lastViewportHeight)
             {
                 lastViewportHeight = ViewportRect.rect.height;
-                m_updateWanted = true;
+                updateWanted = true;
             }
 
-            if (m_updateWanted)
+            if (updateWanted)
             {
-                m_updateWanted = false;
+                updateWanted = false;
                 ProcessInputText();
 
-                float desiredHeight = Math.Max(m_desiredContentHeight, ViewportRect.rect.height);
+                float desiredHeight = Math.Max(desiredContentHeight, ViewportRect.rect.height);
 
                 if (ContentRect.rect.height < desiredHeight)
                 {
@@ -90,17 +94,17 @@ namespace UniverseLib.UI.Widgets
                 }
             }
 
-            if (m_wantJumpToBottom)
+            if (wantJumpToBottom)
             {
                 Slider.Slider.value = 1f;
-                m_wantJumpToBottom = false;
+                wantJumpToBottom = false;
             }
         }
 
         internal void OnTextChanged(string text)
         {
-            m_lastText = text;
-            m_updateWanted = true;
+            lastText = text;
+            updateWanted = true;
         }
 
         internal void ProcessInputText()
@@ -115,7 +119,7 @@ namespace UniverseLib.UI.Widgets
 
             // Preferred text rect height
             var textGen = InputField.Component.textComponent.cachedTextGeneratorForLayout;
-            m_desiredContentHeight = textGen.GetPreferredHeight(m_lastText, texGenSettings) + 10;
+            desiredContentHeight = textGen.GetPreferredHeight(lastText, texGenSettings) + 10;
         }
 
         public override void ConstructUI(GameObject parent)

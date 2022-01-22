@@ -20,10 +20,9 @@ namespace UniverseLib.UI
         public static bool Initializing { get; internal set; } = true;
 
         public static bool AnyUIShowing => registeredUIs.Any(it => it.Value.Enabled);
-        internal static readonly Dictionary<string, UIBase> registeredUIs = new Dictionary<string, UIBase>();
+        internal static readonly Dictionary<string, UIBase> registeredUIs = new();
 
         public static GameObject CanvasRoot { get; private set; }
-        public static Canvas Canvas { get; private set; }
         public static EventSystem EventSys { get; private set; }
 
         public static GameObject PoolHolder { get; private set; }
@@ -48,6 +47,18 @@ namespace UniverseLib.UI
 
             var uiRoot = UIFactory.CreateUIObject($"{id}_Root", CanvasRoot);
             uiRoot.SetActive(false);
+
+            var canvas = uiRoot.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.referencePixelsPerUnit = 100;
+            canvas.sortingOrder = 999;
+
+            CanvasScaler scaler = uiRoot.AddComponent<CanvasScaler>();
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+
+            uiRoot.AddComponent<GraphicRaycaster>();
+
             var uiRect = uiRoot.GetComponent<RectTransform>();
             uiRect.anchorMin = Vector2.zero;
             uiRect.anchorMax = Vector2.one;
@@ -55,7 +66,7 @@ namespace UniverseLib.UI
             uiRoot.SetActive(true);
             uiRoot.transform.SetParent(CanvasRoot.transform, false);
 
-            var uiBase = new UIBase(id, uiRoot, updateMethod);
+            UIBase uiBase = new(id, uiRoot, updateMethod);
             registeredUIs.Add(id, uiBase);
 
             return uiBase;
@@ -136,17 +147,6 @@ namespace UniverseLib.UI
 
             EventSys.enabled = false;
             CanvasRoot.SetActive(true);
-
-            Canvas = CanvasRoot.AddComponent<Canvas>();
-            Canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            Canvas.referencePixelsPerUnit = 100;
-            Canvas.sortingOrder = 999;
-
-            CanvasScaler scaler = CanvasRoot.AddComponent<CanvasScaler>();
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-
-            CanvasRoot.AddComponent<GraphicRaycaster>();
         }
 
         // UI AssetBundle

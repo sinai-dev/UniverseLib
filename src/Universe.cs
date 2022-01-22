@@ -23,7 +23,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.0.6";
+        public const string VERSION = "1.1.0";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -129,7 +129,6 @@ namespace UniverseLib
             RuntimeProvider.Instance.ProcessOnPostRender();
         }
 
-        #region LOGGING
 
         public static void Log(object message)
             => Log(message, LogType.Log);
@@ -144,7 +143,5 @@ namespace UniverseLib
         {
             LogHandler?.Invoke(message?.ToString() ?? "", logType);
         }
-
-        #endregion
     }
 }

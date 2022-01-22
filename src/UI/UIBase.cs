@@ -8,18 +8,20 @@ namespace UniverseLib.UI
 {
     public class UIBase
     {
+        public string ID { get; }
+        public GameObject RootObject { get; }
+        public Canvas Canvas { get; }
+        public Action UpdateMethod { get; }
+
+        public bool Enabled => RootObject.activeSelf;
+
         public UIBase(string id, GameObject rootObject, Action updateMethod)
         {
             ID = id;
             RootObject = rootObject;
             UpdateMethod = updateMethod;
+            Canvas = RootObject.GetComponent<Canvas>();
         }
-
-        public string ID;
-        public GameObject RootObject;
-        public Action UpdateMethod;
-
-        public bool Enabled => RootObject.activeSelf;
 
         public void Update()
         {
