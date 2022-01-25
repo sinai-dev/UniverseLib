@@ -34,10 +34,12 @@ namespace UniverseLib
             BuildDeobfuscationCache();
             OnTypeLoaded += TryCacheDeobfuscatedType;
             Universe.Log($"Setup IL2CPP reflection in {Time.realtimeSinceStartup - start} seconds, " +
-                $"deobfuscated types count: {DeobfuscatedTypes.Count}");
+                $"deobfuscated types count: {obfuscatedToDeobfuscatedTypes.Count}");
         }
 
 #region IL2CPP Extern and pointers
+
+        private static readonly Dictionary<string, IntPtr> cppClassPointers = new();
 
         // Extern C++ methods 
         [DllImport("GameAssembly", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -53,7 +55,7 @@ namespace UniverseLib
             if (!cppClassPointers.TryGetValue(type.AssemblyQualifiedName, out il2cppPtr))
             {
                 il2cppPtr = (IntPtr)typeof(Il2CppClassPointerStore<>)
-                    .MakeGenericType(new Type[] { type })
+                    .MakeGenericType(new[] { type })
                     .GetField("NativeClassPtr", BF.Public | BF.Static)
                     .GetValue(null);
 
@@ -68,8 +70,8 @@ namespace UniverseLib
 
 #region Deobfuscation cache
 
-        private static readonly Dictionary<string, Type> DeobfuscatedTypes = new Dictionary<string, Type>();
-        private static readonly Dictionary<string, string> reverseDeobCache = new Dictionary<string, string>();
+        private static readonly Dictionary<string, Type> obfuscatedToDeobfuscatedTypes = new();
+        private static readonly Dictionary<string, string> deobfuscatedToObfuscatedNames = new();
 
         private static void BuildDeobfuscationCache()
         {
@@ -89,14 +91,14 @@ namespace UniverseLib
 
                 foreach (var att in type.CustomAttributes)
                 {
-                    // Thanks to Slaynash for this
-
                     if (att.AttributeType == typeof(ObfuscatedNameAttribute))
                     {
                         string obfuscatedName = att.ConstructorArguments[0].Value.ToString();
 
-                        DeobfuscatedTypes.Add(obfuscatedName, type);
-                        reverseDeobCache.Add(type.FullName, obfuscatedName);
+                        obfuscatedToDeobfuscatedTypes.Add(obfuscatedName, type);
+                        deobfuscatedToObfuscatedNames.Add(type.FullName, obfuscatedName);
+
+                        break;
                     }
                 }
             }
@@ -105,24 +107,24 @@ namespace UniverseLib
 
         internal override string Internal_ProcessTypeInString(string theString, Type type)
         {
-            if (reverseDeobCache.TryGetValue(type.FullName, out string obName))
-                return theString.Replace(obName, type.FullName);
+            if (deobfuscatedToObfuscatedNames.TryGetValue(type.FullName, out string obfuscated))
+                return theString.Replace(obfuscated, type.FullName);
 
             return theString;
         }
 
 #endregion
 
-
         // Get type by name
 
         internal override Type Internal_GetTypeByName(string fullName)
         {
-            if (DeobfuscatedTypes.TryGetValue(fullName, out Type deob))
+            if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullName, out Type deob))
                 return deob;
 
             return base.Internal_GetTypeByName(fullName);
         }
+
 
 #region Get actual type
 
@@ -175,7 +177,7 @@ namespace UniverseLib
         {
             var fullname = cppType.FullName;
 
-            if (DeobfuscatedTypes.TryGetValue(fullname, out Type deob))
+            if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullname, out Type deob))
                 return deob;
 
             if (fullname.StartsWith("System."))
@@ -190,8 +192,6 @@ namespace UniverseLib
 
 
 #region Casting
-
-        private static readonly Dictionary<string, IntPtr> cppClassPointers = new Dictionary<string, IntPtr>();
 
         internal override object Internal_TryCast(object obj, Type castTo)
         {
@@ -233,7 +233,7 @@ namespace UniverseLib
 
             // from il2cpp objects...
 
-            if (!(obj is Il2CppObjectBase cppObj))
+            if (obj is not Il2CppObjectBase cppObj)
                 return obj;
 
             // from Il2CppSystem.Object to a struct
@@ -287,7 +287,7 @@ namespace UniverseLib
 #region Boxing and unboxing ValueTypes
 
         // cached il2cpp unbox methods
-        internal static readonly Dictionary<string, MethodInfo> unboxMethods = new Dictionary<string, MethodInfo>();
+        internal static readonly Dictionary<string, MethodInfo> unboxMethods = new();
 
         // Unbox an il2cpp object to a struct or System primitive.
         public object UnboxCppObject(Il2CppObjectBase cppObj, Type toType)
@@ -373,7 +373,7 @@ namespace UniverseLib
 
         // Helpers for Il2Cpp primitive <-> Mono
 
-        internal static readonly Dictionary<string, Type> il2cppPrimitivesToMono = new Dictionary<string, Type>
+        internal static readonly Dictionary<string, Type> il2cppPrimitivesToMono = new()
         {
             { "Il2CppSystem.Boolean", typeof(bool) },
             { "Il2CppSystem.Byte",    typeof(byte) },
@@ -566,9 +566,9 @@ namespace UniverseLib
 
         // Temp fix until Unhollower interface support improves
 
-        internal static readonly Dictionary<string, MethodInfo> getEnumeratorMethods = new Dictionary<string, MethodInfo>();
-        internal static readonly Dictionary<string, EnumeratorInfo> enumeratorInfos = new Dictionary<string, EnumeratorInfo>();
-        internal static readonly HashSet<string> notSupportedTypes = new HashSet<string>();
+        internal static readonly Dictionary<string, MethodInfo> getEnumeratorMethods = new();
+        internal static readonly Dictionary<string, EnumeratorInfo> enumeratorInfos = new();
+        internal static readonly HashSet<string> notSupportedTypes = new();
 
         // IEnumerables
 

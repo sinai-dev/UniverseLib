@@ -41,10 +41,10 @@ namespace UniverseLib
         public static Action<Type> OnTypeLoaded;
 
         /// <summary>Key: Type.FullName</summary>
-        protected static readonly SortedDictionary<string, Type> AllTypes = new SortedDictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        protected static readonly SortedDictionary<string, Type> AllTypes = new(StringComparer.OrdinalIgnoreCase);
 
-        public static readonly List<string> AllNamespaces = new List<string>();
-        private static readonly HashSet<string> uniqueNamespaces = new HashSet<string>();
+        public static readonly List<string> AllNamespaces = new();
+        private static readonly HashSet<string> uniqueNamespaces = new();
 
         private static string[] allTypesArray;
         public static string[] GetTypeNameArray()
@@ -101,10 +101,7 @@ namespace UniverseLib
                 }
 
                 // Cache the type. Overwrite type if one exists with the full name
-                if (AllTypes.ContainsKey(type.FullName))
-                    AllTypes[type.FullName] = type;
-                else
-                    AllTypes.Add(type.FullName, type);
+                AllTypes[type.FullName] = type;
 
                 // Invoke listener
                 OnTypeLoaded?.Invoke(type);
@@ -156,10 +153,10 @@ namespace UniverseLib
 
         // Singleton finder
 
-        public static void FindSingleton(string[] possibleNames, Type type, BindingFlags flags, List<object> instances)
+        public static void FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
             => Instance.Internal_FindSingleton(possibleNames, type, flags, instances);
 
-        internal virtual void Internal_FindSingleton(string[] possibleNames, Type type, BindingFlags flags, List<object> instances)
+        internal virtual void Internal_FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
         {
             // Look for a typical Instance backing field.
             FieldInfo fi;
@@ -224,8 +221,8 @@ namespace UniverseLib
         #region Type and Generic Parameter implementation cache
 
         // cache for GetImplementationsOf
-        internal static readonly Dictionary<string, HashSet<Type>> typeInheritance = new Dictionary<string, HashSet<Type>>();
-        internal static readonly Dictionary<string, HashSet<Type>> genericParameterInheritance = new Dictionary<string, HashSet<Type>>();
+        internal static readonly Dictionary<string, HashSet<Type>> typeInheritance = new();
+        internal static readonly Dictionary<string, HashSet<Type>> genericParameterInheritance = new();
 
         public static string GetImplementationKey(Type type)
         {
@@ -280,10 +277,10 @@ namespace UniverseLib
                         var type = AllTypes[name];
 
                         if (set.Contains(type)
-                        || (type.IsAbstract && type.IsSealed) // ignore static classes
-                        || (!allowAbstract && type.IsAbstract)
-                        || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition))
-                        || (!allowEnum && type.IsEnum))
+                            || (type.IsAbstract && type.IsSealed) // ignore static classes
+                            || (!allowAbstract && type.IsAbstract)
+                            || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition))
+                            || (!allowEnum && type.IsEnum))
                             continue;
 
                         if (type.FullName.Contains("PrivateImplementationDetails")
@@ -291,13 +288,11 @@ namespace UniverseLib
                             || type.FullName.Contains('<'))
                             continue;
 
-                        if (baseType.IsAssignableFrom(type) && !set.Contains(type))
+                        if (baseType.IsAssignableFrom(type))
                             set.Add(type);
                     }
                     catch { }
                 }
-
-                //set.
 
                 typeInheritance.Add(key, set);
             }
@@ -320,9 +315,9 @@ namespace UniverseLib
                         var type = AllTypes[name];
 
                         if (set.Contains(type)
-                        || (type.IsAbstract && type.IsSealed) // ignore static classes
-                        || (!allowAbstract && type.IsAbstract)
-                        || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition)))
+                            || (type.IsAbstract && type.IsSealed) // ignore static classes
+                            || (!allowAbstract && type.IsAbstract)
+                            || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition)))
                             continue;
 
                         if (type.FullName.Contains("PrivateImplementationDetails")
@@ -357,7 +352,7 @@ namespace UniverseLib
 
         #region Internal MemberInfo Cache
 
-        internal static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfos = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+        internal static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfos = new();
 
         public static FieldInfo GetFieldInfo(Type type, string fieldName)
         {
@@ -370,7 +365,7 @@ namespace UniverseLib
             return fieldInfos[type][fieldName];
         }
 
-        internal static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfos = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+        internal static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfos = new();
 
         public static PropertyInfo GetPropertyInfo(Type type, string propertyName)
         {
@@ -383,7 +378,7 @@ namespace UniverseLib
             return propertyInfos[type][propertyName];
         }
 
-        internal static Dictionary<Type, Dictionary<string, MethodInfo>> methodInfos = new Dictionary<Type, Dictionary<string, MethodInfo>>();
+        internal static Dictionary<Type, Dictionary<string, MethodInfo>> methodInfos = new();
 
         public static MethodInfo GetMethodInfo(Type type, string methodName)
             => GetMethodInfo(type, methodName, ArgumentUtility.EmptyTypes, false);

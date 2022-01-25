@@ -74,11 +74,11 @@ namespace UniverseLib.UI
 
         public static void SetUIActive(string id, bool active)
         {
-            if (registeredUIs.TryGetValue(id, out UIBase uiRoot))
+            if (registeredUIs.TryGetValue(id, out UIBase uiBase))
             {
-                uiRoot.RootObject.SetActive(active);
+                uiBase.RootObject.SetActive(active);
                 if (active)
-                    uiRoot.RootObject.transform.SetAsLastSibling();
+                    uiBase.RootObject.transform.SetAsLastSibling();
                 CursorUnlocker.UpdateCursorControl();
                 return;
             }
