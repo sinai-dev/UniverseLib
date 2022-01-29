@@ -9,10 +9,10 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UniverseLib.Runtime;
 
-namespace UniverseLib
+namespace UniverseLib.Utility
 {
     /// <summary>
-    /// Syntax-highlights a member's signature, by either the Type name or a Type and Member together.
+    /// For Unity rich-text syntax highlighting of Types and Members.
     /// </summary>
     public static class SignatureHighlighter
     {
@@ -37,12 +37,12 @@ namespace UniverseLib
 
         public const string LOCAL_ARG = "#a6e9e9";
 
-        public const string ARRAY_TOKEN = "[]";
-        public static readonly Regex ArrayTokenRegex = new(@"\[,*?\]");
         public const string OPEN_COLOR = "<color=";
         public const string CLOSE_COLOR = "</color>";
         public const string OPEN_ITALIC = "<i>";
         public const string CLOSE_ITALIC = "</i>";
+
+        public static readonly Regex ArrayTokenRegex = new(@"\[,*?\]");
 
         public static readonly Color StringOrange = new(0.83f, 0.61f, 0.52f);
         public static readonly Color EnumGreen = new(0.57f, 0.76f, 0.43f);
@@ -87,8 +87,6 @@ namespace UniverseLib
                 return CLASS_INSTANCE;
         }
 
-        //private static readonly StringBuilder syntaxBuilder = new StringBuilder(2156);
-
         private static bool TryGetNamespace(Type type, out string ns)
         {
             var ret = !string.IsNullOrEmpty(ns = type.Namespace?.Trim());
@@ -97,6 +95,9 @@ namespace UniverseLib
 
         private static StringBuilder OpenColor(StringBuilder sb, string color) => sb.Append(OPEN_COLOR).Append(color).Append('>');
 
+        /// <summary>
+        /// Highlight the full signature of the Type, including optionally the Namespace, and optionally combined with a MemberInfo.
+        /// </summary>
         public static string Parse(Type type, bool includeNamespace, MemberInfo memberInfo = null)
         {
             if (type == null)
@@ -165,22 +166,6 @@ namespace UniverseLib
             return sb.ToString();
         }
 
-        public static bool EndsWith(this StringBuilder sb, string _string)
-        {
-            int len = _string.Length;
-
-            if (sb.Length < len)
-                return false;
-
-            int stringpos = 0;
-            for (int i = sb.Length - len; i < sb.Length; i++, stringpos++)
-            {
-                if (sb[i] != _string[stringpos])
-                    return false;
-            }
-            return true;
-        }
-
         private static string HighlightType(Type type)
         {
             string key = type.ToString();
@@ -205,12 +190,6 @@ namespace UniverseLib
                 OpenColor(sb, $"#{keywordBlueHex}").Append(builtInName).Append(CLOSE_COLOR);
             else
                 sb.Append(type.Name);
-
-            //if (arrayDimensions > 0)
-            //{
-            //    int removeLen = 2 + arrayDimensions - 1;
-            //    sb.Remove(sb.Length - removeLen, removeLen);
-            //}
 
             if (string.IsNullOrEmpty(builtInName))
             {
@@ -255,6 +234,9 @@ namespace UniverseLib
             return ret;
         }
 
+        /// <summary>
+        /// Highlight the provided Types into a generic-arguments formatted rich-text string, optionally formatted as unbound generic parameters.
+        /// </summary>
         public static string ParseGenericArgs(Type[] args, bool isGenericParams = false)
         {
             if (args.Length < 1)
@@ -279,17 +261,9 @@ namespace UniverseLib
             return sb.ToString();
         }
 
-        public static string GetMemberInfoColor(MemberTypes type)
-        {
-            return type switch
-            {
-                MemberTypes.Method => METHOD_INSTANCE,
-                MemberTypes.Property => PROP_INSTANCE,
-                MemberTypes.Field => FIELD_INSTANCE,
-                _ => null,
-            };
-        }
-
+        /// <summary>
+        /// Highlight the provided method's signature with it's containing Type, and all arguments.
+        /// </summary>
         public static string HighlightMethod(MethodInfo method)
         {
             var sig = method.FullDescription();
@@ -342,6 +316,9 @@ namespace UniverseLib
             return ret;
         }
 
+        /// <summary>
+        /// Get the color used by SignatureHighlighter for the provided member, and whether it is static or not.
+        /// </summary>
         public static string GetMemberInfoColor(MemberInfo memberInfo, out bool isStatic)
         {
             isStatic = false;

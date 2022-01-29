@@ -11,16 +11,45 @@ using UniverseLib.UI;
 
 namespace UniverseLib.Input
 {
+    /// <summary>
+    /// Handles taking control of the mouse/cursor and EventSystem (depending on Config settings) when a UniversalUI is being used.
+    /// </summary>
     public class CursorUnlocker
     {
+        /// <summary>
+        /// True if a UI is being displayed and <see cref="ConfigManager.Force_Unlock_Mouse"/> is true.
+        /// </summary>
         public static bool ShouldUnlock => ConfigManager.Force_Unlock_Mouse && UniversalUI.AnyUIShowing;
 
+        /// <summary>
+        /// The value of <see cref="EventSystem.current"/>, or "EventSystem.main" in some older games.
+        /// </summary>
+        public static EventSystem CurrentEventSystem
+        {
+            get => (EventSystem)EventSystem_Current.GetValue(null, null);
+            set => EventSystem_Current.SetValue(null, value, null);
+        }
+
+        private static bool currentlySettingCursor;
         private static CursorLockMode lastLockMode;
         private static bool lastVisibleState;
 
-        private static bool currentlySettingCursor = false;
+        private static WaitForEndOfFrame waitForEndOfFrame = new();
 
-        public static void Init()
+        private static PropertyInfo EventSystem_Current
+        {
+            get => pi_currentEventSystem
+                    ?? (pi_currentEventSystem = AccessTools.Property(typeof(EventSystem), "current"))
+                    ?? (pi_currentEventSystem = AccessTools.Property(typeof(EventSystem), "main"))
+                    ?? throw new MissingMemberException("This game has no EventSystem.current or EventSystem.main property!");
+        }
+        private static PropertyInfo pi_currentEventSystem;
+
+        private static bool settingEventSystem;
+        private static EventSystem lastEventSystem;
+        private static BaseInputModule lastInputModule;
+
+        internal static void Init()
         {
             lastLockMode = Cursor.lockState;
             lastVisibleState = Cursor.visible;
@@ -28,10 +57,9 @@ namespace UniverseLib.Input
             SetupPatches();
             UpdateCursorControl();
 
-            // Aggressive Mouse Unlock
             try
             {
-                RuntimeProvider.Instance.StartCoroutine(FailsafeUnlockCoroutine());
+                RuntimeHelper.Instance.Internal_StartCoroutine(UnlockCoroutine());
             }
             catch (Exception ex)
             {
@@ -39,19 +67,23 @@ namespace UniverseLib.Input
             }
         }
 
-        private static WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
-
-        private static IEnumerator FailsafeUnlockCoroutine()
+        /// <summary>
+        /// Uses WaitForEndOfFrame in a Coroutine to aggressively set the Cursor state every frame.
+        /// </summary>
+        private static IEnumerator UnlockCoroutine()
         {
             while (true)
             {
-                yield return _waitForEndOfFrame ?? (_waitForEndOfFrame = new WaitForEndOfFrame());
+                yield return waitForEndOfFrame ??= new WaitForEndOfFrame();
                 if (UniversalUI.AnyUIShowing)
                     UpdateCursorControl();
             }
         }
 
-        public static void UpdateCursorControl()
+        /// <summary>
+        /// Checks current ShouldUnlock state and sets the Cursor and EventSystem as required.
+        /// </summary>
+        internal static void UpdateCursorControl()
         {
             try
             {
@@ -62,15 +94,15 @@ namespace UniverseLib.Input
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = true;
 
-                    if (!ConfigManager.Disable_EventSystem_Override && UniversalUI.EventSys)
-                        SetEventSystem();
+                    if (!ConfigManager.Disable_EventSystem_Override)
+                        EnableEventSystem();
                 }
                 else
                 {
                     Cursor.lockState = lastLockMode;
                     Cursor.visible = lastVisibleState;
 
-                    if (!ConfigManager.Disable_EventSystem_Override && UniversalUI.EventSys)
+                    if (!ConfigManager.Disable_EventSystem_Override)
                         ReleaseEventSystem();
                 }
 
@@ -82,30 +114,14 @@ namespace UniverseLib.Input
             }
         }
 
-        // Event system overrides
-
-
-        private static PropertyInfo EventSystemCurrentInfo
+        /// <summary>
+        /// If the UniverseLib EventSystem is not enabled, this enables it and sets EventSystem.current to it, and stores the previous EventSystem.
+        /// </summary>
+        internal static void EnableEventSystem()
         {
-            get => pi_currentEventSystem
-                    ?? (pi_currentEventSystem = ReflectionUtility.GetPropertyInfo(typeof(EventSystem), "current"))
-                    ?? (pi_currentEventSystem = ReflectionUtility.GetPropertyInfo(typeof(EventSystem), "main"))
-                    ?? throw new MissingMemberException("This game has no EventSystem.current or EventSystem.main property!");
-        }
-        private static PropertyInfo pi_currentEventSystem;
+            if (!UniversalUI.EventSys)
+                return;
 
-        public static EventSystem CurrentEventSystem
-        {
-            get => (EventSystem)EventSystemCurrentInfo.GetValue(null, null);
-            set => EventSystemCurrentInfo.SetValue(null, value, null);
-        }
-
-        private static bool settingEventSystem;
-        private static EventSystem lastEventSystem;
-        private static BaseInputModule lastInputModule;
-
-        public static void SetEventSystem()
-        {
             var current = CurrentEventSystem;
             if (current && current != UniversalUI.EventSys)
             {
@@ -113,9 +129,11 @@ namespace UniverseLib.Input
                 lastInputModule = current.currentInputModule;
                 lastEventSystem.enabled = false;
             }
+            // In some cases we may need to set our own EventSystem active before the original EventSystem is created or enabled.
+            // For that we will need to use Resources to find the other active EventSystem once it has been created.
             if (!lastEventSystem)
             {
-                var allSystems = RuntimeProvider.Instance.FindObjectsOfTypeAll(typeof(EventSystem));
+                var allSystems = RuntimeHelper.Instance.Internal_FindObjectsOfTypeAll(typeof(EventSystem));
                 foreach (var obj in allSystems)
                 {
                     var system = obj.TryCast<EventSystem>();
@@ -131,66 +149,68 @@ namespace UniverseLib.Input
                 }
             }
 
-            if (current == UniversalUI.EventSys)
-                return;
-
-            // Set to our current system
-            settingEventSystem = true;
-            UniversalUI.EventSys.enabled = true;
-            CurrentEventSystem = UniversalUI.EventSys;
-            InputManager.ActivateUIModule();
-            settingEventSystem = false;
+            if (!UniversalUI.EventSys.enabled)
+            {
+                // Set to our current system
+                settingEventSystem = true;
+                UniversalUI.EventSys.enabled = true;
+                CurrentEventSystem = UniversalUI.EventSys;
+                InputManager.ActivateUIModule();
+                settingEventSystem = false;
+            }
         }
 
-        public static void ReleaseEventSystem()
+        /// <summary>
+        /// If the UniverseLib EventSystem is enabled, this disables it and sets EventSystem.current to the previous EventSystem which was enabled.
+        /// </summary>
+        internal static void ReleaseEventSystem()
         {
-            settingEventSystem = true;
+            if (!UniversalUI.EventSys)
+                return;
 
-            UniversalUI.EventSys.enabled = false;
-            UniversalUI.EventSys.currentInputModule?.DeactivateModule();
-
-            if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
+            if (UniversalUI.EventSys.enabled)
             {
-                CurrentEventSystem = lastEventSystem;
-                lastEventSystem.enabled = true;
-                lastInputModule?.ActivateModule();
-            }
+                settingEventSystem = true;
 
-            settingEventSystem = false;
+                UniversalUI.EventSys.enabled = false;
+                UniversalUI.EventSys.currentInputModule?.DeactivateModule();
+
+                if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
+                {
+                    CurrentEventSystem = lastEventSystem;
+                    lastEventSystem.enabled = true;
+                    lastInputModule?.ActivateModule();
+                }
+
+                settingEventSystem = false;
+            }
         }
 
         // Patches
 
-        public static void SetupPatches()
+        internal static void SetupPatches()
         {
             try
             {
                 PrefixPropertySetter(typeof(Cursor),
                     "lockState",
-                    new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_set_lockState))));
+                    new HarmonyMethod(AccessTools.Method(typeof(CursorUnlocker), nameof(Prefix_set_lockState))));
 
                 PrefixPropertySetter(typeof(Cursor),
                     "visible",
-                    new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_set_visible))));
+                    new HarmonyMethod(AccessTools.Method(typeof(CursorUnlocker), nameof(Prefix_set_visible))));
 
-                if (typeof(EventSystem).GetProperty("current") != null)
-                {
-                    PrefixPropertySetter(typeof(EventSystem),
-                        "current",
-                        new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_set_current))));
-                }
-                else
-                {
-                    PrefixPropertySetter(typeof(EventSystem),
-                       "main",
-                       new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_set_current))));
-                }
+                PrefixPropertySetter(typeof(EventSystem), 
+                    "current", 
+                    new HarmonyMethod(AccessTools.Method(typeof(CursorUnlocker), nameof(Prefix_EventSystem_set_current))),
+                    // some games use "EventSystem.main"
+                    "main");
 
                 PrefixMethod(typeof(EventSystem),
                     "SetSelectedGameObject",
                     // some games use a modified version of uGUI that includes this extra int argument on this method.
                     new Type[] { typeof(GameObject), typeof(BaseEventData), typeof(int) },
-                    new HarmonyMethod(typeof(CursorUnlocker).GetMethod(nameof(CursorUnlocker.Prefix_EventSystem_SetSelectedGameObject))),
+                    new HarmonyMethod(AccessTools.Method(typeof(CursorUnlocker), nameof(Prefix_EventSystem_SetSelectedGameObject))),
                     // most games use these arguments, we'll use them as our "backup".
                     new Type[] { typeof(GameObject), typeof(BaseEventData) });
             }
@@ -224,11 +244,19 @@ namespace UniverseLib.Input
             }
         }
 
-        private static void PrefixPropertySetter(Type type, string property, HarmonyMethod prefix)
+        private static void PrefixPropertySetter(Type type, string property, HarmonyMethod prefix, string backupName = null)
         {
             try
             {
-                var processor = Universe.Harmony.CreateProcessor(type.GetProperty(property, ReflectionUtility.FLAGS).GetSetMethod());
+                var propInfo = type.GetProperty(property, ReflectionUtility.FLAGS)?.GetSetMethod();
+
+                if (propInfo == null && !string.IsNullOrEmpty(backupName))
+                    propInfo = type.GetProperty(backupName, ReflectionUtility.FLAGS).GetSetMethod();
+
+                if (propInfo == null)
+                    throw new MissingMethodException($"Could not find property {type.FullName}.{property}{(!string.IsNullOrEmpty(backupName) ? $" or {backupName}" : string.Empty)}!");
+
+                var processor = Universe.Harmony.CreateProcessor(propInfo);
                 processor.AddPrefix(prefix);
                 processor.Patch();
             }
@@ -238,9 +266,9 @@ namespace UniverseLib.Input
             }
         }
 
-        // Prevent setting non-UniverseLib objects as selected when menu is open
+        // Prevent setting non-UniverseLib objects as selected when a menu is open
 
-        public static bool Prefix_EventSystem_SetSelectedGameObject(GameObject __0)
+        internal static bool Prefix_EventSystem_SetSelectedGameObject(GameObject __0)
         {
             if (!UniversalUI.AnyUIShowing || !UniversalUI.CanvasRoot)
                 return true;
@@ -250,7 +278,7 @@ namespace UniverseLib.Input
 
         // Force EventSystem.current to be UniverseLib's when menu is open
 
-        public static void Prefix_EventSystem_set_current(ref EventSystem value)
+        internal static void Prefix_EventSystem_set_current(ref EventSystem value)
         {
             if (!settingEventSystem && value && value != UniversalUI.EventSys)
             {
@@ -272,7 +300,7 @@ namespace UniverseLib.Input
         // Also keep track of when anything else tries to set Cursor state, this will be the
         // value that we set back to when we close the menu or disable force-unlock.
 
-        public static void Prefix_set_lockState(ref CursorLockMode value)
+        internal static void Prefix_set_lockState(ref CursorLockMode value)
         {
             if (!currentlySettingCursor)
             {
@@ -283,14 +311,14 @@ namespace UniverseLib.Input
             }
         }
 
-        public static void Prefix_set_visible(ref bool value)
+        internal static void Prefix_set_visible(ref bool value)
         {
             if (!currentlySettingCursor)
             {
                 lastVisibleState = value;
 
                 if (ShouldUnlock)
-                    value = true;
+                    value = true; 
             }
         }
     }

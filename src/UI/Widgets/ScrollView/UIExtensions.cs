@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace UniverseLib.UI
+namespace UniverseLib.UI.Widgets.ScrollView
 {
     public static class UIExtension
     {
         public static void GetCorners(this RectTransform rect, Vector3[] corners)
         {
-            Vector3 bottomLeft = new Vector3(rect.position.x, rect.position.y - rect.rect.height, 0);
+            Vector3 bottomLeft = new(rect.position.x, rect.position.y - rect.rect.height, 0);
 
             corners[0] = bottomLeft;
             corners[1] = bottomLeft + new Vector3(0, rect.rect.height, 0);

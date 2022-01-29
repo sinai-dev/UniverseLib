@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,18 +10,25 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace UniverseLib
+namespace UniverseLib.Utility
 {
     public static class UnityHelpers
     {
         // Time helpers, can't use Time.time since timeScale will affect it.
 
-        // default 10ms (one frame at 100fps)
+        /// <summary>
+        /// Returns true if the provided <paramref name="time"/> occured more than 10ms before <see cref="Time.realtimeSinceStartup"/>.
+        /// </summary>
+        /// <param name="time">Should be a value from <see cref="Time.realtimeSinceStartup"/> which you stored earlier.</param>
         public static bool OccuredEarlierThanDefault(this float time)
         {
             return Time.realtimeSinceStartup - 0.01f >= time;
         }
 
+        /// <summary>
+        /// Returns true if the provided <paramref name="time"/> occured at least <paramref name="secondsAgo"/> before <see cref="Time.realtimeSinceStartup"/>.
+        /// </summary>
+        /// <param name="time">Should be a value from <see cref="Time.realtimeSinceStartup"/> which you stored earlier.</param>
         public static bool OccuredEarlierThan(this float time, float secondsAgo)
         {
             return Time.realtimeSinceStartup - secondsAgo >= time;
@@ -114,10 +122,13 @@ namespace UniverseLib
 
         private static PropertyInfo onEndEdit;
 
+        /// <summary>
+        /// Returns the onEndEdit event as a <see cref="UnityEvent{T0}"/> for greater compatibility with all Unity versions.
+        /// </summary>
         public static UnityEvent<string> GetOnEndEdit(this InputField _this)
         {
             if (onEndEdit == null)
-                onEndEdit = typeof(InputField).GetProperty("onEndEdit")
+                onEndEdit = AccessTools.Property(typeof(InputField), "onEndEdit")
                             ?? throw new Exception("Could not get InputField.onEndEdit property!");
 
             return onEndEdit.GetValue(_this, null).TryCast<UnityEvent<string>>();

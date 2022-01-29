@@ -11,6 +11,9 @@ using UniverseLib.Runtime.Il2Cpp;
 
 namespace UniverseLib
 {
+    /// <summary>
+    /// Replacement class for AssetBundles in case they were stripped by the game.
+    /// </summary>
     public class AssetBundle : UnityEngine.Object
     {
         static AssetBundle()

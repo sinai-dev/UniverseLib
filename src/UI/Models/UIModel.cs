@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace UniverseLib.UI.Models
 {
+    /// <summary>
+    /// An abstract UI object which does not exist as an actual UI Component, but which may be a reference to one.
+    /// </summary>
     public abstract class UIModel
     {
         public abstract GameObject UIRoot { get; }

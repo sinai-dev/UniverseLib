@@ -5,17 +5,22 @@ using UnityEngine.UI;
 using UniverseLib.Runtime;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.Widgets;
+using UniverseLib.UI.Widgets.ScrollView;
 
 namespace UniverseLib.UI
 {
+    /// <summary>
+    /// Helper class to create Unity uGUI UI objects at runtime, as well as use some custom UniverseLib UI classes such as ScrollPool, InputFieldScroller and AutoSliderScrollbar.
+    /// </summary>
     public static class UIFactory
     {
-        #region Init, Core
+        internal static Vector2 largeElementSize = new(100, 30);
+        internal static Vector2 smallElementSize = new(25, 25);
+        internal static Color defaultTextColor = Color.white;
 
-        internal static Vector2 _largeElementSize = new Vector2(100, 30);
-        internal static Vector2 _smallElementSize = new Vector2(25, 25);
-        internal static Color _defaultTextColor = Color.white;
-
+        /// <summary>
+        /// Create a simple UI object with a RectTransform. <paramref name="parent"/> can be null.
+        /// </summary>
         public static GameObject CreateUIObject(string name, GameObject parent, Vector2 size = default)
         {
             if (!parent)
@@ -38,13 +43,9 @@ namespace UniverseLib.UI
             return obj;
         }
 
-        #endregion
-
-        #region Default component initializers
-
         internal static void SetDefaultTextValues(Text text)
         {
-            text.color = _defaultTextColor;
+            text.color = defaultTextColor;
             text.font = UniversalUI.DefaultFont;
             text.fontSize = 14;
         }
@@ -55,11 +56,9 @@ namespace UniverseLib.UI
             nav.mode = Navigation.Mode.Explicit;
             selectable.navigation = nav;
 
-            RuntimeProvider.Instance.SetColorBlock(selectable, new Color(0.2f, 0.2f, 0.2f),
+            RuntimeHelper.Instance.Internal_SetColorBlock(selectable, new Color(0.2f, 0.2f, 0.2f),
                 new Color(0.3f, 0.3f, 0.3f), new Color(0.15f, 0.15f, 0.15f));
         }
-
-        #endregion
 
 
         #region Layout Components
@@ -257,7 +256,7 @@ namespace UniverseLib.UI
             SetDefaultTextValues(textComp);
 
             textComp.text = text;
-            textComp.color = color == default ? _defaultTextColor : color;
+            textComp.color = color == default ? defaultTextColor : color;
             textComp.supportRichText = supportRichText;
             textComp.alignment = alignment;
             textComp.fontSize = fontSize;
@@ -272,14 +271,14 @@ namespace UniverseLib.UI
 
             var btn = CreateButton(parent, name, text, colors);
 
-            RuntimeProvider.Instance.SetColorBlock(btn.Component, normalColor, normalColor * 1.2f, normalColor * 0.7f);
+            RuntimeHelper.Instance.Internal_SetColorBlock(btn.Component, normalColor, normalColor * 1.2f, normalColor * 0.7f);
 
             return btn;
         }
 
         public static ButtonRef CreateButton(GameObject parent, string name, string text, ColorBlock colors)
         {
-            GameObject buttonObj = CreateUIObject(name, parent, _smallElementSize);
+            GameObject buttonObj = CreateUIObject(name, parent, smallElementSize);
 
             var textObj = CreateUIObject("Text", buttonObj);
 
@@ -291,7 +290,7 @@ namespace UniverseLib.UI
             SetDefaultSelectableValues(button);
 
             colors.colorMultiplier = 1;
-            RuntimeProvider.Instance.SetColorBlock(button, colors);
+            RuntimeHelper.Instance.Internal_SetColorBlock(button, colors);
 
             Text textComp = textObj.AddComponent<Text>();
             textComp.text = text;
@@ -321,7 +320,7 @@ namespace UniverseLib.UI
         /// </summary>
         public static GameObject CreateSlider(GameObject parent, string name, out Slider slider)
         {
-            GameObject sliderObj = CreateUIObject(name, parent, _smallElementSize);
+            GameObject sliderObj = CreateUIObject(name, parent, smallElementSize);
 
             GameObject bgObj = CreateUIObject("Background", sliderObj);
             GameObject fillAreaObj = CreateUIObject("Fill Area", sliderObj);
@@ -366,7 +365,7 @@ namespace UniverseLib.UI
             slider.targetGraphic = handleImage;
             slider.direction = Slider.Direction.LeftToRight;
 
-            RuntimeProvider.Instance.SetColorBlock(slider, new Color(0.4f, 0.4f, 0.4f),
+            RuntimeHelper.Instance.Internal_SetColorBlock(slider, new Color(0.4f, 0.4f, 0.4f),
                 new Color(0.55f, 0.55f, 0.55f), new Color(0.3f, 0.3f, 0.3f));
 
             return sliderObj;
@@ -377,7 +376,7 @@ namespace UniverseLib.UI
         /// </summary>
         public static GameObject CreateScrollbar(GameObject parent, string name, out Scrollbar scrollbar)
         {
-            GameObject scrollObj = CreateUIObject(name, parent, _smallElementSize);
+            GameObject scrollObj = CreateUIObject(name, parent, smallElementSize);
 
             GameObject slideAreaObj = CreateUIObject("Sliding Area", scrollObj);
             GameObject handleObj = CreateUIObject("Handle", slideAreaObj);
@@ -414,7 +413,7 @@ namespace UniverseLib.UI
             int checkWidth = 20, int checkHeight = 20)
         {
             // Main obj
-            GameObject toggleObj = CreateUIObject(name, parent, _smallElementSize);
+            GameObject toggleObj = CreateUIObject(name, parent, smallElementSize);
             SetLayoutGroup<HorizontalLayoutGroup>(toggleObj, false, false, true, true, 5, 0,0,0,0, childAlignment: TextAnchor.MiddleLeft);
             toggle = toggleObj.AddComponent<Toggle>();
             toggle.isOn = true;
@@ -476,7 +475,7 @@ namespace UniverseLib.UI
             inputField.transition = Selectable.Transition.ColorTint;
             inputField.targetGraphic = mainImage;
 
-            RuntimeProvider.Instance.SetColorBlock(inputField, new Color(1, 1, 1, 1),
+            RuntimeHelper.Instance.Internal_SetColorBlock(inputField, new Color(1, 1, 1, 1),
                 new Color(0.95f, 0.95f, 0.95f, 1.0f), new Color(0.78f, 0.78f, 0.78f, 1.0f));
 
             GameObject textArea = CreateUIObject("TextArea", mainObj);
@@ -532,7 +531,7 @@ namespace UniverseLib.UI
         public static GameObject CreateDropdown(GameObject parent, out Dropdown dropdown, string defaultItemText, int itemFontSize,
             Action<int> onValueChanged, string[] defaultOptions = null)
         {
-            GameObject dropdownObj = CreateUIObject("Dropdown", parent, _largeElementSize);
+            GameObject dropdownObj = CreateUIObject("Dropdown", parent, largeElementSize);
 
             GameObject labelObj = CreateUIObject("Label", dropdownObj);
             GameObject arrowObj = CreateUIObject("Arrow", dropdownObj);
@@ -546,7 +545,7 @@ namespace UniverseLib.UI
 
             GameObject scrollbarObj = CreateScrollbar(templateObj, "DropdownScroll", out Scrollbar scrollbar);
             scrollbar.SetDirection(Scrollbar.Direction.BottomToTop, true);
-            RuntimeProvider.Instance.SetColorBlock(scrollbar, new Color(0.45f, 0.45f, 0.45f), new Color(0.6f, 0.6f, 0.6f), new Color(0.4f, 0.4f, 0.4f));
+            RuntimeHelper.Instance.Internal_SetColorBlock(scrollbar, new Color(0.45f, 0.45f, 0.45f), new Color(0.6f, 0.6f, 0.6f), new Color(0.4f, 0.4f, 0.4f));
 
             RectTransform scrollRectTransform = scrollbarObj.GetComponent<RectTransform>();
             scrollRectTransform.anchorMin = Vector2.right;
@@ -575,7 +574,7 @@ namespace UniverseLib.UI
             Toggle itemToggle = itemObj.AddComponent<Toggle>();
             itemToggle.targetGraphic = itemBgImage;
             itemToggle.isOn = true;
-            RuntimeProvider.Instance.SetColorBlock(itemToggle,
+            RuntimeHelper.Instance.Internal_SetColorBlock(itemToggle,
                 new Color(0.35f, 0.35f, 0.35f, 1.0f), new Color(0.25f, 0.55f, 0.25f, 1.0f));
 
             itemToggle.onValueChanged.AddListener((bool val) => { itemToggle.OnDeselect(null); });
@@ -728,7 +727,7 @@ namespace UniverseLib.UI
 
             CreateSliderScrollbar(sliderContainer, out Slider slider);
 
-            RuntimeProvider.Instance.SetColorBlock(slider, disabled: new Color(0.1f, 0.1f, 0.1f));
+            RuntimeHelper.Instance.Internal_SetColorBlock(slider, disabled: new Color(0.1f, 0.1f, 0.1f));
 
             // finalize and create ScrollPool
 
@@ -743,7 +742,7 @@ namespace UniverseLib.UI
         /// </summary>
         public static GameObject CreateSliderScrollbar(GameObject parent, out Slider slider)
         {
-            GameObject mainObj = CreateUIObject("SliderScrollbar", parent, _smallElementSize);
+            GameObject mainObj = CreateUIObject("SliderScrollbar", parent, smallElementSize);
             mainObj.AddComponent<Mask>().showMaskGraphic = false;
             mainObj.AddComponent<Image>().color = Color.white;
 
@@ -789,7 +788,7 @@ namespace UniverseLib.UI
 
             SetLayoutElement(mainObj, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
 
-            RuntimeProvider.Instance.SetColorBlock(slider,
+            RuntimeHelper.Instance.Internal_SetColorBlock(slider,
                 new Color(0.4f, 0.4f, 0.4f),
                 new Color(0.5f, 0.5f, 0.5f),
                 new Color(0.3f, 0.3f, 0.3f),

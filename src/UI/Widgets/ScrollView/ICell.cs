@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UniverseLib.UI.Models;
+using UniverseLib.UI.ObjectPool;
 
-namespace UniverseLib.UI.Widgets
+namespace UniverseLib.UI.Widgets.ScrollView
 {
     public interface ICell : IPooledObject
     {

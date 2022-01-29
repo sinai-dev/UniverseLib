@@ -4,20 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UniverseLib.UI.Widgets.ScrollView;
 
-namespace UniverseLib.UI.Widgets
+namespace UniverseLib.UI.Widgets.ButtonList
 {
+    /// <summary>
+    /// A helper to create and handle a simple <see cref="ScrollPool{T}"/> of Buttons, which can be backed by any data.
+    /// </summary>
     public class ButtonListHandler<TData, TCell> : ICellPoolDataSource<TCell> where TCell : ButtonCell
     {
-        public ScrollPool<TCell> ScrollPool;
+        public ScrollPool<TCell> ScrollPool { get; private set; }
 
-        public int ItemCount => currentEntries.Count;
-        public readonly List<TData> currentEntries = new List<TData>();
+        public int ItemCount => CurrentEntries.Count;
+        public List<TData> CurrentEntries { get; } = new();
 
-        public Func<List<TData>> GetEntries;
-        public Action<TCell, int> SetICell;
-        public Func<TData, string, bool> ShouldDisplay;
-        public Action<int> OnCellClicked;
+        protected Func<List<TData>> GetEntries;
+        protected Action<TCell, int> SetICell;
+        protected Func<TData, string, bool> ShouldDisplay;
+        protected Action<int> OnCellClicked;
 
         public string CurrentFilter
         {
@@ -26,6 +30,14 @@ namespace UniverseLib.UI.Widgets
         }
         private string currentFilter;
 
+        /// <summary>
+        /// Create a wrapper to handle your Button ScrollPool.
+        /// </summary>
+        /// <param name="scrollPool">The ScrollPool&lt;ButtonCell&gt; you have already created.</param>
+        /// <param name="getEntriesMethod">A method which should return your current data values.</param>
+        /// <param name="setICellMethod">A method which should set the data at the int index to the cell.</param>
+        /// <param name="shouldDisplayMethod">A method which should determine if the data at the index should be displayed, with an optional string filter from CurrentFilter.</param>
+        /// <param name="onCellClickedMethod">A method invoked when a cell is clicked, containing the data index assigned to the cell.</param>
         public ButtonListHandler(ScrollPool<TCell> scrollPool, Func<List<TData>> getEntriesMethod,
             Action<TCell, int> setICellMethod, Func<TData, string, bool> shouldDisplayMethod,
             Action<int> onCellClickedMethod)
@@ -41,7 +53,7 @@ namespace UniverseLib.UI.Widgets
         public void RefreshData()
         {
             var allEntries = GetEntries();
-            currentEntries.Clear();
+            CurrentEntries.Clear();
 
             foreach (var entry in allEntries)
             {
@@ -50,10 +62,10 @@ namespace UniverseLib.UI.Widgets
                     if (!ShouldDisplay(entry, currentFilter))
                         continue;
 
-                    currentEntries.Add(entry);
+                    CurrentEntries.Add(entry);
                 }
                 else
-                    currentEntries.Add(entry);
+                    CurrentEntries.Add(entry);
             }
         }
 
@@ -64,10 +76,10 @@ namespace UniverseLib.UI.Widgets
 
         public virtual void SetCell(TCell cell, int index)
         {
-            if (currentEntries == null)
+            if (CurrentEntries == null)
                 RefreshData();
 
-            if (index < 0 || index >= currentEntries.Count)
+            if (index < 0 || index >= CurrentEntries.Count)
                 cell.Disable();
             else
             {

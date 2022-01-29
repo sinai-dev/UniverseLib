@@ -1,4 +1,5 @@
 ﻿#if MONO
+using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,43 +15,56 @@ using UniverseLib;
 
 namespace UniverseLib.Runtime.Mono
 {
-    public class MonoProvider : RuntimeProvider
+    internal class MonoProvider : RuntimeHelper
     {
-        public override void Initialize()
+        protected internal override void OnInitialize()
         {
             Universe.Context = RuntimeContext.Mono;
-            TextureUtil = new MonoTextureUtil();
+            new MonoTextureHelper();
         }
 
-        public override void StartCoroutine(IEnumerator routine) 
+        /// <inheritdoc/>
+        protected internal override Coroutine Internal_StartCoroutine(IEnumerator routine) 
             => UniversalBehaviour.Instance.StartCoroutine(routine);
 
-        public override void Update()
-        {
-        }
+        /// <inheritdoc/>
+        protected internal override void Internal_StopCoroutine(Coroutine coroutine)
+            => UniversalBehaviour.Instance.StopCoroutine(coroutine);
 
-        public override T AddComponent<T>(GameObject obj, Type type) 
+        /// <inheritdoc/>
+        protected internal override T Internal_AddComponent<T>(GameObject obj, Type type) 
             => (T)obj.AddComponent(type);
 
-        public override ScriptableObject CreateScriptable(Type type) 
+        /// <inheritdoc/>
+        protected internal override ScriptableObject Internal_CreateScriptable(Type type) 
             => ScriptableObject.CreateInstance(type);
 
-        public override void GraphicRaycast(GraphicRaycaster raycaster, PointerEventData data, List<RaycastResult> list)
+        /// <inheritdoc/>
+        protected internal override void Internal_GraphicRaycast(GraphicRaycaster raycaster, PointerEventData data, List<RaycastResult> list)
             => raycaster.Raycast(data, list);
 
-        public override string LayerToName(int layer) 
+        /// <inheritdoc/>
+        protected internal override string Internal_LayerToName(int layer) 
             => LayerMask.LayerToName(layer);
 
-        public override UnityEngine.Object[] FindObjectsOfTypeAll(Type type) 
+        /// <inheritdoc/>
+        protected internal override UnityEngine.Object[] Internal_FindObjectsOfTypeAll(Type type) 
             => Resources.FindObjectsOfTypeAll(type);
 
-        public override GameObject[] GetRootGameObjects(Scene scene) 
+        /// <inheritdoc/>
+        protected internal override GameObject[] Internal_GetRootGameObjects(Scene scene) 
             => scene.isLoaded ? scene.GetRootGameObjects() : new GameObject[0];
 
-        public override int GetRootCount(Scene scene) 
+        /// <inheritdoc/>
+        protected internal override int Internal_GetRootCount(Scene scene) 
             => scene.rootCount;
 
-        public override void SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,
+        /// <inheritdoc/>
+        protected internal override void Internal_SetColorBlock(Selectable selectable, ColorBlock colors)
+            => selectable.colors = colors;
+
+        /// <inheritdoc/>
+        protected internal override void Internal_SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,
             Color? disabled = null)
         {
             var colors = selectable.colors;
@@ -67,11 +81,8 @@ namespace UniverseLib.Runtime.Mono
             if (disabled != null)
                 colors.disabledColor = (Color)disabled;
 
-            SetColorBlock(selectable, colors);
+            Internal_SetColorBlock(selectable, colors);
         }
-
-        public override void SetColorBlock(Selectable selectable, ColorBlock colors) 
-            => selectable.colors = colors;
     }
 }
 
@@ -99,12 +110,12 @@ public static class MonoExtensions
     // These properties don't exist in some earlier games, so null check before trying to set them.
 
     public static void SetChildControlHeight(this HorizontalOrVerticalLayoutGroup group, bool value)
-        => ReflectionUtility.GetPropertyInfo(typeof(HorizontalOrVerticalLayoutGroup), "childControlHeight")
+        => AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlHeight")
             ?.SetValue(group, value, null);
 
 
     public static void SetChildControlWidth(this HorizontalOrVerticalLayoutGroup group, bool value)
-        => ReflectionUtility.GetPropertyInfo(typeof(HorizontalOrVerticalLayoutGroup), "childControlWidth")
+        => AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlWidth")
             ?.SetValue(group, value, null);
 }
 

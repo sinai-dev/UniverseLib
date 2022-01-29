@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,23 +7,68 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace UniverseLib
+namespace UniverseLib.Utility
 {
     public static class ParseUtility
     {
-        private static readonly HashSet<Type> nonPrimitiveTypes = new HashSet<Type>
+        /// <summary>
+        /// Equivalent to <c>$"0.####"</c>.
+        /// </summary>
+        public static readonly string NumberFormatString = $"0.####";
+        private static readonly Dictionary<int, string> numSequenceStrings = new();
+
+        private static readonly HashSet<Type> nonPrimitiveTypes = new()
         {
             typeof(string),
             typeof(decimal),
             typeof(DateTime),
         };
 
+        private static readonly HashSet<Type> formattedTypes = new()
+        {
+            typeof(float),
+            typeof(double),
+            typeof(decimal)
+        };
+
+        private static readonly Dictionary<string, string> typeInputExamples = new();
+
+        internal delegate object ParseMethod(string input);
+
+        private static readonly Dictionary<string, ParseMethod> customTypes = new()
+        {
+            { typeof(Vector2).FullName, TryParseVector2 },
+            { typeof(Vector3).FullName, TryParseVector3 },
+            { typeof(Vector4).FullName, TryParseVector4 },
+            { typeof(Quaternion).FullName, TryParseQuaternion },
+            { typeof(Rect).FullName, TryParseRect },
+            { typeof(Color).FullName, TryParseColor },
+            { typeof(Color32).FullName, TryParseColor32 },
+            { typeof(LayerMask).FullName, TryParseLayerMask },
+        };
+
+        internal delegate string ToStringMethod(object obj);
+
+        private static readonly Dictionary<string, ToStringMethod> customTypesToString = new()
+        {
+            { typeof(Vector2).FullName, Vector2ToString },
+            { typeof(Vector3).FullName, Vector3ToString },
+            { typeof(Vector4).FullName, Vector4ToString },
+            { typeof(Quaternion).FullName, QuaternionToString },
+            { typeof(Rect).FullName, RectToString },
+            { typeof(Color).FullName, ColorToString },
+            { typeof(Color32).FullName, Color32ToString },
+            { typeof(LayerMask).FullName, LayerMaskToString },
+        };
+
         // Helper for formatting float/double/decimal numbers to maximum of 4 decimal points.
         // And also for formatting a sequence of those numbers, ie a Vector3, Color etc
 
-        public static readonly string NumberFormatString = $"0.####";
-        private static readonly Dictionary<int, string> numSequenceStrings = new Dictionary<int, string>();
-
+        /// <summary>
+        /// Formats the array of float, double or decimal numbers into a formatted string.
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <returns></returns>
         public static string FormatDecimalSequence(params object[] numbers)
         {
             if (numbers.Length <= 0)
@@ -31,7 +77,7 @@ namespace UniverseLib
             return string.Format(CultureInfo.CurrentCulture, GetSequenceFormatString(numbers.Length), numbers);
         }
 
-        public static string GetSequenceFormatString(int count)
+        internal static string GetSequenceFormatString(int count)
         {
             if (count <= 0)
                 return null;
@@ -51,12 +97,18 @@ namespace UniverseLib
 
         // Main parsing API
 
+        /// <summary>
+        /// Returns true if ParseUtility is able to parse the provided Type.
+        /// </summary>
         public static bool CanParse(Type type)
         {
             return !string.IsNullOrEmpty(type?.FullName)
                 && (type.IsPrimitive || type.IsEnum || nonPrimitiveTypes.Contains(type) || customTypes.ContainsKey(type.FullName));
         }
 
+        /// <summary>
+        /// Attempt to parse the provided input into an object of the provided Type. Returns true if successful, false if not.
+        /// </summary>
         public static bool TryParse(string input, Type type, out object obj, out Exception parseException)
         {
             obj = null;
@@ -93,7 +145,7 @@ namespace UniverseLib
                 }
                 else
                 {
-                    obj = ReflectionUtility.GetMethodInfo(type, "Parse", ArgumentUtility.ParseArgs)
+                    obj = AccessTools.Method(type, "Parse", ArgumentUtility.ParseArgs)
                         .Invoke(null, new object[] { input });
                 }
 
@@ -108,13 +160,9 @@ namespace UniverseLib
             return false;
         }
 
-        private static readonly HashSet<Type> formattedTypes = new HashSet<Type>
-        {
-            typeof(float),
-            typeof(double),
-            typeof(decimal)
-        };
-
+        /// <summary>
+        /// Returns the obj.ToString() result, formatted into the format which ParseUtility would expect for user input.
+        /// </summary>
         public static string ToStringForInput(object obj, Type type)
         {
             if (type == null || obj == null)
@@ -138,7 +186,7 @@ namespace UniverseLib
                 }
                 else if (formattedTypes.Contains(type))
                 {
-                    return ReflectionUtility.GetMethodInfo(type, "ToString", new Type[] { typeof(string), typeof(IFormatProvider) })
+                    return AccessTools.Method(type, "ToString", new Type[] { typeof(string), typeof(IFormatProvider) })
                             .Invoke(obj, new object[] { NumberFormatString, CultureInfo.CurrentCulture })
                             as string;
                 }
@@ -153,8 +201,9 @@ namespace UniverseLib
             }
         }
 
-        private static readonly Dictionary<string, string> typeInputExamples = new Dictionary<string, string>();
-
+        /// <summary>
+        /// Gets a default example input which can be displayed to users, for example for Vector2 this would return "0 0".
+        /// </summary>
         public static string GetExampleInput(Type type)
         {
             if (!typeInputExamples.ContainsKey(type.AssemblyQualifiedName))
@@ -182,37 +231,9 @@ namespace UniverseLib
 
         #region Custom parse methods
 
-        internal delegate object ParseMethod(string input);
-
-        private static readonly Dictionary<string, ParseMethod> customTypes = new Dictionary<string, ParseMethod>
-        {
-            { typeof(Vector2).FullName,    TryParseVector2 },
-            { typeof(Vector3).FullName,    TryParseVector3 },
-            { typeof(Vector4).FullName,    TryParseVector4 },
-            { typeof(Quaternion).FullName, TryParseQuaternion },
-            { typeof(Rect).FullName,       TryParseRect },
-            { typeof(Color).FullName,      TryParseColor },
-            { typeof(Color32).FullName,    TryParseColor32 },
-            { typeof(LayerMask).FullName,  TryParseLayerMask },
-        };
-
-        internal delegate string ToStringMethod(object obj);
-
-        private static readonly Dictionary<string, ToStringMethod> customTypesToString = new Dictionary<string, ToStringMethod>
-        {
-            { typeof(Vector2).FullName,    Vector2ToString },
-            { typeof(Vector3).FullName,    Vector3ToString },
-            { typeof(Vector4).FullName,    Vector4ToString },
-            { typeof(Quaternion).FullName, QuaternionToString },
-            { typeof(Rect).FullName,       RectToString },
-            { typeof(Color).FullName,      ColorToString },
-            { typeof(Color32).FullName,    Color32ToString },
-            { typeof(LayerMask).FullName,  LayerMaskToString },
-        };
-
         // Vector2
 
-        public static object TryParseVector2(string input)
+        internal static object TryParseVector2(string input)
         {
             Vector2 vector = default;
 
@@ -224,9 +245,9 @@ namespace UniverseLib
             return vector;
         }
 
-        public static string Vector2ToString(object obj)
+        internal static string Vector2ToString(object obj)
         {
-            if (!(obj is Vector2 vector))
+            if (obj is not Vector2 vector)
                 return null;
 
             return FormatDecimalSequence(vector.x, vector.y);
@@ -234,7 +255,7 @@ namespace UniverseLib
 
         // Vector3
 
-        public static object TryParseVector3(string input)
+        internal static object TryParseVector3(string input)
         {
             Vector3 vector = default;
 
@@ -247,9 +268,9 @@ namespace UniverseLib
             return vector;
         }
 
-        public static string Vector3ToString(object obj)
+        internal static string Vector3ToString(object obj)
         {
-            if (!(obj is Vector3 vector))
+            if (obj is not Vector3 vector)
                 return null;
 
             return FormatDecimalSequence(vector.x, vector.y, vector.z);
@@ -257,7 +278,7 @@ namespace UniverseLib
 
         // Vector4
 
-        public static object TryParseVector4(string input)
+        internal static object TryParseVector4(string input)
         {
             Vector4 vector = default;
 
@@ -271,9 +292,9 @@ namespace UniverseLib
             return vector;
         }
 
-        public static string Vector4ToString(object obj)
+        internal static string Vector4ToString(object obj)
         {
-            if (!(obj is Vector4 vector))
+            if (obj is not Vector4 vector)
                 return null;
 
             return FormatDecimalSequence(vector.x, vector.y, vector.z, vector.w);
@@ -281,7 +302,7 @@ namespace UniverseLib
 
         // Quaternion
 
-        public static object TryParseQuaternion(string input)
+        internal static object TryParseQuaternion(string input)
         {
             Vector3 vector = default;
 
@@ -305,9 +326,9 @@ namespace UniverseLib
             }
         }
 
-        public static string QuaternionToString(object obj)
+        internal static string QuaternionToString(object obj)
         {
-            if (!(obj is Quaternion quaternion))
+            if (obj is not Quaternion quaternion)
                 return null;
 
             Vector3 vector = quaternion.eulerAngles;
@@ -317,7 +338,7 @@ namespace UniverseLib
 
         // Rect
 
-        public static object TryParseRect(string input)
+        internal static object TryParseRect(string input)
         {
             Rect rect = default;
 
@@ -331,9 +352,9 @@ namespace UniverseLib
             return rect;
         }
 
-        public static string RectToString(object obj)
+        internal static string RectToString(object obj)
         {
-            if (!(obj is Rect rect))
+            if (obj is not Rect rect)
                 return null;
 
             return FormatDecimalSequence(rect.x, rect.y, rect.width, rect.height);
@@ -341,7 +362,7 @@ namespace UniverseLib
 
         // Color
 
-        public static object TryParseColor(string input)
+        internal static object TryParseColor(string input)
         {
             Color color = default;
 
@@ -358,9 +379,9 @@ namespace UniverseLib
             return color;
         }
 
-        public static string ColorToString(object obj)
+        internal static string ColorToString(object obj)
         {
-            if (!(obj is Color color))
+            if (obj is not Color color)
                 return null;
 
             return FormatDecimalSequence(color.r, color.g, color.b, color.a);
@@ -368,7 +389,7 @@ namespace UniverseLib
 
         // Color32
 
-        public static object TryParseColor32(string input)
+        internal static object TryParseColor32(string input)
         {
             Color32 color = default;
 
@@ -385,9 +406,9 @@ namespace UniverseLib
             return color;
         }
 
-        public static string Color32ToString(object obj)
+        internal static string Color32ToString(object obj)
         {
-            if (!(obj is Color32 color))
+            if (obj is not Color32 color)
                 return null;
 
             // ints, this is fine
@@ -396,14 +417,14 @@ namespace UniverseLib
 
         // Layermask (Int32)
 
-        public static object TryParseLayerMask(string input)
+        internal static object TryParseLayerMask(string input)
         {
             return (LayerMask)int.Parse(input);
         }
 
-        public static string LayerMaskToString(object obj)
+        internal static string LayerMaskToString(object obj)
         {
-            if (!(obj is LayerMask mask))
+            if (obj is not LayerMask mask)
                 return null;
 
             return mask.value.ToString();

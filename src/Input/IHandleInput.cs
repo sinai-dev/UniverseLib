@@ -3,6 +3,9 @@ using UnityEngine.EventSystems;
 
 namespace UniverseLib.Input
 {
+    /// <summary>
+    /// Interface for handling Unity Input API.
+    /// </summary>
     public interface IHandleInput
     {
         Vector2 MousePosition { get; }

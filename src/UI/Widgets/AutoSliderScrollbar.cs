@@ -11,26 +11,17 @@ using UniverseLib.UI.Models;
 
 namespace UniverseLib.UI.Widgets
 {
+    /// <summary>
+    /// A scrollbar which automatically resizes itself (and its handle) depending on the size of the content and viewport.
+    /// </summary>
     public class AutoSliderScrollbar : UIBehaviourModel
     {
-        public override GameObject UIRoot
-        {
-            get
-            {
-                if (Slider)
-                    return Slider.gameObject;
-                return null;
-            }
-        }
+        public override GameObject UIRoot => Slider?.gameObject;
 
-        //public event Action<float> OnValueChanged;
-
-        public readonly Scrollbar Scrollbar;
-        public readonly Slider Slider;
-        public RectTransform ContentRect;
-        public RectTransform ViewportRect;
-
-        //internal InputFieldScroller m_parentInputScroller;
+        public Slider Slider { get; }
+        public Scrollbar Scrollbar { get; }
+        public RectTransform ContentRect { get; }
+        public RectTransform ViewportRect { get; }
 
         public AutoSliderScrollbar(Scrollbar scrollbar, Slider slider, RectTransform contentRect, RectTransform viewportRect)
         {

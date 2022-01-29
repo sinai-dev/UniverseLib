@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace UniverseLib.UI
 {
+    /// <summary>
+    /// A simple wrapper to handle a UI created with <see cref="UniversalUI.RegisterUI"/>.
+    /// </summary>
     public class UIBase
     {
         public string ID { get; }
@@ -13,9 +16,16 @@ namespace UniverseLib.UI
         public Canvas Canvas { get; }
         public Action UpdateMethod { get; }
 
-        public bool Enabled => RootObject.activeSelf;
+        /// <summary>
+        /// Whether this UI is currently being displayed or not. Disabled UIs will not receive Update calls.
+        /// </summary>
+        public bool Enabled
+        {
+            get => RootObject.activeSelf;
+            set => UniversalUI.SetUIActive(this.ID, value);
+        }
 
-        public UIBase(string id, GameObject rootObject, Action updateMethod)
+        internal UIBase(string id, GameObject rootObject, Action updateMethod)
         {
             ID = id;
             RootObject = rootObject;
@@ -23,7 +33,7 @@ namespace UniverseLib.UI
             Canvas = RootObject.GetComponent<Canvas>();
         }
 
-        public void Update()
+        internal void Update()
         {
             try
             {

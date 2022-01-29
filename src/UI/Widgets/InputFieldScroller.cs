@@ -14,27 +14,26 @@ using UnhollowerRuntimeLib;
 
 namespace UniverseLib.UI.Widgets
 {
-    // To fix an issue with Input Fields and allow them to go inside a ScrollRect nicely.
-
+    /// <summary>
+    /// A wrapper for a scrollable InputField created with <see cref="UIFactory.CreateScrollInputField"/>.<br/><br/>
+    /// 
+    /// This is otherwise a normal InputField, but which handles scrolling more nicely than a vanilla one.
+    /// </summary>
     public class InputFieldScroller : UIBehaviourModel
     {
-        public override GameObject UIRoot
-        {
-            get
-            {
-                if (InputField.UIRoot)
-                    return InputField.UIRoot;
-                return null;
-            }
-        }
+        public override GameObject UIRoot => InputField?.UIRoot;
 
+        /// <summary>
+        /// Invoked whenever this InputField is scrolled through (ie, 
+        /// </summary>
         public Action OnScroll;
 
-        public AutoSliderScrollbar Slider;
-        public InputFieldRef InputField;
-        public RectTransform ContentRect;
-        public RectTransform ViewportRect;
-        public static CanvasScaler RootScaler;
+        public InputFieldRef InputField { get; }
+        public AutoSliderScrollbar Slider { get; }
+        public RectTransform ContentRect { get; }
+        public RectTransform ViewportRect { get; }
+
+        public static CanvasScaler RootScaler { get; private set; }
 
         internal string lastText;
         internal bool updateWanted;

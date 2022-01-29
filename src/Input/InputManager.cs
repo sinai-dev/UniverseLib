@@ -7,22 +7,21 @@ using UniverseLib.UI;
 
 namespace UniverseLib.Input
 {
-    public enum InputType
-    {
-        InputSystem,
-        Legacy,
-        None
-    }
-
+    /// <summary>
+    /// A universal Input handler which works with both legacy Input and the new InputSystem.
+    /// </summary>
     public static class InputManager
     {
+        /// <summary>
+        /// The current Input package which is being used by the game.
+        /// </summary>
         public static InputType CurrentType { get; private set; }
 
         private static IHandleInput inputHandler;
 
         // Core init
 
-        public static void Init()
+        internal static void Init()
         {
             InitHandler();
             InitKeycodes();
@@ -90,6 +89,9 @@ namespace UniverseLib.Input
 
         // Main Input API
 
+        /// <summary>
+        /// The current user Cursor position, with (0,0) being the bottom-left of the game display window.
+        /// </summary>
         public static Vector3 MousePosition
         {
             get
@@ -101,42 +103,9 @@ namespace UniverseLib.Input
             }
         }
 
-        public static bool GetKeyDown(KeyCode key)
-        {
-            if (Rebinding || Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
-                return false;
-
-            if (key == KeyCode.None)
-                return false;
-            return inputHandler.GetKeyDown(key);
-        }
-
-        public static bool GetKey(KeyCode key)
-        {
-            if (Rebinding || Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
-                return false;
-
-            if (key == KeyCode.None)
-                return false;
-            return inputHandler.GetKey(key);
-        }
-
-        public static bool GetMouseButtonDown(int btn)
-        {
-            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
-                return false;
-
-            return inputHandler.GetMouseButtonDown(btn);
-        }
-
-        public static bool GetMouseButton(int btn)
-        {
-            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
-                return false;
-
-            return inputHandler.GetMouseButton(btn);
-        }
-
+        /// <summary>
+        /// The current mouse scroll delta from this frame. x is horizontal, y is vertical.
+        /// </summary>
         public static Vector2 MouseScrollDelta
         {
             get
@@ -148,17 +117,68 @@ namespace UniverseLib.Input
             }
         }
 
+        /// <summary>
+        /// Returns true if the provided KeyCode was pressed this frame. Translates KeyCodes into Key if InputSystem is being used.
+        /// </summary>
+        public static bool GetKeyDown(KeyCode key)
+        {
+            if (Rebinding || Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            if (key == KeyCode.None)
+                return false;
+            return inputHandler.GetKeyDown(key);
+        }
+
+        /// <summary>
+        /// Returns true if the provided KeyCode is being held down (not necessarily just pressed). Translates KeyCodes into Key if InputSystem is being used.
+        /// </summary>
+        public static bool GetKey(KeyCode key)
+        {
+            if (Rebinding || Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            if (key == KeyCode.None)
+                return false;
+            return inputHandler.GetKey(key);
+        }
+
+        /// <summary>
+        /// Returns true if the provided mouse button was pressed this frame. 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// </summary>
+        public static bool GetMouseButtonDown(int btn)
+        {
+            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            return inputHandler.GetMouseButtonDown(btn);
+        }
+
+        /// <summary>
+        /// Returns true if the provided mouse button is being held down (not necessarily just pressed). 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// </summary>
+        public static bool GetMouseButton(int btn)
+        {
+            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            return inputHandler.GetMouseButton(btn);
+        }
+
         // UI
 
+        /// <summary>
+        /// The current BaseInputModule being used for the UI.
+        /// </summary>
         public static BaseInputModule UIInput => inputHandler.UIInputModule;
 
-        public static void AddUIModule()
+        internal static void AddUIModule()
         {
             inputHandler.AddUIInputModule();
             ActivateUIModule();
         }
 
-        public static void ActivateUIModule()
+        internal static void ActivateUIModule()
         {
             UniversalUI.EventSys.m_CurrentInputModule = UIInput;
             inputHandler.ActivateModule();
@@ -166,14 +186,21 @@ namespace UniverseLib.Input
 
         // Rebinding and Update
 
+        /// <summary>
+        /// Whether anything is currently using the Rebinding feature.
+        /// </summary>
         public static bool Rebinding { get; internal set; }
+
+        /// <summary>
+        /// The last pressed Key during rebinding.
+        /// </summary>
         public static KeyCode? LastRebindKey { get; set; }
 
         internal static IEnumerable<KeyCode> allKeycodes;
         internal static Action<KeyCode> onRebindPressed;
         internal static Action<KeyCode?> onRebindFinished;
 
-        public static void Update()
+        internal static void Update()
         {
             if (Rebinding)
             {
@@ -186,7 +213,7 @@ namespace UniverseLib.Input
             }
         }
 
-        public static KeyCode? GetCurrentKeyDown()
+        internal static KeyCode? GetCurrentKeyDown()
         {
             foreach (var kc in allKeycodes)
             {
@@ -197,6 +224,11 @@ namespace UniverseLib.Input
             return null;
         }
 
+        /// <summary>
+        /// Begins the Rebinding process, keys pressed will be recorded. Call <see cref="EndRebind"/> to finish rebinding.
+        /// </summary>
+        /// <param name="onSelection">Will be invoked whenever any key is pressed, even if rebinding has not finished yet.</param>
+        /// <param name="onFinished">Invoked when EndRebind is called.</param>
         public static void BeginRebind(Action<KeyCode> onSelection, Action<KeyCode?> onFinished)
         {
             if (Rebinding)
@@ -209,6 +241,9 @@ namespace UniverseLib.Input
             LastRebindKey = null;
         }
 
+        /// <summary>
+        /// Call this to finish Rebinding. The onFinished Action supplied to <see cref="BeginRebind"/> will be invoked if we are currently Rebinding.
+        /// </summary>
         public static void EndRebind()
         {
             if (!Rebinding)

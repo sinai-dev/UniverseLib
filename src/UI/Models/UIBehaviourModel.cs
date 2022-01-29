@@ -6,11 +6,15 @@ using UnityEngine;
 
 namespace UniverseLib.UI.Models
 {
+    /// <summary>
+    /// A class which can be used as an abstract UI object, which does not exist as a Component but which can receive Update calls.
+    /// </summary>
     public abstract class UIBehaviourModel : UIModel
     {
-        private static readonly List<UIBehaviourModel> Instances = new List<UIBehaviourModel>();
+        // Static 
+        static readonly List<UIBehaviourModel> Instances = new();
 
-        public static void UpdateInstances()
+        internal static void UpdateInstances()
         {
             if (!Instances.Any())
                 return;
@@ -34,15 +38,14 @@ namespace UniverseLib.UI.Models
                 Universe.Log(ex);
             }
         }
+        
+        // Instance
 
         public UIBehaviourModel()
         {
             Instances.Add(this);
         }
 
-        /// <summary>
-        /// Default empty method, override and implement if NeedsUpdateTick is true.
-        /// </summary>
         public virtual void Update()
         {
         }

@@ -8,17 +8,24 @@ using System.Text;
 using UnityEngine;
 using UniverseLib.Config;
 using UniverseLib.Runtime;
+using UniverseLib.Utility;
 using BF = System.Reflection.BindingFlags;
 
 namespace UniverseLib
 {
+    /// <summary>
+    /// Helper class for general Reflection API.
+    /// </summary>
     public class ReflectionUtility
     {
+        /// <summary>
+        /// Shorthand for BF.Public | BF.Instance | BF.NonPublic | BF.Static
+        /// </summary>
         public const BF FLAGS = BF.Public | BF.Instance | BF.NonPublic | BF.Static;
 
-        internal static ReflectionUtility Instance;
+        internal static ReflectionUtility Instance { get; private set; }
 
-        public static void Init()
+        internal static void Init()
         {
             Instance =
 #if CPP
@@ -144,15 +151,19 @@ namespace UniverseLib
         internal virtual object Internal_TryCast(object obj, Type castTo)
             => obj;
 
-        // Processing deobfuscated type names in strings
+        /// <summary>
+        /// Sanitize <paramref name="theString"/> which contains the obfuscated name of the provided <paramref name="type"/>. Returns the sanitized string.
+        /// </summary>
         public static string ProcessTypeInString(Type type, string theString)
             => Instance.Internal_ProcessTypeInString(theString, type);
 
         internal virtual string Internal_ProcessTypeInString(string theString, Type type)
             => theString;
 
-        // Singleton finder
-
+        /// <summary>
+        /// Used by UnityExplorer's Singleton search. Checks all <paramref name="possibleNames"/> as field members (and properties in IL2CPP) for instances of the <paramref name="type"/>, 
+        /// and populates the <paramref name="instances"/> list with non-null values.
+        /// </summary>
         public static void FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
             => Instance.Internal_FindSingleton(possibleNames, type, flags, instances);
 
@@ -175,15 +186,13 @@ namespace UniverseLib
             }
         }
 
-        // Universal helpers
-
         #region Type inheritance cache
 
         // cache for GetBaseTypes
         internal static readonly Dictionary<string, Type[]> baseTypes = new Dictionary<string, Type[]>();
 
         /// <summary>
-        /// Get all base types of the provided Type, including itself.
+        /// Get all base types of the Type of the provided object, including itself.
         /// </summary>
         public static Type[] GetAllBaseTypes(object obj) => GetAllBaseTypes(obj?.GetActualType());
 
@@ -224,6 +233,9 @@ namespace UniverseLib
         internal static readonly Dictionary<string, HashSet<Type>> typeInheritance = new();
         internal static readonly Dictionary<string, HashSet<Type>> genericParameterInheritance = new();
 
+        /// <summary>
+        /// Returns the key used for checking implementations of this type.
+        /// </summary>
         public static string GetImplementationKey(Type type)
         {
             if (!type.IsGenericParameter)
@@ -240,7 +252,7 @@ namespace UniverseLib
         }
 
         /// <summary>
-        /// Get all non-abstract implementations of the provided type (include itself, if not abstract) in the current AppDomain.
+        /// Get all implementations of the provided type (include itself, if not abstract) in the current AppDomain.
         /// Also works for generic parameters by analyzing the constraints.
         /// </summary>
         /// <param name="baseType">The base type, which can optionally be abstract / interface.</param>
@@ -349,83 +361,13 @@ namespace UniverseLib
 
         #endregion
 
-
-        #region Internal MemberInfo Cache
-
-        internal static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfos = new();
-
-        public static FieldInfo GetFieldInfo(Type type, string fieldName)
-        {
-            if (!fieldInfos.ContainsKey(type))
-                fieldInfos.Add(type, new Dictionary<string, FieldInfo>());
-
-            if (!fieldInfos[type].ContainsKey(fieldName))
-                fieldInfos[type].Add(fieldName, type.GetField(fieldName, FLAGS));
-
-            return fieldInfos[type][fieldName];
-        }
-
-        internal static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfos = new();
-
-        public static PropertyInfo GetPropertyInfo(Type type, string propertyName)
-        {
-            if (!propertyInfos.ContainsKey(type))
-                propertyInfos.Add(type, new Dictionary<string, PropertyInfo>());
-
-            if (!propertyInfos[type].ContainsKey(propertyName))
-                propertyInfos[type].Add(propertyName, type.GetProperty(propertyName, FLAGS));
-
-            return propertyInfos[type][propertyName];
-        }
-
-        internal static Dictionary<Type, Dictionary<string, MethodInfo>> methodInfos = new();
-
-        public static MethodInfo GetMethodInfo(Type type, string methodName)
-            => GetMethodInfo(type, methodName, ArgumentUtility.EmptyTypes, false);
-
-        public static MethodInfo GetMethodInfo(Type type, string methodName, Type[] argumentTypes, bool cacheAmbiguous = false)
-        {
-            if (!methodInfos.ContainsKey(type))
-                methodInfos.Add(type, new Dictionary<string, MethodInfo>());
-
-            if (cacheAmbiguous)
-            {
-                methodName += "|";
-                foreach (var arg in argumentTypes)
-                    methodName += arg.FullName + ",";
-            }
-
-            try
-            {
-                if (!methodInfos[type].ContainsKey(methodName))
-                {
-                    if (argumentTypes != null)
-                        methodInfos[type].Add(methodName, type.GetMethod(methodName, FLAGS, null, argumentTypes, null));
-                    else
-                        methodInfos[type].Add(methodName, type.GetMethod(methodName, FLAGS));
-                }
-
-                return methodInfos[type][methodName];
-            }
-            catch (AmbiguousMatchException)
-            {
-                Universe.LogWarning($"AmbiguousMatchException trying to get method '{methodName}'");
-                return null;
-            }
-            catch (Exception e)
-            {
-                Universe.LogWarning($"{e.GetType()} trying to get method '{methodName}': {e.Message}\r\n{e.StackTrace}");
-                return null;
-            }
-        }
-
-        #endregion
-
-
         // Temp fix for IL2CPP until interface support improves
 
         // IsEnumerable 
 
+        /// <summary>
+        /// Returns true if the provided type is an IEnumerable, including Il2Cpp IEnumerables.
+        /// </summary>
         public static bool IsEnumerable(Type type) => Instance.Internal_IsEnumerable(type);
 
         protected virtual bool Internal_IsEnumerable(Type type)
@@ -435,8 +377,11 @@ namespace UniverseLib
 
         // TryGetEnumerator (list)
 
-        public static bool TryGetEnumerator(object list, out IEnumerator enumerator)
-            => Instance.Internal_TryGetEnumerator(list, out enumerator);
+        /// <summary>
+        /// Attempts to get the <see cref="IEnumerator"/> from the provided <see cref="IEnumerable"/> <paramref name="ienumerable"/>.
+        /// </summary>
+        public static bool TryGetEnumerator(object ienumerable, out IEnumerator enumerator)
+            => Instance.Internal_TryGetEnumerator(ienumerable, out enumerator);
 
         protected virtual bool Internal_TryGetEnumerator(object list, out IEnumerator enumerator)
         {
@@ -446,6 +391,9 @@ namespace UniverseLib
 
         // TryGetEntryType
 
+        /// <summary>
+        /// Attempts to get the entry type (the Type of the entries) from the provided <paramref name="enumerableType"/>.
+        /// </summary>
         public static bool TryGetEntryType(Type enumerableType, out Type type)
             => Instance.Internal_TryGetEntryType(enumerableType, out type);
 
@@ -479,6 +427,9 @@ namespace UniverseLib
 
         // IsDictionary
 
+        /// <summary>
+        /// Returns true if the provided type implements IDictionary, or Il2CPP IDictionary.
+        /// </summary>
         public static bool IsDictionary(Type type) => Instance.Internal_IsDictionary(type);
 
         protected virtual bool Internal_IsDictionary(Type type)
@@ -488,6 +439,9 @@ namespace UniverseLib
 
         // TryGetEnumerator (dictionary)
 
+        /// <summary>
+        /// Try to get a DictionaryEnumerator for the provided IDictionary.
+        /// </summary>
         public static bool TryGetDictEnumerator(object dictionary, out IEnumerator<DictionaryEntry> dictEnumerator)
             => Instance.Internal_TryGetDictEnumerator(dictionary, out dictEnumerator);
 
@@ -508,6 +462,9 @@ namespace UniverseLib
 
         // TryGetEntryTypes
 
+        /// <summary>
+        /// Try to get the Type of Keys and Values in the provided dictionary type.
+        /// </summary>
         public static bool TryGetEntryTypes(Type dictionaryType, out Type keys, out Type values)
             => Instance.Internal_TryGetEntryTypes(dictionaryType, out keys, out values);
 

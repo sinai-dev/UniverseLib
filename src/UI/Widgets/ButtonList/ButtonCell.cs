@@ -4,39 +4,29 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UniverseLib.UI.Models;
+using UniverseLib.UI.Widgets.ScrollView;
 
-namespace UniverseLib.UI.Widgets
+namespace UniverseLib.UI.Widgets.ButtonList
 {
+    /// <summary>
+    /// Represents the base cell used by a <see cref="ButtonListHandler{TData, TCell}"/>.
+    /// </summary>
     public class ButtonCell : ICell
     {
-        public float DefaultHeight => 25f;
-
         public Action<int> OnClick;
-        public int CurrentDataIndex;
 
-        public ButtonRef Button;
+        public int CurrentDataIndex { get; set; }
+        public ButtonRef Button { get; private set; }
 
-        #region ICell
-
-        public bool Enabled => m_enabled;
-        private bool m_enabled;
-
+        // ICell
+        public float DefaultHeight => 25f;
         public GameObject UIRoot { get; set; }
         public RectTransform Rect { get; set; }
 
-        public void Disable()
-        {
-            m_enabled = false;
-            UIRoot.SetActive(false);
-        }
-
-        public void Enable()
-        {
-            m_enabled = true;
-            UIRoot.SetActive(true);
-        }
-
-        #endregion
+        public bool Enabled => UIRoot.activeSelf;
+        public void Enable() => UIRoot.SetActive(true);
+        public void Disable() => UIRoot.SetActive(false);
 
         public virtual GameObject CreateContent(GameObject parent)
         {
@@ -61,7 +51,7 @@ namespace UniverseLib.UI.Widgets
             Color highlight = new Color(0.16f, 0.16f, 0.16f);
             Color pressed = new Color(0.05f, 0.05f, 0.05f);
             Color disabled = new Color(1, 1, 1, 0);
-            RuntimeProvider.Instance.SetColorBlock(Button.Component, normal, highlight, pressed, disabled);
+            RuntimeHelper.Instance.Internal_SetColorBlock(Button.Component, normal, highlight, pressed, disabled);
 
             Button.OnClick += () => { OnClick?.Invoke(CurrentDataIndex); };
 

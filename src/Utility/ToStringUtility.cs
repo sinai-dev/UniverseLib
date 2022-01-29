@@ -8,11 +8,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UniverseLib.Runtime;
 
-namespace UniverseLib
+namespace UniverseLib.Utility
 {
+    /// <summary>
+    /// Provides utility for displaying an object's ToString result in a more user-friendly format.
+    /// </summary>
     public static class ToStringUtility
     {
-        internal static Dictionary<string, MethodInfo> toStringMethods = new Dictionary<string, MethodInfo>();
+        internal static Dictionary<string, MethodInfo> toStringMethods = new();
 
         private const string nullString = "<color=grey>null</color>";
         private const string nullUnknown = nullString + " (?)";
@@ -21,6 +24,9 @@ namespace UniverseLib
 
         private const string eventSystemNamespace = "UnityEngine.EventSystem";
 
+        /// <summary>
+        /// Constrains the provided string to a maximum length, and maximum number of lines.
+        /// </summary>
         public static string PruneString(string s, int chars = 200, int lines = 5)
         {
             if (string.IsNullOrEmpty(s))
@@ -44,6 +50,10 @@ namespace UniverseLib
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Returns the ToString result with a rich-text highlighted Type in trailing brackets. 
+        /// If the object does not implement ToString, then only the trailing highlighted Type will be returned.
+        /// </summary>
         public static string ToStringWithType(object value, Type fallbackType, bool includeNamespace = true)
         {
             if (value.IsNullOrDestroyed() && fallbackType == null)

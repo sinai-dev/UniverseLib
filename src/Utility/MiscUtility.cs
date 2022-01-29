@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace UniverseLib
+namespace UniverseLib.Utility
 {
     public static class MiscUtility
     {
@@ -23,6 +23,25 @@ namespace UniverseLib
         {
             ulong flag = Convert.ToUInt64(value);
             return (Convert.ToUInt64(flags) & flag) == flag;
+        }
+
+        /// <summary>
+        /// Returns true if the StringBuilder ends with the provided string.
+        /// </summary>
+        public static bool EndsWith(this StringBuilder sb, string _string)
+        {
+            int len = _string.Length;
+
+            if (sb.Length < len)
+                return false;
+
+            int stringpos = 0;
+            for (int i = sb.Length - len; i < sb.Length; i++, stringpos++)
+            {
+                if (sb[i] != _string[stringpos])
+                    return false;
+            }
+            return true;
         }
     }
 }

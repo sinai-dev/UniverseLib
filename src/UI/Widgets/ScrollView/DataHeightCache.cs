@@ -4,8 +4,13 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace UniverseLib.UI.Widgets
+namespace UniverseLib.UI.Widgets.ScrollView
 {
+    /// <summary>
+    /// Used to handle the underlying height data for a scroll pool, tracking which data values are at which position and how far they span.<br/><br/>
+    /// 
+    /// A DataHeightCache is created and managed automatically by a ScrollPool, you do not need to use this class yourself.
+    /// </summary>
     public class DataHeightCache<T> where T : ICell
     {
         private ScrollPool<T> ScrollPool { get; }

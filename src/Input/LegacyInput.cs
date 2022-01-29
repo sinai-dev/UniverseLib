@@ -10,35 +10,35 @@ namespace UniverseLib.Input
     {
         public LegacyInput()
         {
-            m_mousePositionProp = TInput.GetProperty("mousePosition");
-            m_mouseDeltaProp = TInput.GetProperty("mouseScrollDelta");
-            m_getKeyMethod = TInput.GetMethod("GetKey", new Type[] { typeof(KeyCode) });
-            m_getKeyDownMethod = TInput.GetMethod("GetKeyDown", new Type[] { typeof(KeyCode) });
-            m_getMouseButtonMethod = TInput.GetMethod("GetMouseButton", new Type[] { typeof(int) });
-            m_getMouseButtonDownMethod = TInput.GetMethod("GetMouseButtonDown", new Type[] { typeof(int) });
+            mousePositionProp = TInput.GetProperty("mousePosition");
+            mouseDeltaProp = TInput.GetProperty("mouseScrollDelta");
+            getKeyMethod = TInput.GetMethod("GetKey", new Type[] { typeof(KeyCode) });
+            getKeyDownMethod = TInput.GetMethod("GetKeyDown", new Type[] { typeof(KeyCode) });
+            getMouseButtonMethod = TInput.GetMethod("GetMouseButton", new Type[] { typeof(int) });
+            getMouseButtonDownMethod = TInput.GetMethod("GetMouseButtonDown", new Type[] { typeof(int) });
         }
 
-        public static Type TInput => m_tInput ?? (m_tInput = ReflectionUtility.GetTypeByName("UnityEngine.Input"));
+        public static Type TInput => m_tInput ??= ReflectionUtility.GetTypeByName("UnityEngine.Input");
         private static Type m_tInput;
 
-        private static PropertyInfo m_mousePositionProp;
-        private static PropertyInfo m_mouseDeltaProp;
-        private static MethodInfo m_getKeyMethod;
-        private static MethodInfo m_getKeyDownMethod;
-        private static MethodInfo m_getMouseButtonMethod;
-        private static MethodInfo m_getMouseButtonDownMethod;
+        private static PropertyInfo mousePositionProp;
+        private static PropertyInfo mouseDeltaProp;
+        private static MethodInfo getKeyMethod;
+        private static MethodInfo getKeyDownMethod;
+        private static MethodInfo getMouseButtonMethod;
+        private static MethodInfo getMouseButtonDownMethod;
 
-        public Vector2 MousePosition => (Vector3)m_mousePositionProp.GetValue(null, null);
+        public Vector2 MousePosition => (Vector3)mousePositionProp.GetValue(null, null);
 
-        public Vector2 MouseScrollDelta => (Vector2)m_mouseDeltaProp.GetValue(null, null);
+        public Vector2 MouseScrollDelta => (Vector2)mouseDeltaProp.GetValue(null, null);
 
-        public bool GetKey(KeyCode key) => (bool)m_getKeyMethod.Invoke(null, new object[] { key });
+        public bool GetKey(KeyCode key) => (bool)getKeyMethod.Invoke(null, new object[] { key });
 
-        public bool GetKeyDown(KeyCode key) => (bool)m_getKeyDownMethod.Invoke(null, new object[] { key });
+        public bool GetKeyDown(KeyCode key) => (bool)getKeyDownMethod.Invoke(null, new object[] { key });
 
-        public bool GetMouseButton(int btn) => (bool)m_getMouseButtonMethod.Invoke(null, new object[] { btn });
+        public bool GetMouseButton(int btn) => (bool)getMouseButtonMethod.Invoke(null, new object[] { btn });
 
-        public bool GetMouseButtonDown(int btn) => (bool)m_getMouseButtonDownMethod.Invoke(null, new object[] { btn });
+        public bool GetMouseButtonDown(int btn) => (bool)getMouseButtonDownMethod.Invoke(null, new object[] { btn });
 
         // UI Input module
 

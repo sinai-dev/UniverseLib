@@ -8,17 +8,27 @@ namespace UniverseLib
 {
     public static class ReflectionExtensions
     {
-        // ReflectionUtility extensions
-
+        /// <summary>
+        /// Get the true underlying Type of the provided object.
+        /// </summary>
         public static Type GetActualType(this object obj)
             => ReflectionUtility.Instance.Internal_GetActualType(obj);
 
+        /// <summary>
+        /// Attempt to cast the provided object to it's true underlying Type.
+        /// </summary>
         public static object TryCast(this object obj)
             => ReflectionUtility.Instance.Internal_TryCast(obj, ReflectionUtility.Instance.Internal_GetActualType(obj));
 
+        /// <summary>
+        /// Attempt to cast the provided object to the provided Type <paramref name="castTo"/>.
+        /// </summary>
         public static object TryCast(this object obj, Type castTo)
             => ReflectionUtility.Instance.Internal_TryCast(obj, castTo);
 
+        /// <summary>
+        /// Attempt to cast the provided object to Type <typeparamref name="T"/>.
+        /// </summary>
         public static T TryCast<T>(this object obj)
         {
             try
@@ -34,7 +44,7 @@ namespace UniverseLib
         // ------- Misc extensions --------
 
         /// <summary>
-        /// Safely try to get all Types inside an Assembly.
+        /// Safely try to get all Types inside an Assembly, catching any and all exceptions, and with fallback methods should exceptions occur.
         /// </summary>
         public static IEnumerable<Type> TryGetTypes(this Assembly asm)
         {
@@ -94,6 +104,11 @@ namespace UniverseLib
             return $"{e.GetType()}: {e.Message}";
         }
 
+        /// <summary>
+        /// Get the inner-most exception from the provided exception, if there are any. This is recursive.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
         public static Exception GetInnerMostException(this Exception e)
         {
             while (e != null)

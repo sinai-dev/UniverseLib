@@ -7,9 +7,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib.Input;
 using UniverseLib.UI.Models;
-//using UniverseLib.UI.Panels;
+using UniverseLib.UI.ObjectPool;
+using UniverseLib.Utility;
 
-namespace UniverseLib.UI.Widgets
+namespace UniverseLib.UI.Widgets.ScrollView
 {
     public struct CellInfo
     {
@@ -26,31 +27,22 @@ namespace UniverseLib.UI.Widgets
             this.ScrollRect = scrollRect;
         }
 
+        /// <summary>
+        /// The data source backing this scroll pool.
+        /// </summary>
         public ICellPoolDataSource<T> DataSource { get; set; }
 
-        public readonly List<T> CellPool = new List<T>();
+        /// <summary>
+        /// The cells used by this ScrollPool.
+        /// </summary>
+        public List<T> CellPool { get; } = new();
 
         internal DataHeightCache<T> HeightCache;
 
-        public float PrototypeHeight => _protoHeight ?? (float)(_protoHeight = Pool<T>.Instance.DefaultHeight);
-        private float? _protoHeight;
-
-        public int ExtraPoolCells => 10;
-        public float RecycleThreshold => PrototypeHeight * ExtraPoolCells;
-        public float HalfThreshold => RecycleThreshold * 0.5f;
-
-        // UI
-
-        public override GameObject UIRoot
-        {
-            get
-            {
-                if (ScrollRect)
-                    return ScrollRect.gameObject;
-                return null;
-            }
-        }
-
+        /// <summary>
+        /// The GameObject which the ScrollRect is attached to.
+        /// </summary>
+        public override GameObject UIRoot => ScrollRect?.gameObject;
         public RectTransform Viewport => ScrollRect.viewport;
         public RectTransform Content => ScrollRect.content;
 
@@ -58,7 +50,12 @@ namespace UniverseLib.UI.Widgets
         internal ScrollRect ScrollRect;
         internal VerticalLayoutGroup contentLayout;
 
-        // Cache / tracking
+        internal float PrototypeHeight => _protoHeight ?? (float)(_protoHeight = Pool<T>.Instance.DefaultHeight);
+        internal float? _protoHeight;
+
+        internal int ExtraPoolCells => 10;
+        internal float RecycleThreshold => PrototypeHeight * ExtraPoolCells;
+        internal float HalfThreshold => RecycleThreshold * 0.5f;
 
         private Vector2 RecycleViewBounds;
         private Vector2 NormalizedScrollBounds;
@@ -79,12 +76,18 @@ namespace UniverseLib.UI.Widgets
 
         private Vector2 prevAnchoredPos;
         private float prevViewportHeight;
+        private float prevContentHeight = 1.0f;
 
-        #region Internal set tracking and update
+        private event Action OnHeightChanged;
 
-        public static readonly List<Func<bool>> writingLockedListeners = new List<Func<bool>>();
+        /// <summary>
+        /// Global listeners to determine whether any ScrollPool should be in a readonly state or not. Add to this only if you understand what it does.
+        /// </summary>
+        public static readonly List<Func<bool>> writingLockedListeners = new();
 
-        // A sanity check so only one thing is setting the value per frame.
+        /// <summary>
+        /// If true, prevents the ScrollPool for writing any values, essentially making it readonly.
+        /// </summary>
         public bool WritingLocked
         {
             get => writingLocked || writingLockedListeners.Any(it => it());
@@ -99,9 +102,9 @@ namespace UniverseLib.UI.Widgets
         private bool writingLocked;
         private float timeofLastWriteLock;
 
-        private float prevContentHeight = 1.0f;
-        private event Action OnHeightChanged;
-
+        /// <summary>
+        /// Invoked by UIBehaviourModel.UpdateInstances
+        /// </summary>
         public override void Update()
         {
             if (!ScrollRect || DataSource == null)
@@ -124,10 +127,12 @@ namespace UniverseLib.UI.Widgets
             }
 
         }
-        #endregion
 
-        // Public methods
-
+        /// <summary>
+        /// Refresh the ScrollPool, optionally forcing a rebuild of cell data, and optionally jumping to the top.
+        /// </summary>
+        /// <param name="setCellData">If true, will call SetCell for the data source on each displayed cell.</param>
+        /// <param name="jumpToTop">If true, will jump to the top of the data.</param>
         public void Refresh(bool setCellData, bool jumpToTop = false)
         {
             if (jumpToTop)
@@ -139,6 +144,9 @@ namespace UniverseLib.UI.Widgets
             RefreshCells(setCellData, true);
         }
 
+        /// <summary>
+        /// Jump to the cell at the provided index, and invoke onJumped after completion.
+        /// </summary>
         public void JumpToIndex(int index, Action<T> onJumped)
         {
             RefreshCells(true, true);
@@ -147,12 +155,12 @@ namespace UniverseLib.UI.Widgets
             var cache = HeightCache[index];
             float normalized = (cache.startPosition + (cache.height * 0.5f)) / HeightCache.TotalHeight;
 
-            RuntimeProvider.Instance.StartCoroutine(ForceDelayedJump(index, normalized, onJumped));
+            RuntimeHelper.Instance.Internal_StartCoroutine(ForceDelayedJump(index, normalized, onJumped));
         }
 
         private IEnumerator ForceDelayedJump(int dataIndex, float normalizedPos, Action<T> onJumped)
         {
-            // Yielding two frames seems necessary in case the Explorer tab had not been opened before the jump.
+            // Yielding two frames seems necessary in some cases.
             yield return null;
             yield return null;
             slider.value = normalizedPos;
@@ -192,7 +200,7 @@ namespace UniverseLib.UI.Widgets
             ScrollRect.vertical = true;
             ScrollRect.horizontal = false;
 
-            RuntimeProvider.Instance.StartCoroutine(InitCoroutine(onHeightChangedListener));
+            RuntimeHelper.Instance.Internal_StartCoroutine(InitCoroutine(onHeightChangedListener));
         }
 
         private IEnumerator InitCoroutine(Action onHeightChangedListener)
@@ -232,7 +240,7 @@ namespace UniverseLib.UI.Widgets
         }
 
         /// <summary>
-        /// return value = viewport changed height
+        /// Returns true if the viewport changed height since last check.
         /// </summary>
         private bool CheckRecycleViewBounds(bool extendPoolIfGrown)
         {

@@ -12,31 +12,74 @@ using UnityEngine.UI;
 using UniverseLib.Config;
 using UniverseLib.Input;
 using UniverseLib.UI.Models;
+using UniverseLib.Utility;
 
 namespace UniverseLib.UI
 {
+    /// <summary>
+    /// Handles all <see cref="UIBase"/> UIs on the UniverseLib UI canvas.
+    /// </summary>
     public static class UniversalUI
     {
+        /// <summary>
+        /// Returns true if UniverseLib is currently initializing it's UI.
+        /// </summary>
         public static bool Initializing { get; internal set; } = true;
 
+        /// <summary>
+        /// Returns true if any <see cref="UIBase"/> is being displayed.
+        /// </summary>
         public static bool AnyUIShowing => registeredUIs.Any(it => it.Value.Enabled);
         internal static readonly Dictionary<string, UIBase> registeredUIs = new();
 
+        /// <summary>
+        /// The UniverseLib global Canvas root.
+        /// </summary>
         public static GameObject CanvasRoot { get; private set; }
+        /// <summary>
+        /// The UniverseLib global EventSystem.
+        /// </summary>
         public static EventSystem EventSys { get; private set; }
 
         public static GameObject PoolHolder { get; private set; }
 
+        /// <summary>
+        /// The Consola font asset, if it was successfully loaded.
+        /// </summary>
         public static Font ConsoleFont { get; private set; }
+        /// <summary>
+        /// The default font asset.
+        /// </summary>
         public static Font DefaultFont { get; private set; }
+        /// <summary>
+        /// The backup UI shader, if it was loaded.
+        /// </summary>
         public static Shader BackupShader { get; private set; }
 
-        public static readonly Color enabledButtonColor = new Color(0.2f, 0.4f, 0.28f);
-        public static readonly Color disabledButtonColor = new Color(0.25f, 0.25f, 0.25f);
+        /// <summary>
+        /// The default color used by UniverseLib for enabled buttons.
+        /// </summary>
+        public static Color EnabledButtonColor { get; } = new(0.2f, 0.4f, 0.28f);
+        /// <summary>
+        /// The default color used by UniverseLib for disabled buttons.
+        /// </summary>
+        public static Color DisabledButtonColor { get; } = new(0.25f, 0.25f, 0.25f);
 
+        /// <summary>
+        /// A safe value for the maximum amount of characters allowed in an InputField.
+        /// </summary>
         public const int MAX_INPUTFIELD_CHARS = 16000;
+        /// <summary>
+        /// The maximum amount of vertices allowed in an InputField's UI mesh.
+        /// </summary>
         public const int MAX_TEXT_VERTS = 65000;
 
+        /// <summary>
+        /// Create and register a <see cref="UIBase"/> with the provided ID, and optional update method.
+        /// </summary>
+        /// <param name="id">A unique ID for your UI.</param>
+        /// <param name="updateMethod">An optional method to receive Update calls with, invoked when your UI is displayed.</param>
+        /// <returns>Your newly created <see cref="UIBase"/>, if successful.</returns>
         public static UIBase RegisterUI(string id, Action updateMethod)
         {
             if (string.IsNullOrEmpty(id))
@@ -72,6 +115,9 @@ namespace UniverseLib.UI
             return uiBase;
         }
 
+        /// <summary>
+        /// Sets the <see cref="UIBase"/> with the corresponding <paramref name="id"/> to be active or disabled.
+        /// </summary>
         public static void SetUIActive(string id, bool active)
         {
             if (registeredUIs.TryGetValue(id, out UIBase uiBase))
@@ -103,7 +149,7 @@ namespace UniverseLib.UI
 
         // Main UI Update loop
 
-        public static void Update()
+        internal static void Update()
         {
             if (!CanvasRoot || Initializing)
                 return;
@@ -111,10 +157,6 @@ namespace UniverseLib.UI
             // return if menu closed
             if (!AnyUIShowing)
                 return;
-
-            // check event system state
-            if (!ConfigManager.Disable_EventSystem_Override && CursorUnlocker.CurrentEventSystem != EventSys)
-                CursorUnlocker.SetEventSystem();
 
             InputManager.Update();
 
@@ -144,8 +186,8 @@ namespace UniverseLib.UI
 
             EventSys = CanvasRoot.AddComponent<EventSystem>();
             InputManager.AddUIModule();
-
             EventSys.enabled = false;
+
             CanvasRoot.SetActive(true);
         }
 
@@ -181,7 +223,7 @@ namespace UniverseLib.UI
                 UIBundle = LoadBundle("modern") ?? LoadBundle("legacy.5.6") ?? LoadBundle("legacy");
             }
 
-            AssetBundle LoadBundle(string id)
+            static AssetBundle LoadBundle(string id)
             {
                 var bundle = AssetBundle.LoadFromMemory(ReadFully(typeof(Universe)
                         .Assembly
@@ -259,7 +301,6 @@ namespace UniverseLib.UI
                 Universe.LogWarning($"Exception setting up AssetBundle.UnloadAllAssetBundles patch: {ex}");
             }
         }
-
 
         static bool Prefix_UnloadAllAssetBundles(bool unloadAllObjects)
         {

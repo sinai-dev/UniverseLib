@@ -17,6 +17,8 @@ using BF = System.Reflection.BindingFlags;
 using UnhollowerBaseLib.Attributes;
 using UnityEngine;
 using UniverseLib.Config;
+using HarmonyLib;
+using UniverseLib.Utility;
 
 namespace UniverseLib
 {
@@ -48,8 +50,14 @@ namespace UniverseLib
         [DllImport("GameAssembly", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern IntPtr il2cpp_object_get_class(IntPtr obj);
 
+        /// <summary>
+        /// Returns true if the Type has a corresponding IL2CPP Type.
+        /// </summary>
         public static bool Il2CppTypeNotNull(Type type) => Il2CppTypeNotNull(type, out _);
 
+        /// <summary>
+        /// Returns true if the Type has a corresponding IL2CPP Type, and assigns the IntPtr to the IL2CPP Type to <paramref name="il2cppPtr"/>.
+        /// </summary>
         public static bool Il2CppTypeNotNull(Type type, out IntPtr il2cppPtr)
         {
             if (!cppClassPointers.TryGetValue(type.AssemblyQualifiedName, out il2cppPtr))
@@ -173,6 +181,9 @@ namespace UniverseLib
             return type;
         }
 
+        /// <summary>
+        /// Try to get the Unhollowed <see cref="System.Type"/> for the provided <paramref name="cppType"/>.
+        /// </summary>
         public static Type GetUnhollowedType(CppType cppType)
         {
             var fullname = cppType.FullName;
@@ -269,18 +280,6 @@ namespace UniverseLib
             }
         }
 
-        //private static bool IsAssignableFrom(Type thisType, Type fromType)
-        //{
-        //    if (!Il2CppTypeNotNull(fromType, out IntPtr fromTypePtr)
-        //        || !Il2CppTypeNotNull(thisType, out IntPtr thisTypePtr))
-        //    {
-        //        // one or both of the types are not Il2Cpp types, use normal check
-        //        return thisType.IsAssignableFrom(fromType);
-        //    }
-        //
-        //    return il2cpp_class_is_assignable_from(thisTypePtr, fromTypePtr);
-        //}
-
 #endregion
 
 
@@ -289,7 +288,9 @@ namespace UniverseLib
         // cached il2cpp unbox methods
         internal static readonly Dictionary<string, MethodInfo> unboxMethods = new();
 
-        // Unbox an il2cpp object to a struct or System primitive.
+        /// <summary>
+        /// Unbox the provided Il2CppSystem.Object to the ValueType <paramref name="toType"/>.
+        /// </summary>
         public object UnboxCppObject(Il2CppObjectBase cppObj, Type toType)
         {
             if (!toType.IsValueType)
@@ -338,13 +339,9 @@ namespace UniverseLib
             }
         }
 
-        private static Il2CppSystem.Object BoxIl2CppObject(object cppStruct, Type structType)
-        {
-            return GetMethodInfo(structType, "BoxIl2CppObject", ArgumentUtility.EmptyTypes)
-                   .Invoke(cppStruct, ArgumentUtility.EmptyArgs)
-                   as Il2CppSystem.Object;
-        }
-
+        /// <summary>
+        /// Box the provided Il2Cpp ValueType object into an Il2CppSystem.Object.
+        /// </summary>
         public Il2CppSystem.Object BoxIl2CppObject(object value)
         {
             if (value == null)
@@ -371,6 +368,13 @@ namespace UniverseLib
             }
         }
 
+        private static Il2CppSystem.Object BoxIl2CppObject(object cppStruct, Type structType)
+        {
+            return AccessTools.Method(structType, "BoxIl2CppObject", ArgumentUtility.EmptyTypes)
+                   .Invoke(cppStruct, ArgumentUtility.EmptyArgs)
+                   as Il2CppSystem.Object;
+        }
+
         // Helpers for Il2Cpp primitive <-> Mono
 
         internal static readonly Dictionary<string, Type> il2cppPrimitivesToMono = new()
@@ -391,19 +395,31 @@ namespace UniverseLib
             { "Il2CppSystem.UIntPtr", typeof(UIntPtr) }
         };
 
+        /// <summary>
+        /// Returns true if the provided object is actually an Il2Cpp primitive.
+        /// </summary>
         public static bool IsIl2CppPrimitive(object obj) => IsIl2CppPrimitive(obj.GetType());
 
+        /// <summary>
+        /// Returns true if the provided Type is an Il2Cpp primitive.
+        /// </summary>
         public static bool IsIl2CppPrimitive(Type type) => il2cppPrimitivesToMono.ContainsKey(type.FullName);
 
+        /// <summary>
+        /// Returns the underlying <c>m_value</c> System primitive from the provided Il2Cpp primitive object.
+        /// </summary>
         public object MakeMonoPrimitive(object cppPrimitive)
         {
-            return GetFieldInfo(cppPrimitive.GetType(), "m_value").GetValue(cppPrimitive);
+            return AccessTools.Field(cppPrimitive.GetType(), "m_value").GetValue(cppPrimitive);
         }
 
+        /// <summary>
+        /// Creates a new equivalent Il2Cpp primitive object using the provided <paramref name="monoValue"/>.
+        /// </summary>
         public object MakeIl2CppPrimitive(Type cppType, object monoValue)
         {
             var cppStruct = Activator.CreateInstance(cppType);
-            GetFieldInfo(cppType, "m_value").SetValue(cppStruct, monoValue);
+            AccessTools.Field(cppType, "m_value").SetValue(cppStruct, monoValue);
             return cppStruct;
         }
 
@@ -415,6 +431,9 @@ namespace UniverseLib
         private const string IL2CPP_STRING_FULLNAME = "Il2CppSystem.String";
         private const string STRING_FULLNAME = "System.String";
 
+        /// <summary>
+        /// Returns true if the object is a string or Il2CppSystem.String
+        /// </summary>
         public bool IsString(object obj)
         {
             if (obj is string || obj is Il2CppSystem.String)
@@ -429,6 +448,9 @@ namespace UniverseLib
             return false;
         }
 
+        /// <summary>
+        /// Box the provided string value into either an Il2CppSystem.Object or Il2CppSystem.String
+        /// </summary>
         public object BoxStringToType(object value, Type castTo)
         {
             if (castTo == typeof(Il2CppSystem.String))
@@ -437,6 +459,9 @@ namespace UniverseLib
                 return (Il2CppSystem.Object)(value as string);
         }
 
+        /// <summary>
+        /// Unbox the provided value from either Il2CppSystem.Object or Il2CppSystem.String into a System.String
+        /// </summary>
         public string UnboxString(object value)
         {
             if (value is string s)
