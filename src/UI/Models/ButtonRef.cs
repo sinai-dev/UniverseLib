@@ -38,7 +38,7 @@ namespace UniverseLib.UI.Models
         public RectTransform Transform => Component.transform.TryCast<RectTransform>();
 
         /// <summary>
-        /// Helper for <see cref="Button.enabled"/>.
+        /// Helper for <c>Button.enabled</c>.
         /// </summary>
         public bool Enabled
         {

@@ -85,7 +85,7 @@ namespace UniverseLib.UI.ObjectPool
         public GameObject InactiveHolder { get; }
 
         /// <summary>
-        /// Optional default height for the object, necessary if this object can be used by a <see cref="UI.Widgets.ScrollPool{T}"/>.
+        /// Optional default height for the object, necessary if this object can be used by a <see cref="UI.Widgets.ScrollView.ScrollPool{T}"/>.
         /// </summary>
         public float DefaultHeight { get; }
 

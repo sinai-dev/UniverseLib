@@ -34,6 +34,7 @@
     <DefineConstants>CPP</DefineConstants>
     <AssemblyName>UniverseLib.IL2CPP</AssemblyName>
     <IsCpp>true</IsCpp>
+    <DocumentationFile>..\Release\UniverseLib.Il2Cpp\UniverseLib.Il2Cpp.xml</DocumentationFile>
   </PropertyGroup>
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
@@ -43,6 +44,7 @@
     <AssemblyName>UniverseLib.Mono</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <IsCpp>false</IsCpp>
+    <DocumentationFile>..\Release\UniverseLib.Mono\UniverseLib.Mono.xml</DocumentationFile>
   </PropertyGroup>
   <!-- Global refs, Mono and Il2Cpp -->
   <ItemGroup>
@@ -72,7 +74,7 @@
   <ItemGroup Condition="'$(IsCpp)'=='true'">
     <Reference Include="UnhollowerBaseLib, Version=0.4.22.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Il2CppAssemblyUnhollower.BaseLib.0.4.22\lib\net472\UnhollowerBaseLib.dll</HintPath>
-        <Private>False</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
@@ -166,6 +168,7 @@
     <EmbeddedResource Include="Resources\*" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".editorconfig" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

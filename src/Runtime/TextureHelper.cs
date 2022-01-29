@@ -20,7 +20,7 @@ namespace UniverseLib.Runtime
         }
 
         /// <summary>
-        /// Helper for invoking Unity's <see cref="ImageConversion.EncodeToPNG"/> method.
+        /// Helper for invoking Unity's <c>ImageConversion.EncodeToPNG</c> method.
         /// </summary>
         public static byte[] EncodeToPNG(Texture2D tex) 
             => Instance.Internal_EncodeToPNG(tex);
@@ -60,7 +60,7 @@ namespace UniverseLib.Runtime
         protected internal abstract Sprite Internal_CreateSprite(Texture2D texture, Rect rect, Vector2 pivot, float pixelsPerUnit, uint extrude, Vector4 border);
 
         /// <summary>
-        /// Helper for checking <see cref="Texture2D.isReadable"/>.
+        /// Helper for checking <c>Texture2D.isReadable</c>.
         /// </summary>
         public static bool IsReadable(Texture2D tex)
         {

@@ -43,7 +43,7 @@ namespace UniverseLib
         /// <summary>
         /// Initialize UniverseLib with default settings, if you don't require any finer control over the startup process.
         /// </summary>
-        /// <param name="onInitialized">Invoked after the <paramref name="startupDelay"/> and after UniverseLib has finished initializing.</param>
+        /// <param name="onInitialized">Invoked after the <c>startupDelay</c>and after UniverseLib has finished initializing.</param>
         /// <param name="logHandler">Should be used for printing UniverseLib's own internal logs. Your listener will only be used if no listener has 
         /// yet been provided to handle it. It is not required to implement this but it may be useful to diagnose internal errors.</param>
         public static void Init(Action onInitialized = null, Action<string, LogType> logHandler = null)

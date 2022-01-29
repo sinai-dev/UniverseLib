@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+
+# CS0419: Ambiguous reference in cref attribute
+dotnet_diagnostic.CS0419.severity = none
+
+# CS1584: XML comment has syntactically incorrect cref attribute
+dotnet_diagnostic.CS1584.severity = none
+
+# CS1573: Parameter has no matching param tag in the XML comment (but other parameters do)
+dotnet_diagnostic.CS1573.severity = none
