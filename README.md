@@ -1,14 +1,19 @@
 # UniverseLib
 
-Library used by [UnityExplorer](https://github.com/sinai-dev/UnityExplorer), [BepInExConfigManager](https://github.com/sinai-dev/BepInExConfigManager) and [MelonPreferencesManager](https://github.com/sinai-dev/MelonPreferencesManager).
+[![](https://img.shields.io/nuget/v/UniverseLib)](https://www.nuget.org/packages/UniverseLib)
 
-## How do I use this? Is there documentation? Examples?
+UniverseLib is a library for making plugins which target IL2CPP and Mono Unity games, with a focus on UI-driven plugins.
 
-Not at the moment. I made this to handle conflicts between 3 similar tools I have released. It's for making "universal" Unity mods which work on IL2CPP and Mono games. It contains a UI and Input framework, and other tools for making universal mods.
+## Documentation
 
-Currently I don't have the time to deal with documentation or making this user-friendly, but it's here if you want to try to use it. You can look at UnityExplorer or my mod config managers to see examples.
+Documentation and usage guides can currently be found on the [Wiki](https://github.com/sinai-dev/UniverseLib/wiki/Quickstart).
 
-Nuget package available [here](https://www.nuget.org/packages/UniverseLib/).
+## UniverseLib.Analyzers
+
+[![](https://img.shields.io/nuget/v/UniverseLib.Analyzers)](https://www.nuget.org/packages/UniverseLib.Analyzers) 
+[![](https://img.shields.io/badge/-source-blue?logo=github)](https://github.com/sinai-dev/UniverseLib.Analyzers)
+
+The Analyzers package contains IDE analyzers for using UniverseLib and avoiding common mistakes when making universal Unity mods and tools.
 
 ## Acknowledgements
 
