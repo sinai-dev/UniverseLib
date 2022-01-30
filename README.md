@@ -6,7 +6,7 @@ UniverseLib is a library for making plugins which target IL2CPP and Mono Unity g
 
 ## Documentation
 
-Documentation and usage guides can currently be found on the [Wiki](https://github.com/sinai-dev/UniverseLib/wiki/Quickstart).
+Documentation and usage guides can currently be found on the [Wiki](https://github.com/sinai-dev/UniverseLib/wiki).
 
 ## UniverseLib.Analyzers
 
