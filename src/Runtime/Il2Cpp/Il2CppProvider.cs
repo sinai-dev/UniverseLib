@@ -201,30 +201,33 @@ namespace UniverseLib.Runtime.Il2Cpp
     }
 }
 
-public static class Il2CppExtensions
+namespace UniverseLib
 {
-    public static void AddListener(this UnityEvent action, Action listener)
+    public static class Il2CppExtensions
     {
-        action.AddListener(listener);
-    }
+        public static void AddListener(this UnityEvent action, Action listener)
+        {
+            action.AddListener(listener);
+        }
 
-    public static void AddListener<T>(this UnityEvent<T> action, Action<T> listener)
-    {
-        action.AddListener(listener);
-    }
+        public static void AddListener<T>(this UnityEvent<T> action, Action<T> listener)
+        {
+            action.AddListener(listener);
+        }
 
-    public static void RemoveListener(this UnityEvent action, Action listener)
-    {
-        action.RemoveListener(listener);
-    }
+        public static void RemoveListener(this UnityEvent action, Action listener)
+        {
+            action.RemoveListener(listener);
+        }
 
-    public static void RemoveListener<T>(this UnityEvent<T> action, Action<T> listener)
-    {
-        action.RemoveListener(listener);
-    }
+        public static void RemoveListener<T>(this UnityEvent<T> action, Action<T> listener)
+        {
+            action.RemoveListener(listener);
+        }
 
-    public static void SetChildControlHeight(this HorizontalOrVerticalLayoutGroup group, bool value) => group.childControlHeight = value;
-    public static void SetChildControlWidth(this HorizontalOrVerticalLayoutGroup group, bool value) => group.childControlWidth = value;
+        public static void SetChildControlHeight(this HorizontalOrVerticalLayoutGroup group, bool value) => group.childControlHeight = value;
+        public static void SetChildControlWidth(this HorizontalOrVerticalLayoutGroup group, bool value) => group.childControlWidth = value;
+    }
 }
 
 #endif

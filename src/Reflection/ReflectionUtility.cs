@@ -189,7 +189,7 @@ namespace UniverseLib
         #region Type inheritance cache
 
         // cache for GetBaseTypes
-        internal static readonly Dictionary<string, Type[]> baseTypes = new Dictionary<string, Type[]>();
+        internal static readonly Dictionary<string, Type[]> baseTypes = new();
 
         /// <summary>
         /// Get all base types of the Type of the provided object, including itself.
@@ -209,7 +209,7 @@ namespace UniverseLib
             if (baseTypes.TryGetValue(name, out Type[] ret))
                 return ret;
 
-            List<Type> list = new List<Type>();
+            List<Type> list = new();
 
             while (type != null)
             {

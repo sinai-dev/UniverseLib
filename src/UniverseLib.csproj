@@ -171,5 +171,8 @@
     <None Include=".editorconfig" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="packages\UniverseLib.Analyzers.1.0.3\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
