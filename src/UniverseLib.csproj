@@ -34,7 +34,7 @@
     <DefineConstants>CPP</DefineConstants>
     <AssemblyName>UniverseLib.IL2CPP</AssemblyName>
     <IsCpp>true</IsCpp>
-    <DocumentationFile>..\Release\UniverseLib.Il2Cpp\UniverseLib.Il2Cpp.xml</DocumentationFile>
+    <DocumentationFile>..\Release\UniverseLib.Il2Cpp\UniverseLib.IL2CPP.xml</DocumentationFile>
   </PropertyGroup>
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
