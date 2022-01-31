@@ -21,13 +21,13 @@ namespace UniverseLib.UI
         /// <summary>
         /// Create a simple UI object with a RectTransform. <paramref name="parent"/> can be null.
         /// </summary>
-        public static GameObject CreateUIObject(string name, GameObject parent, Vector2 size = default)
+        public static GameObject CreateUIObject(string name, GameObject parent, Vector2 sizeDelta = default)
         {
-            if (!parent)
-            {
-                Universe.LogWarning($"Warning: Creating {name} but parent is null");
-                Universe.Log(Environment.StackTrace);
-            }
+            //if (!parent)
+            //{
+            //    Universe.LogWarning($"Warning: Creating {name} but parent is null");
+            //    Universe.Log(Environment.StackTrace);
+            //}
 
             var obj = new GameObject(name)
             {
@@ -39,7 +39,7 @@ namespace UniverseLib.UI
                 obj.transform.SetParent(parent.transform, false);
 
             RectTransform rect = obj.AddComponent<RectTransform>();
-            rect.sizeDelta = size;
+            rect.sizeDelta = sizeDelta;
             return obj;
         }
 
@@ -61,7 +61,7 @@ namespace UniverseLib.UI
         }
 
 
-        #region Layout Components
+        #region Layout Helpers
 
         /// <summary>
         /// Get and/or Add a LayoutElement component to the GameObject, and set any of the values on it.
@@ -146,40 +146,52 @@ namespace UniverseLib.UI
             return group;
         }
 
-        /// <summary>
-        /// Create a Panel on the UI Canvas.
-        /// </summary>
+        #endregion
+
+
+        #region Layout Objects
+
+        [Obsolete("Use the other overload")]
         public static GameObject CreatePanel(string name, GameObject parent, out GameObject contentHolder, Color? bgColor = null)
+            => throw new NotImplementedException();
+
+        /// <summary>
+        /// Create a simple UI Object with a VerticalLayoutGroup and an Image component.
+        /// </summary>
+        /// <param name="name">The name of the panel GameObject, useful for debugging purposes</param>
+        /// <param name="parent">The parent GameObject to attach this to</param>
+        /// <param name="bgColor">The background color of your panel. Defaults to dark grey if null.</param>
+        /// <returns>Your panel GameObject.</returns>
+        public static GameObject CreatePanel(string name, GameObject parent, Color? bgColor = null)
         {
             var panelObj = CreateUIObject(name, parent);
+
             SetLayoutGroup<VerticalLayoutGroup>(panelObj, true, true, true, true);
 
             var rect = panelObj.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = Vector2.zero;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
 
-            var maskImg = panelObj.AddComponent<Image>();
-            maskImg.color = Color.black;
-            panelObj.AddComponent<Mask>().showMaskGraphic = true;
+            var outline = panelObj.AddComponent<Outline>();
+            outline.effectColor = Color.black;
+            outline.effectDistance = new(2, 2);
 
-            contentHolder = CreateUIObject("Content", panelObj);
-
-            Image bgImage = contentHolder.AddComponent<Image>();
-            bgImage.type = Image.Type.Filled;
             if (bgColor == null)
-                bgImage.color = new Color(0.07f, 0.07f, 0.07f);
-            else
-                bgImage.color = (Color)bgColor;
+                bgColor = new(0.07f, 0.07f, 0.07f);
 
-            SetLayoutGroup<VerticalLayoutGroup>(contentHolder, true, true, true, true, 3, 3, 3, 3, 3);
+            var image = panelObj.AddComponent<Image>();
+            image.color = (Color)bgColor;
+            image.type = Image.Type.Filled;
+
+            panelObj.AddComponent<Mask>().showMaskGraphic = true;
 
             return panelObj;
         }
 
         /// <summary>
-        /// Create a VerticalLayoutGroup object.
+        /// Create a VerticalLayoutGroup object with an Image component. Use SetLayoutGroup to create one without an image.
         /// </summary>
         public static GameObject CreateVerticalGroup(GameObject parent, string name, bool forceWidth, bool forceHeight,
             bool childControlWidth, bool childControlHeight, int spacing = 0, Vector4 padding = default, Color bgColor = default,
@@ -199,7 +211,7 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a HorizontalLayoutGroup object.
+        /// Create a HorizontalLayoutGroup object with an Image component. Use SetLayoutGroup to create one without an image.
         /// </summary>
         public static GameObject CreateHorizontalGroup(GameObject parent, string name, bool forceExpandWidth, bool forceExpandHeight,
             bool childControlWidth, bool childControlHeight, int spacing = 0, Vector4 padding = default, Color bgColor = default,
@@ -219,7 +231,7 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a GridLayoutGroup object.
+        /// Create a GridLayoutGroup object with an Image component. 
         /// </summary>
         public static GameObject CreateGridGroup(GameObject parent, string name, Vector2 cellSize, Vector2 spacing, Color bgColor = default)
         {
@@ -245,9 +257,17 @@ namespace UniverseLib.UI
         #region Control and Graphic Components
 
         /// <summary>
-        /// Create a Label object.
+        /// Create a Text component.
         /// </summary>
-        public static Text CreateLabel(GameObject parent, string name, string text, TextAnchor alignment,
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your label</param>
+        /// <param name="defaultText">The default text of the label</param>
+        /// <param name="alignment">The alignment of the Text component</param>
+        /// <param name="color">The Text color (default is White)</param>
+        /// <param name="supportRichText">Should the Text support rich text? (Can be changed afterwards)</param>
+        /// <param name="fontSize">The default font size</param>
+        /// <returns>Your new Text component</returns>
+        public static Text CreateLabel(GameObject parent, string name, string defaultText, TextAnchor alignment = TextAnchor.MiddleLeft,
             Color color = default, bool supportRichText = true, int fontSize = 14)
         {
             var obj = CreateUIObject(name, parent);
@@ -255,7 +275,7 @@ namespace UniverseLib.UI
 
             SetDefaultTextValues(textComp);
 
-            textComp.text = text;
+            textComp.text = defaultText;
             textComp.color = color == default ? defaultTextColor : color;
             textComp.supportRichText = supportRichText;
             textComp.alignment = alignment;
@@ -264,18 +284,30 @@ namespace UniverseLib.UI
             return textComp;
         }
 
+        /// <summary>
+        /// Create a ButtonRef wrapper and a Button component, providing only the default Color (highlighted and pressed colors generated automatically).
+        /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your button</param>
+        /// <param name="text">The default button text</param>
+        /// <param name="normalColor">The base color for your button, with the highlighted and pressed colors generated from this.</param>
+        /// <returns>A ButtonRef wrapper for your Button component.</returns>
         public static ButtonRef CreateButton(GameObject parent, string name, string text, Color? normalColor = null)
         {
-            var colors = new ColorBlock();
-            normalColor = normalColor ?? new Color(0.25f, 0.25f, 0.25f);
-
-            var btn = CreateButton(parent, name, text, colors);
-
-            RuntimeHelper.Instance.Internal_SetColorBlock(btn.Component, normalColor, normalColor * 1.2f, normalColor * 0.7f);
-
-            return btn;
+            normalColor ??= new Color(0.25f, 0.25f, 0.25f);
+            var buttonRef = CreateButton(parent, name, text, default(ColorBlock));
+            RuntimeHelper.Instance.Internal_SetColorBlock(buttonRef.Component, normalColor, normalColor * 1.2f, normalColor * 0.7f);
+            return buttonRef;
         }
 
+        /// <summary>
+        /// Create a ButtonRef wrapper and a Button component.
+        /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your button</param>
+        /// <param name="text">The default button text</param>
+        /// <param name="colors">The ColorBlock used for your Button component</param>
+        /// <returns>A ButtonRef wrapper for your Button component.</returns>
         public static ButtonRef CreateButton(GameObject parent, string name, string text, ColorBlock colors)
         {
             GameObject buttonObj = CreateUIObject(name, parent, smallElementSize);
@@ -306,8 +338,9 @@ namespace UniverseLib.UI
 
             return new ButtonRef(button);
         }
-
-        public static void SetButtonDeselectListener(Button button)
+        
+        // Automatically deselect buttons when clicked.
+        internal static void SetButtonDeselectListener(Button button)
         {
             button.onClick.AddListener(() =>
             {
@@ -316,8 +349,12 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a Slider control.
+        /// Create a Slider control component.
         /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your slider</param>
+        /// <param name="slider">Returns the created Slider component</param>
+        /// <returns>The root GameObject for your Slider</returns>
         public static GameObject CreateSlider(GameObject parent, string name, out Slider slider)
         {
             GameObject sliderObj = CreateUIObject(name, parent, smallElementSize);
@@ -372,8 +409,12 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a Scrollbar control.
+        /// Create a standard Unity Scrollbar component.
         /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your scrollbar</param>
+        /// <param name="scrollbar">Returns the created Scrollbar component</param>
+        /// <returns>The root GameObject for your Scrollbar</returns>
         public static GameObject CreateScrollbar(GameObject parent, string name, out Scrollbar scrollbar)
         {
             GameObject scrollObj = CreateUIObject(name, parent, smallElementSize);
@@ -407,8 +448,16 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a Toggle control.
+        /// Create a Toggle control component.
         /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your toggle</param>
+        /// <param name="toggle">Returns the created Toggle component</param>
+        /// <param name="text">Returns the Text component for your Toggle</param>
+        /// <param name="bgColor">The background color of the checkbox</param>
+        /// <param name="checkWidth">The width of your checkbox</param>
+        /// <param name="checkHeight">The height of your checkbox</param>
+        /// <returns>The root GameObject for your Toggle control</returns>
         public static GameObject CreateToggle(GameObject parent, string name, out Toggle toggle, out Text text, Color bgColor = default, 
             int checkWidth = 20, int checkHeight = 20)
         {
@@ -456,8 +505,12 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a standard InputField control.
+        /// Create a standard InputField control and an InputFieldRef wrapper for it.
         /// </summary>
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your InputField</param>
+        /// <param name="placeHolderText">The placeholder text for your InputField component</param>
+        /// <returns>An InputFieldRef wrapper for your InputField</returns>
         public static InputFieldRef CreateInputField(GameObject parent, string name, string placeHolderText)
         {
             GameObject mainObj = CreateUIObject(name, parent);
@@ -526,12 +579,20 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a DropDown control.
+        /// Create a standard DropDown control.
         /// </summary>
-        public static GameObject CreateDropdown(GameObject parent, out Dropdown dropdown, string defaultItemText, int itemFontSize,
+        /// <param name="parent">The parent object to build onto</param>
+        /// <param name="name">The GameObject name of your Dropdown</param>
+        /// <param name="dropdown">Returns your created Dropdown component</param>
+        /// <param name="defaultItemText">The default displayed text (suggested is 14)</param>
+        /// <param name="itemFontSize">The font size of the displayed text</param>
+        /// <param name="onValueChanged">Invoked when your Dropdown value is changed</param>
+        /// <param name="defaultOptions">Optional default options for the dropdown</param>
+        /// <returns>The root GameObject for your Dropdown control</returns>
+        public static GameObject CreateDropdown(GameObject parent, string name, out Dropdown dropdown, string defaultItemText, int itemFontSize,
             Action<int> onValueChanged, string[] defaultOptions = null)
         {
-            GameObject dropdownObj = CreateUIObject("Dropdown", parent, largeElementSize);
+            GameObject dropdownObj = CreateUIObject(name, parent, largeElementSize);
 
             GameObject labelObj = CreateUIObject("Label", dropdownObj);
             GameObject arrowObj = CreateUIObject("Arrow", dropdownObj);
@@ -676,8 +737,15 @@ namespace UniverseLib.UI
         #region Custom Scroll Components
 
         /// <summary>
-        /// Create a ScrollPool for the <typeparamref name="T"/> ICell.
+        /// Create a ScrollPool for the <typeparamref name="T"/> ICell. You should call scrollPool.Initialize(handler) after this.
         /// </summary>
+        /// <typeparam name="T">The ICell type which will be used for the ScrollPool.</typeparam>
+        /// <param name="parent">The parent GameObject which the ScrollPool will be built on to.</param>
+        /// <param name="name">The GameObject name for your ScrollPool</param>
+        /// <param name="uiRoot">Returns the root GameObject for your ScrollPool</param>
+        /// <param name="content">Returns the content GameObject for your ScrollPool (where cells will be populated)</param>
+        /// <param name="bgColor">The background color for your ScrollPool. If default, it will be dark grey.</param>
+        /// <returns>Your created ScrollPool instance.</returns>
         public static ScrollPool<T> CreateScrollPool<T>(GameObject parent, string name, out GameObject uiRoot,
             out GameObject content, Color? bgColor = null) where T : ICell
         {
@@ -738,8 +806,13 @@ namespace UniverseLib.UI
         }
 
         /// <summary>
-        /// Create a SliderScrollbar, using a Slider to mimic a scrollbar.
+        /// Create a SliderScrollbar, using a Slider to mimic a Scrollbar. This fixes several issues with Unity's Scrollbar implementation.<br/><br/>
+        /// 
+        /// Note that this will not have any actual functionality. Use this along with an <see cref="AutoSliderScrollbar"/> to automate the functionality.
         /// </summary>
+        /// <param name="parent">The parent to create on to.</param>
+        /// <param name="slider">Your created Slider component</param>
+        /// <returns>The root GameObject for your SliderScrollbar.</returns>
         public static GameObject CreateSliderScrollbar(GameObject parent, out Slider slider)
         {
             GameObject mainObj = CreateUIObject("SliderScrollbar", parent, smallElementSize);
@@ -800,6 +873,12 @@ namespace UniverseLib.UI
         /// <summary>
         /// Create a ScrollView and a SliderScrollbar for non-pooled content.
         /// </summary>
+        /// <param name="parent">The parent GameObject to build on to.</param>
+        /// <param name="name">The GameObject name for your ScrollView.</param>
+        /// <param name="content">The GameObject for your content to be placed on.</param>
+        /// <param name="autoScrollbar">A created AutoSliderScrollbar instance for your ScrollView.</param>
+        /// <param name="color">The background color, defaults to grey.</param>
+        /// <returns>The root GameObject for your ScrollView.</returns>
         public static GameObject CreateScrollView(GameObject parent, string name, out GameObject content, out AutoSliderScrollbar autoScrollbar,
             Color color = default)
         {
@@ -870,10 +949,16 @@ namespace UniverseLib.UI
             return mainObj;
         }
 
-
         /// <summary>
-        /// Create a Scrollable Input Field control
+        /// Create a Scrollable Input Field control, using an AutoSliderScrollbar for the scroll bar.
         /// </summary>
+        /// <param name="parent">The parent GameObject to build on to.</param>
+        /// <param name="name">The GameObject name for your InputField.</param>
+        /// <param name="placeHolderText">Optional placeholder text for your InputField</param>
+        /// <param name="inputScroll">An InputFieldScroller, you don't need to do anything with this necessarily, it will automate itself.</param>
+        /// <param name="fontSize">The font size for your InputField</param>
+        /// <param name="color">The text color for your InputField</param>
+        /// <returns>The root GameObject for your ScrollInputField</returns>
         public static GameObject CreateScrollInputField(GameObject parent, string name, string placeHolderText, out InputFieldScroller inputScroll,
             int fontSize = 14, Color color = default)
         {
