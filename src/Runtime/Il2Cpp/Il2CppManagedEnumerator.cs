@@ -19,8 +19,8 @@ namespace UniverseLib.Runtime.Il2Cpp
 {
     public static class CollectionExtensions
     {
-        public static Il2CppIEnumerator WrapToIl2Cpp(this IEnumerator self) 
-            => new Il2CppManagedEnumerator(self).TryCast<Il2CppIEnumerator>();
+        public static Il2CppIEnumerator WrapToIl2Cpp(this IEnumerator self)
+            => new(new Il2CppManagedEnumerator(self).Pointer);
     }
 
     public class Il2CppManagedEnumerator : Object
@@ -34,11 +34,11 @@ namespace UniverseLib.Runtime.Il2Cpp
             try
             {
                 // Using reflection for this since API is different between BepInEx and the main branch.
+                // This method is just obsoleted in BepInEx's branch, but still works.
 
-                // ClassInjector.RegisterTypeInIl2CppWithInterfaces<Il2CppManagedEnumerator>(typeof(Il2CppIEnumerator));
-                AccessTools.Method(typeof(ClassInjector), "RegisterTypeInIl2CppWithInterfaces", new Type[] { typeof(Type[]) })
-                    .MakeGenericMethod(typeof(Il2CppManagedEnumerator))
-                    .Invoke(null, new[] { new[] { typeof(Il2CppIEnumerator) } });
+                // ClassInjector.RegisterTypeInIl2CppWithInterfaces(typeof(Il2CppManagedEnumerator), true, typeof(Il2CppIEnumerator));
+                AccessTools.Method(typeof(ClassInjector), "RegisterTypeInIl2CppWithInterfaces", new Type[] { typeof(Type), typeof(bool), typeof(Type[]) })
+                    .Invoke(null, new object[] { typeof(Il2CppManagedEnumerator), true, new[] { typeof(Il2CppSystem.Collections.IEnumerator) } });
             }
             catch (System.Exception ex)
             {
@@ -68,6 +68,16 @@ namespace UniverseLib.Runtime.Il2Cpp
 
         public void Reset() => enumerator.Reset();
 
+        private static Object ManagedToIl2CppObject(object obj)
+        {
+            var t = obj.GetType();
+            if (obj is string s)
+                return new Object(IL2CPP.ManagedStringToIl2Cpp(s));
+            if (t.IsPrimitive)
+                return GetValueBoxer(t)(obj);
+            throw new NotSupportedException($"Type {t} cannot be converted directly to an Il2Cpp object");
+        }
+
         private static System.Func<object, Object> GetValueBoxer(Type t)
         {
             if (boxers.TryGetValue(t, out var conv))
@@ -93,16 +103,6 @@ namespace UniverseLib.Runtime.Il2Cpp
             var converter = dm.CreateDelegate(typeof(System.Func<object, Object>)) as System.Func<object, Object>;
             boxers[t] = converter;
             return converter;
-        }
-
-        private static Object ManagedToIl2CppObject(object obj)
-        {
-            var t = obj.GetType();
-            if (obj is string s)
-                return new Object(IL2CPP.ManagedStringToIl2Cpp(s));
-            if (t.IsPrimitive)
-                return GetValueBoxer(t)(obj);
-            throw new NotSupportedException($"Type {t} cannot be converted directly to an Il2Cpp object");
         }
     }
 }
