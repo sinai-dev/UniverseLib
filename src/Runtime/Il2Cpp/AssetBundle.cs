@@ -30,7 +30,9 @@ namespace UniverseLib
         [HideFromIl2Cpp]
         public static AssetBundle LoadFromFile(string path)
         {
-            IntPtr ptr = ICallManager.GetICall<d_LoadFromFile>("UnityEngine.AssetBundle::LoadFromFile_Internal")
+            IntPtr ptr = ICallManager.GetICallUnreliable<d_LoadFromFile>(
+                    "UnityEngine.AssetBundle::LoadFromFile_Internal", 
+                    "UnityEngine.AssetBundle::LoadFromFile")
                 .Invoke(IL2CPP.ManagedStringToIl2Cpp(path), 0u, 0UL);
 
             return ptr != IntPtr.Zero ? new AssetBundle(ptr) : null;
@@ -43,7 +45,9 @@ namespace UniverseLib
         [HideFromIl2Cpp]
         public static AssetBundle LoadFromMemory(byte[] binary, uint crc = 0)
         {
-            IntPtr ptr = ICallManager.GetICall<d_LoadFromMemory>("UnityEngine.AssetBundle::LoadFromMemory_Internal")
+            IntPtr ptr = ICallManager.GetICallUnreliable<d_LoadFromMemory>(
+                    "UnityEngine.AssetBundle::LoadFromMemory_Internal",
+                    "UnityEngine.AssetBundle::LoadFromMemory")
                 .Invoke(((Il2CppStructArray<byte>)binary).Pointer, crc);
 
             return ptr != IntPtr.Zero ? new AssetBundle(ptr) : null;

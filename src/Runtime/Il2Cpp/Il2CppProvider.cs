@@ -84,7 +84,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         protected internal override UnityEngine.Object[] Internal_FindObjectsOfTypeAll(Type type)
         {
             return new Il2CppReferenceArray<UnityEngine.Object>(
-                ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(findObjectsOfTypeAllSignatures)
+                    ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(findObjectsOfTypeAllSignatures)
                 .Invoke(Il2CppType.From(type).Pointer));
         }
 

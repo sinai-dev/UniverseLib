@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnhollowerBaseLib;
 
 namespace UniverseLib.Runtime.Il2Cpp
 {
@@ -17,9 +18,6 @@ namespace UniverseLib.Runtime.Il2Cpp
         // cache used by GetICallUnreliable
         private static readonly Dictionary<string, Delegate> unreliableCache = new();
 
-        [DllImport("GameAssembly", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        static extern IntPtr il2cpp_resolve_icall([MarshalAs(UnmanagedType.LPStr)] string name);
-
         /// <summary>
         /// Helper to get and cache an iCall by providing the signature (eg. "UnityEngine.Resources::FindObjectsOfTypeAll").
         /// </summary>
@@ -32,7 +30,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             if (iCallCache.ContainsKey(signature))
                 return (T)iCallCache[signature];
 
-            IntPtr ptr = il2cpp_resolve_icall(signature);
+            IntPtr ptr = IL2CPP.il2cpp_resolve_icall(signature);
 
             if (ptr == IntPtr.Zero)
                 throw new MissingMethodException($"Could not find any iCall with the signature '{signature}'!");
@@ -47,7 +45,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         /// Get an iCall which may be one of multiple different signatures (ie, the name changed in different Unity versions).
         /// Each possible signature must have the same Delegate type, it can only vary by name.
         /// </summary>
-        public static T GetICallUnreliable<T>(IEnumerable<string> possibleSignatures) where T : Delegate
+        public static T GetICallUnreliable<T>(params string[] possibleSignatures) where T : Delegate
         {
             // use the first possible signature as the 'key'.
             string key = possibleSignatures.First();
@@ -59,7 +57,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             IntPtr ptr;
             foreach (var sig in possibleSignatures)
             {
-                ptr = il2cpp_resolve_icall(sig);
+                ptr = IL2CPP.il2cpp_resolve_icall(sig);
                 if (ptr != IntPtr.Zero)
                 {
                     iCall = (T)Marshal.GetDelegateForFunctionPointer(ptr, typeof(T));

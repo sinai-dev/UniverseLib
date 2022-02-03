@@ -43,13 +43,6 @@ namespace UniverseLib
 
         private static readonly Dictionary<string, IntPtr> cppClassPointers = new();
 
-        // Extern C++ methods 
-        [DllImport("GameAssembly", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern bool il2cpp_class_is_assignable_from(IntPtr klass, IntPtr oklass);
-
-        [DllImport("GameAssembly", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern IntPtr il2cpp_object_get_class(IntPtr obj);
-
         /// <summary>
         /// Returns true if the Type has a corresponding IL2CPP Type.
         /// </summary>
@@ -158,7 +151,7 @@ namespace UniverseLib
                     var cppType = cppObject.GetIl2CppType();
 
                     // check if type is injected
-                    IntPtr classPtr = il2cpp_object_get_class(cppObject.Pointer);
+                    IntPtr classPtr = IL2CPP.il2cpp_object_get_class(cppObject.Pointer);
                     if (RuntimeSpecificsStore.IsInjected(classPtr))
                     {
                         // Note: This will fail on injected subclasses.
@@ -259,9 +252,9 @@ namespace UniverseLib
 
             // Casting from il2cpp object to il2cpp object...
 
-            IntPtr castFromPtr = il2cpp_object_get_class(cppObj.Pointer);
+            IntPtr castFromPtr = IL2CPP.il2cpp_object_get_class(cppObj.Pointer);
 
-            if (!il2cpp_class_is_assignable_from(castToPtr, castFromPtr))
+            if (!IL2CPP.il2cpp_class_is_assignable_from(castToPtr, castFromPtr))
                 return null;
 
             if (RuntimeSpecificsStore.IsInjected(castToPtr))
@@ -611,7 +604,7 @@ namespace UniverseLib
 
                 if (cppIEnumerablePointer != IntPtr.Zero
                     && Il2CppTypeNotNull(type, out IntPtr assignFromPtr)
-                    && il2cpp_class_is_assignable_from(cppIEnumerablePointer, assignFromPtr))
+                    && IL2CPP.il2cpp_class_is_assignable_from(cppIEnumerablePointer, assignFromPtr))
                 {
                     return true;
                 }
@@ -720,7 +713,7 @@ namespace UniverseLib
                         return false;
 
                 if (Il2CppTypeNotNull(type, out IntPtr classPtr)
-                    && il2cpp_class_is_assignable_from(cppIDictionaryPointer, classPtr))
+                    && IL2CPP.il2cpp_class_is_assignable_from(cppIDictionaryPointer, classPtr))
                     return true;
             }
             catch { }
