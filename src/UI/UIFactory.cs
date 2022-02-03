@@ -151,41 +151,37 @@ namespace UniverseLib.UI
 
         #region Layout Objects
 
-        [Obsolete("Use the other overload")]
-        public static GameObject CreatePanel(string name, GameObject parent, out GameObject contentHolder, Color? bgColor = null)
-            => throw new NotImplementedException();
-
         /// <summary>
         /// Create a simple UI Object with a VerticalLayoutGroup and an Image component.
         /// </summary>
         /// <param name="name">The name of the panel GameObject, useful for debugging purposes</param>
         /// <param name="parent">The parent GameObject to attach this to</param>
         /// <param name="bgColor">The background color of your panel. Defaults to dark grey if null.</param>
-        /// <returns>Your panel GameObject.</returns>
-        public static GameObject CreatePanel(string name, GameObject parent, Color? bgColor = null)
+        /// <param name="contentHolder">The GameObject which you should add your actual content on to.</param>
+        /// <returns>The base panel GameObject (not for adding content to).</returns>
+        public static GameObject CreatePanel(string name, GameObject parent, out GameObject contentHolder, Color? bgColor = null)
         {
             var panelObj = CreateUIObject(name, parent);
-
             SetLayoutGroup<VerticalLayoutGroup>(panelObj, true, true, true, true);
 
             var rect = panelObj.GetComponent<RectTransform>();
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = Vector2.zero;
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
 
-            var outline = panelObj.AddComponent<Outline>();
-            outline.effectColor = Color.black;
-            outline.effectDistance = new(2, 2);
+            panelObj.AddComponent<Image>().color = Color.white;
+            panelObj.AddComponent<Mask>().showMaskGraphic = false;
 
-            if (bgColor == null)
-                bgColor = new(0.07f, 0.07f, 0.07f);
+            contentHolder = CreateUIObject("Content", panelObj);
 
-            var image = panelObj.AddComponent<Image>();
-            image.color = (Color)bgColor;
-            image.type = Image.Type.Filled;
+            Image bgImage = contentHolder.AddComponent<Image>();
+            bgImage.type = Image.Type.Filled;
+            bgImage.color = bgColor == null
+                ? new(0.07f, 0.07f, 0.07f)
+                : (Color)bgColor;
 
-            panelObj.AddComponent<Mask>().showMaskGraphic = true;
+            SetLayoutGroup<VerticalLayoutGroup>(contentHolder, true, true, true, true, 3, 3, 3, 3, 3);
 
             return panelObj;
         }
