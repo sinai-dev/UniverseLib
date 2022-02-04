@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using UniverseLib;
 using UniverseLib.Config;
 using UniverseLib.Input;
+using UniverseLib.Runtime;
 using UniverseLib.UI;
 
 namespace UniverseLib.Input
@@ -22,28 +23,21 @@ namespace UniverseLib.Input
         public static bool ShouldUnlock => ConfigManager.Force_Unlock_Mouse && UniversalUI.AnyUIShowing;
 
         /// <summary>
-        /// The value of <see cref="EventSystem.current"/>, or "EventSystem.main" in some older games.
+        /// The value of "EventSystem.current", or "EventSystem.main" in some older games.
         /// </summary>
         public static EventSystem CurrentEventSystem
         {
-            get => (EventSystem)EventSystem_Current.GetValue(null, null);
-            set => EventSystem_Current.SetValue(null, value, null);
+            get => EventSystemCurrent_Handler.GetValue();
+            set => EventSystemCurrent_Handler.SetValue(value);
         }
+
+        static readonly AmbiguousMemberHandler<EventSystem, EventSystem> EventSystemCurrent_Handler = new("current", "main");
 
         private static bool currentlySettingCursor;
         private static CursorLockMode lastLockMode;
         private static bool lastVisibleState;
 
         private static WaitForEndOfFrame waitForEndOfFrame = new();
-
-        private static PropertyInfo EventSystem_Current
-        {
-            get => pi_currentEventSystem
-                    ?? (pi_currentEventSystem = AccessTools.Property(typeof(EventSystem), "current"))
-                    ?? (pi_currentEventSystem = AccessTools.Property(typeof(EventSystem), "main"))
-                    ?? throw new MissingMemberException("This game has no EventSystem.current or EventSystem.main property!");
-        }
-        private static PropertyInfo pi_currentEventSystem;
 
         private static bool settingEventSystem;
         private static EventSystem lastEventSystem;

@@ -19,11 +19,10 @@ namespace UniverseLib.Runtime.Il2Cpp
 {
     internal class Il2CppProvider : RuntimeHelper
     {
-        internal static bool triedToGetColorBlockProps;
-        internal static PropertyInfo normalColorProp;
-        internal static PropertyInfo highlightColorProp;
-        internal static PropertyInfo pressedColorProp;
-        internal static PropertyInfo disabledColorProp;
+        readonly AmbiguousMemberHandler<ColorBlock, Color> normalColor = new("normalColor", "m_NormalColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> highlightedColor = new("highlightedColor", "m_HighlightedColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> pressedColor = new("pressedColor", "m_PressedColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> disabledColor = new("disabledColor", "m_DisabledColor");
 
         internal delegate IntPtr d_LayerToName(int layer);
 
@@ -74,17 +73,12 @@ namespace UniverseLib.Runtime.Il2Cpp
         }
 
         /// <inheritdoc/>
-        internal static readonly string[] findObjectsOfTypeAllSignatures = new[]
-        {
-            "UnityEngine.Resources::FindObjectsOfTypeAll",
-            "UnityEngine.ResourcesAPIInternal::FindObjectsOfTypeAll" // Unity 2020+ updated to this
-        };
-
-        /// <inheritdoc/>
         protected internal override UnityEngine.Object[] Internal_FindObjectsOfTypeAll(Type type)
         {
             return new Il2CppReferenceArray<UnityEngine.Object>(
-                    ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(findObjectsOfTypeAllSignatures)
+                    ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(
+                        "UnityEngine.Resources::FindObjectsOfTypeAll",
+                        "UnityEngine.ResourcesAPIInternal::FindObjectsOfTypeAll") // Unity 2020+ updated to this
                 .Invoke(Il2CppType.From(type).Pointer));
         }
 
@@ -121,8 +115,6 @@ namespace UniverseLib.Runtime.Il2Cpp
         {
             try
             {
-                selectable = selectable.TryCast<Selectable>();
-
                 AccessTools.Property(typeof(Selectable), "m_Colors")
                     .SetValue(selectable, colorBlock, null);
 
@@ -141,62 +133,21 @@ namespace UniverseLib.Runtime.Il2Cpp
             var colors = selectable.colors;
             colors.colorMultiplier = 1;
 
-            object boxed = (object)colors;
+            object boxedColors = colors;
 
-            if (!triedToGetColorBlockProps)
-            {
-                triedToGetColorBlockProps = true;
+            if (normal != null)
+                normalColor.SetValue(boxedColors, (Color)normal);
 
-                if (AccessTools.Property(typeof(ColorBlock), "normalColor") is PropertyInfo norm && norm.CanWrite)
-                    normalColorProp = norm;
-                if (AccessTools.Property(typeof(ColorBlock), "highlightedColor") is PropertyInfo high && high.CanWrite)
-                    highlightColorProp = high;
-                if (AccessTools.Property(typeof(ColorBlock), "pressedColor") is PropertyInfo pres && pres.CanWrite)
-                    pressedColorProp = pres;
-                if (AccessTools.Property(typeof(ColorBlock), "disabledColor") is PropertyInfo disa && disa.CanWrite)
-                    disabledColorProp = disa;
-            }
+            if (highlighted != null)
+                highlightedColor.SetValue(boxedColors, (Color)highlighted);
 
-            try
-            {
-                if (normal != null)
-                {
-                    if (normalColorProp != null)
-                        normalColorProp.SetValue(boxed, (Color)normal);
-                    else if (AccessTools.Field(typeof(ColorBlock), "m_NormalColor") is FieldInfo fi)
-                        fi.SetValue(boxed, (Color)normal);
-                }
+            if (pressed != null)
+                pressedColor.SetValue(boxedColors, (Color)pressed);
 
-                if (highlighted != null)
-                {
-                    if (highlightColorProp != null)
-                        highlightColorProp.SetValue(boxed, (Color)highlighted);
-                    else if (AccessTools.Field(typeof(ColorBlock), "m_HighlightedColor") is FieldInfo fi)
-                        fi.SetValue(boxed, (Color)highlighted);
-                }
+            if (disabled != null)
+                disabledColor.SetValue(boxedColors, (Color)disabled);
 
-                if (pressed != null)
-                {
-                    if (pressedColorProp != null)
-                        pressedColorProp.SetValue(boxed, (Color)pressed);
-                    else if (AccessTools.Field(typeof(ColorBlock), "m_PressedColor") is FieldInfo fi)
-                        fi.SetValue(boxed, (Color)pressed);
-                }
-
-                if (disabled != null)
-                {
-                    if (disabledColorProp != null)
-                        disabledColorProp.SetValue(boxed, (Color)disabled);
-                    else if (AccessTools.Field(typeof(ColorBlock), "m_DisabledColor") is FieldInfo fi)
-                        fi.SetValue(boxed, (Color)disabled);
-                }
-            }
-            catch (Exception ex)
-            {
-                Universe.Log(ex);
-            }
-
-            SetColorBlock(selectable, (ColorBlock)boxed);
+            SetColorBlock(selectable, (ColorBlock)boxedColors);
         }
     }
 }
