@@ -117,6 +117,7 @@
     <Compile Include="Config\ConfigManager.cs" />
     <Compile Include="Config\UniverseLibConfig.cs" />
     <Compile Include="Input\InputType.cs" />
+    <Compile Include="Runtime\AmbiguousMemberHandler.cs" />
     <Compile Include="UI\ObjectPool\IPooledObject.cs" />
     <Compile Include="UniversalBehaviour.cs" />
     <Compile Include="Input\CursorUnlocker.cs" />
