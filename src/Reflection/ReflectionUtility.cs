@@ -47,8 +47,8 @@ namespace UniverseLib
 
         public static Action<Type> OnTypeLoaded;
 
-        /// <summary>Key: Type.FullName</summary>
-        protected static readonly SortedDictionary<string, Type> AllTypes = new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>Key: Type.FullName, Value: Type</summary>
+        public static readonly SortedDictionary<string, Type> AllTypes = new(StringComparer.OrdinalIgnoreCase);
 
         public static readonly List<string> AllNamespaces = new();
         private static readonly HashSet<string> uniqueNamespaces = new();
