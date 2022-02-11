@@ -98,6 +98,9 @@ namespace UniverseLib
         /// </summary>
         public static string ReflectionExToString(this Exception e, bool innerMost = true)
         {
+            if (e == null)
+                return "The exception was null.";
+
             if (innerMost)
                 e = e.GetInnerMostException();
 
