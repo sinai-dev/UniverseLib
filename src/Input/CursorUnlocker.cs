@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,6 +10,7 @@ using UniverseLib.Config;
 using UniverseLib.Input;
 using UniverseLib.Runtime;
 using UniverseLib.UI;
+using UniverseLib.Utility;
 
 namespace UniverseLib.Input
 {
@@ -116,8 +118,8 @@ namespace UniverseLib.Input
             if (!UniversalUI.EventSys)
                 return;
 
-            var current = CurrentEventSystem;
-            if (current && current != UniversalUI.EventSys)
+            var current = lastEventSystem ? lastEventSystem : CurrentEventSystem; // CurrentEventSystem;
+            if (current && !current.ReferenceEqual(UniversalUI.EventSys) && current.isActiveAndEnabled)
             {
                 lastEventSystem = current;
                 lastInputModule = current.currentInputModule;
@@ -127,11 +129,11 @@ namespace UniverseLib.Input
             // For that we will need to use Resources to find the other active EventSystem once it has been created.
             if (!lastEventSystem)
             {
-                var allSystems = RuntimeHelper.Instance.Internal_FindObjectsOfTypeAll(typeof(EventSystem));
+                var allSystems = RuntimeHelper.FindObjectsOfTypeAll(typeof(EventSystem));
                 foreach (var obj in allSystems)
                 {
                     var system = obj.TryCast<EventSystem>();
-                    if (system == UniversalUI.EventSys)
+                    if (system.ReferenceEqual(UniversalUI.EventSys))
                         continue;
                     if (system.isActiveAndEnabled)
                     {
@@ -178,6 +180,20 @@ namespace UniverseLib.Input
 
                 settingEventSystem = false;
             }
+
+            // Dirty manual fix for some VRChat weirdness
+            try
+            {
+                if (Application.productName == "VRChat")
+                {
+                    if (GameObject.Find("EventSystem") is not GameObject randomEventSystem)
+                        return;
+
+                    Universe.LogWarning("Disabling extra VRChat EventSystem");
+                    randomEventSystem.SetActive(false);
+                }
+            }
+            catch { }
         }
 
         // Patches
@@ -274,7 +290,7 @@ namespace UniverseLib.Input
 
         internal static void Prefix_EventSystem_set_current(ref EventSystem value)
         {
-            if (!settingEventSystem && value && value != UniversalUI.EventSys)
+            if (!settingEventSystem && value && !value.ReferenceEqual(UniversalUI.EventSys))
             {
                 lastEventSystem = value;
                 lastInputModule = value.currentInputModule;
