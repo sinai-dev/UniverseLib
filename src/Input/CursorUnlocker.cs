@@ -118,7 +118,7 @@ namespace UniverseLib.Input
             if (!UniversalUI.EventSys)
                 return;
 
-            var current = lastEventSystem ? lastEventSystem : CurrentEventSystem; // CurrentEventSystem;
+            var current = CurrentEventSystem;
             if (current && !current.ReferenceEqual(UniversalUI.EventSys) && current.isActiveAndEnabled)
             {
                 lastEventSystem = current;
@@ -154,6 +154,8 @@ namespace UniverseLib.Input
                 InputManager.ActivateUIModule();
                 settingEventSystem = false;
             }
+
+            CheckVRChatEventSystemFix();
         }
 
         /// <summary>
@@ -163,6 +165,8 @@ namespace UniverseLib.Input
         {
             if (!UniversalUI.EventSys)
                 return;
+
+            CheckVRChatEventSystemFix();
 
             if (UniversalUI.EventSys.enabled)
             {
@@ -180,17 +184,29 @@ namespace UniverseLib.Input
 
                 settingEventSystem = false;
             }
+        }
 
-            // Dirty manual fix for some VRChat weirdness
+        // Dirty fix for some VRChat weirdness
+        static void CheckVRChatEventSystemFix()
+        {
             try
             {
                 if (Application.productName == "VRChat")
                 {
-                    if (GameObject.Find("EventSystem") is not GameObject randomEventSystem)
+                    if (GameObject.Find("EventSystem") is not GameObject strayEventSystem)
+                        return;
+
+                    // Try to make sure it's the right object I guess
+
+                    int count = strayEventSystem.GetComponents<Component>().Length;
+                    if (count != 3 && count != 4)
+                        return;
+
+                    if (strayEventSystem.transform.childCount > 0)
                         return;
 
                     Universe.LogWarning("Disabling extra VRChat EventSystem");
-                    randomEventSystem.SetActive(false);
+                    strayEventSystem.SetActive(false);
                 }
             }
             catch { }
