@@ -36,23 +36,26 @@ namespace UniverseLib.Runtime
             }
 
             //if (member == null)
-            //    Universe.LogWarning($"AmbigiousMemberHandler could not find any member on {typeof(TClass).Name} from possibleNames: {string.Join(", ", possibleNames)}");
+            //    Universe.LogWarning($"AmbigiousMemberHandler could not find any member on
+            //      {typeof(TClass).Name} from possibleNames: {string.Join(", ", possibleNames)}");
             //else
             //    Universe.Log($"Resolved AmbiguousMemberHandler: {member}");
         }
 
         /// <summary>
-        /// Gets the value of a non-static (instance) value from the provided instance.
+        /// Gets the value of an instance member from the provided instance.
         /// </summary>
         /// <param name="instance">The instance to get from.</param>
         /// <returns>The value from the member, if successful.</returns>
-        public TValue GetValue(object instance) => DoGetValue(instance);
+        public TValue GetValue(object instance) 
+            => DoGetValue(instance);
 
         /// <summary>
         /// Gets the value of a static member.
         /// </summary>
         /// <returns>The value from the member, if successful.</returns>
-        public TValue GetValue() => DoGetValue(null);
+        public TValue GetValue() 
+            => DoGetValue(null);
 
         private TValue DoGetValue(object instance)
         {
@@ -78,11 +81,21 @@ namespace UniverseLib.Runtime
         }
 
         /// <summary>
-        /// Sets the value of a non-static (instance) member.
+        /// Sets the value of an instance member to the instance.
         /// </summary>
         /// <param name="instance">The instance to set to.</param>
         /// <param name="value">The value to set to the instance.</param>
         public void SetValue(object instance, TValue value)
+            => DoSetValue(instance, value);
+
+        /// <summary>
+        /// Sets the value of a static member.
+        /// </summary>
+        /// <param name="value">The value to set to the instance.</param>
+        public void SetValue(TValue value)
+            => DoSetValue(null, value);
+
+        void DoSetValue(object instance, TValue value)
         {
             if (member == null)
                 return;
@@ -97,34 +110,6 @@ namespace UniverseLib.Runtime
 
                     case MemberTypes.Field:
                         (member as FieldInfo).SetValue(instance, value);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Universe.LogWarning($"Exception setting value '{value}' to member {member}: {ex}");
-            }
-        }
-
-        /// <summary>
-        /// Sets the value of a static member.
-        /// </summary>
-        /// <param name="value">The value to set to the instance.</param>
-        public void SetValue(TValue value)
-        {
-            if (member == null)
-                return;
-
-            try
-            {
-                switch (memberType)
-                {
-                    case MemberTypes.Property:
-                        (member as PropertyInfo).SetValue(null, value, null);
-                        break;
-
-                    case MemberTypes.Field:
-                        (member as FieldInfo).SetValue(null, value);
                         break;
                 }
             }
