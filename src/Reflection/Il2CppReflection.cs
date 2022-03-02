@@ -656,6 +656,8 @@ namespace UniverseLib
             var type = list.GetActualType();
             var key = type.AssemblyQualifiedName;
 
+            list = list.TryCast(type);
+
             if (!getEnumeratorMethods.ContainsKey(key))
             {
                 var method = type.GetMethod("GetEnumerator")
