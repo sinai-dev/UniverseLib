@@ -129,25 +129,24 @@ namespace UniverseLib.Input
             }
             // In some cases we may need to set our own EventSystem active before the original EventSystem is created or enabled.
             // For that we will need to use Resources to find the other active EventSystem once it has been created.
-            if (!lastEventSystem)
+            if (!ConfigManager.Disable_Fallback_EventSystem_Search 
+                && !lastEventSystem
+                && Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
             {
-                if (Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
+                timeOfLastEventSystemSearch = Time.realtimeSinceStartup;
+                // Universe.Log("No previous EventSystem detected, doing expensive manual search...");
+                var allSystems = RuntimeHelper.FindObjectsOfTypeAll<EventSystem>();
+                foreach (var obj in allSystems)
                 {
-                    timeOfLastEventSystemSearch = Time.realtimeSinceStartup;
-                    // Universe.Log("No previous EventSystem detected, doing expensive manual search...");
-                    var allSystems = RuntimeHelper.FindObjectsOfTypeAll<EventSystem>();
-                    foreach (var obj in allSystems)
+                    var system = obj.TryCast<EventSystem>();
+                    if (system.ReferenceEqual(UniversalUI.EventSys))
+                        continue;
+                    if (system.isActiveAndEnabled)
                     {
-                        var system = obj.TryCast<EventSystem>();
-                        if (system.ReferenceEqual(UniversalUI.EventSys))
-                            continue;
-                        if (system.isActiveAndEnabled)
-                        {
-                            lastEventSystem = system;
-                            lastInputModule = system.currentInputModule;
-                            lastEventSystem.enabled = false;
-                            break;
-                        }
+                        lastEventSystem = system;
+                        lastInputModule = system.currentInputModule;
+                        lastEventSystem.enabled = false;
+                        break;
                     }
                 }
             }
@@ -303,7 +302,7 @@ namespace UniverseLib.Input
 
         internal static bool Prefix_EventSystem_SetSelectedGameObject(GameObject __0)
         {
-            if (!UniversalUI.AnyUIShowing || !UniversalUI.CanvasRoot)
+            if (ConfigManager.Allow_UI_Selection_Outside_UIBase || !UniversalUI.AnyUIShowing || !UniversalUI.CanvasRoot)
                 return true;
 
             return __0 && __0.transform.root.gameObject.GetInstanceID() == UniversalUI.CanvasRoot.GetInstanceID();
