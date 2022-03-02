@@ -188,7 +188,12 @@ namespace UniverseLib
                 fullname = $"Il2Cpp{fullname}";
 
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
-                Universe.LogWarning($"Failed to get type by name '{fullname}'!");
+            {
+                monoType = Type.GetType(cppType.AssemblyQualifiedName);
+
+                if (monoType == null)
+                    Universe.LogWarning($"Failed to get type by name '{fullname}'!");
+            }
             return monoType;
         }
 
