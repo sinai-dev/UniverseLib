@@ -79,7 +79,7 @@ namespace UniverseLib.Runtime.Il2Cpp
                     ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(
                         "UnityEngine.Resources::FindObjectsOfTypeAll",
                         "UnityEngine.ResourcesAPIInternal::FindObjectsOfTypeAll") // Unity 2020+ updated to this
-                .Invoke(Il2CppType.From(type).Pointer));
+                    .Invoke(Il2CppType.From(type).Pointer));
         }
 
         /// <inheritdoc/>

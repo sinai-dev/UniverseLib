@@ -110,6 +110,8 @@ namespace UniverseLib.Input
             }
         }
 
+        static float timeOfLastEventSystemSearch;
+
         /// <summary>
         /// If the UniverseLib EventSystem is not enabled, this enables it and sets EventSystem.current to it, and stores the previous EventSystem.
         /// </summary>
@@ -129,18 +131,23 @@ namespace UniverseLib.Input
             // For that we will need to use Resources to find the other active EventSystem once it has been created.
             if (!lastEventSystem)
             {
-                var allSystems = RuntimeHelper.FindObjectsOfTypeAll(typeof(EventSystem));
-                foreach (var obj in allSystems)
+                if (Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
                 {
-                    var system = obj.TryCast<EventSystem>();
-                    if (system.ReferenceEqual(UniversalUI.EventSys))
-                        continue;
-                    if (system.isActiveAndEnabled)
+                    timeOfLastEventSystemSearch = Time.realtimeSinceStartup;
+                    // Universe.Log("No previous EventSystem detected, doing expensive manual search...");
+                    var allSystems = RuntimeHelper.FindObjectsOfTypeAll<EventSystem>();
+                    foreach (var obj in allSystems)
                     {
-                        lastEventSystem = system;
-                        lastInputModule = system.currentInputModule;
-                        lastEventSystem.enabled = false;
-                        break;
+                        var system = obj.TryCast<EventSystem>();
+                        if (system.ReferenceEqual(UniversalUI.EventSys))
+                            continue;
+                        if (system.isActiveAndEnabled)
+                        {
+                            lastEventSystem = system;
+                            lastInputModule = system.currentInputModule;
+                            lastEventSystem.enabled = false;
+                            break;
+                        }
                     }
                 }
             }
