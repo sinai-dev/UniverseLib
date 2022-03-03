@@ -199,7 +199,16 @@ namespace UniverseLib
                 // In any case, let's just use Type.GetType
                 string asmQualName = cppType.AssemblyQualifiedName;
                 if (asmQualName.StartsWith("System."))
+                {
                     asmQualName = $"Il2Cpp{asmQualName}";
+
+                    if (asmQualName.EndsWith(mscorlibSignature))
+                    {
+                        asmQualName = asmQualName.Substring(0, asmQualName.Length - mscorlibSignature.Length);
+                        asmQualName += il2cppMscorlibSignature;
+                    }
+                }
+
                 if (cppType.IsGenericType)
                     asmQualName = FixIl2CppGenericTypeName(asmQualName);
 
@@ -258,13 +267,6 @@ namespace UniverseLib
                 }
 
                 match = match.NextMatch();
-            }
-            
-            // The base generic type might also end in mscorlib assembly signature, replace that as well.
-            if (asmQualName.EndsWith(mscorlibSignature))
-            {
-                asmQualName = asmQualName.Substring(0, asmQualName.Length - mscorlibSignature.Length);
-                asmQualName += il2cppMscorlibSignature;
             }
 
             return asmQualName;
