@@ -19,6 +19,7 @@ using UniverseLib.Config;
 using HarmonyLib;
 using UniverseLib.Utility;
 using System.Text.RegularExpressions;
+using UniverseLib.Reflection;
 
 namespace UniverseLib
 {
@@ -37,20 +38,6 @@ namespace UniverseLib
             OnTypeLoaded += TryCacheDeobfuscatedType;
             Universe.Log($"Setup IL2CPP reflection in {Time.realtimeSinceStartup - start} seconds, " +
                 $"deobfuscated types count: {obfuscatedToDeobfuscatedTypes.Count}");
-
-            // Prepare our Regex and assembly signatures.
-            // Get the signature for mscorlib (System). We just want the part from "mscorlib, ..."
-            mscorlibSignature = typeof(object).AssemblyQualifiedName;
-            int assemblyStart = mscorlibSignature.IndexOf("mscorlib");
-            mscorlibSignature = mscorlibSignature.Substring(assemblyStart, mscorlibSignature.Length - assemblyStart);
-
-            // Create our mscorlib Regex
-            mscorlibRegex = new(@$"(\[System.)([^,]*)(, {mscorlibSignature}\])");
-
-            // Get the signature for Il2Cppmscorlib, same as mscorlib
-            il2cppMscorlibSignature = typeof(Il2CppSystem.Object).AssemblyQualifiedName;
-            assemblyStart = il2cppMscorlibSignature.IndexOf("Il2Cppmscorlib");
-            il2cppMscorlibSignature = il2cppMscorlibSignature.Substring(assemblyStart, il2cppMscorlibSignature.Length - assemblyStart);
         }
 
 #region IL2CPP Extern and pointers
@@ -150,9 +137,6 @@ namespace UniverseLib
 
             var type = obj.GetType();
 
-            if (type.IsGenericType)
-                return type;
-
             try
             {
                 if (IsString(obj))
@@ -161,9 +145,14 @@ namespace UniverseLib
                 if (IsIl2CppPrimitive(type))
                     return il2cppPrimitivesToMono[type.FullName];
 
-
                 if (obj is Il2CppObjectBase cppBase)
                 {
+                    // Don't need to cast ArrayBase
+                    if (type.BaseType != null
+                        && type.BaseType.IsConstructedGenericType 
+                        && type.BaseType.GetGenericTypeDefinition() == typeof(Il2CppArrayBase<>))
+                        return type;
+
                     IntPtr classPtr = IL2CPP.il2cpp_object_get_class(cppBase.Pointer);
 
                     Il2CppSystem.Type cppType;
@@ -181,7 +170,7 @@ namespace UniverseLib
                         return GetTypeByName(cppType.FullName) ?? type;
                     }
 
-                    // Check for boxed primitives
+                    // Check for boxed primitives (Unhollower will return "System.*" for Il2CppSystem types.
                     if (AllTypes.TryGetValue(cppType.FullName, out Type primitive) && primitive.IsPrimitive)
                         return primitive;
 
@@ -214,65 +203,19 @@ namespace UniverseLib
 
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
             {
-                // It's probably a bound generic type if it wasn't in our dictionary.
-                // In any case, let's just use Type.GetType
-                string asmQualName = cppType.AssemblyQualifiedName;
-                if (asmQualName.StartsWith("System."))
-                {
-                    asmQualName = $"Il2Cpp{asmQualName}";
-
-                    if (asmQualName.EndsWith(mscorlibSignature))
-                    {
-                        asmQualName = asmQualName.Substring(0, asmQualName.Length - mscorlibSignature.Length);
-                        asmQualName += il2cppMscorlibSignature;
-                    }
-                }
-
-                if (cppType.IsGenericType)
-                    asmQualName = FixIl2CppGenericTypeName(asmQualName);
+                // If it's not in our dictionary, it's most likely a bound generic type.
+                // Let's use GetType with the AssemblyQualifiedName, and fix System.* types to be Il2CppSystem.*
+                string asmQualName = Il2CppTypeRedirector.GetAssemblyQualifiedName(cppType);
 
                 monoType = Type.GetType(asmQualName);
 
                 if (monoType == null)
-                    Universe.LogWarning($"Failed to get Unhollowed type from '{cppType.AssemblyQualifiedName}'!");
+                    Universe.LogWarning($"Failed to get Unhollowed type from '{asmQualName}' (originally '{cppType.AssemblyQualifiedName}')!");
             }
             return monoType;
         }
 
-        static Regex mscorlibRegex;
-        static string mscorlibSignature;
-        static string il2cppMscorlibSignature;
-
-        // This method exists to fix a bug(?) with Unhollower, where "Il2CppSystem" types are returned as the equivalent "System" type.
-        // Specifically, this is for Generic Types, as all other types should be handled by the GetUnhollowedType method.
-        // It uses Regex to match for mscorlib types and replaces them to Il2Cppmscorlib types.
-        // It does not replace System.String or any System primitive types, since "fixing" those seems to be incorrect behaviour.
-        internal static string FixIl2CppGenericTypeName(string asmQualName)
-        {
-            var match = mscorlibRegex.Match(asmQualName);
-
-            // Parse each match individually so we can check for strings and primitives
-            while (match != null && match.Success)
-            {
-                // Get the "Type.FullName" from the match. Eg, "System.String"
-                string fullName = match.Value.Substring(1, match.Value.IndexOf(',') - 1);
-                // And then actually get this Type
-                Type type = GetTypeByName(fullName);
-
-                // Fix only if it's not a string or primitive
-                if (type != null && type != typeof(string) && !type.IsPrimitive)
-                {
-                    // Regex replace, for example from System.Object to Il2CppSystem.Object
-                    string replace = mscorlibRegex.Replace(match.Value, $@"[Il2CppSystem.$2, {il2cppMscorlibSignature}]");
-                    // Then replace that in our actual return string
-                    asmQualName = asmQualName.Replace(match.Value, replace);
-                }
-
-                match = match.NextMatch();
-            }
-
-            return asmQualName;
-        }
+        
 
         #endregion
 
@@ -369,7 +312,7 @@ namespace UniverseLib
         /// <summary>
         /// Unbox the provided Il2CppSystem.Object to the ValueType <paramref name="toType"/>.
         /// </summary>
-        public object UnboxCppObject(Il2CppObjectBase cppObj, Type toType)
+        public static object UnboxCppObject(Il2CppObjectBase cppObj, Type toType)
         {
             if (!toType.IsValueType)
                 return null;
@@ -420,7 +363,7 @@ namespace UniverseLib
         /// <summary>
         /// Box the provided Il2Cpp ValueType object into an Il2CppSystem.Object.
         /// </summary>
-        public Il2CppSystem.Object BoxIl2CppObject(object value)
+        public static Il2CppSystem.Object BoxIl2CppObject(object value)
         {
             if (value == null)
                 return null;
@@ -486,7 +429,7 @@ namespace UniverseLib
         /// <summary>
         /// Returns the underlying <c>m_value</c> System primitive from the provided Il2Cpp primitive object.
         /// </summary>
-        public object MakeMonoPrimitive(object cppPrimitive)
+        public static object MakeMonoPrimitive(object cppPrimitive)
         {
             return AccessTools.Field(cppPrimitive.GetType(), "m_value").GetValue(cppPrimitive);
         }
@@ -494,7 +437,7 @@ namespace UniverseLib
         /// <summary>
         /// Creates a new equivalent Il2Cpp primitive object using the provided <paramref name="monoValue"/>.
         /// </summary>
-        public object MakeIl2CppPrimitive(Type cppType, object monoValue)
+        public static object MakeIl2CppPrimitive(Type cppType, object monoValue)
         {
             var cppStruct = Activator.CreateInstance(cppType);
             AccessTools.Field(cppType, "m_value").SetValue(cppStruct, monoValue);
@@ -512,7 +455,7 @@ namespace UniverseLib
         /// <summary>
         /// Returns true if the object is a string or Il2CppSystem.String
         /// </summary>
-        public bool IsString(object obj)
+        public static bool IsString(object obj)
         {
             if (obj is string || obj is Il2CppSystem.String)
                 return true;
@@ -529,7 +472,7 @@ namespace UniverseLib
         /// <summary>
         /// Box the provided string value into either an Il2CppSystem.Object or Il2CppSystem.String
         /// </summary>
-        public object BoxStringToType(object value, Type castTo)
+        public static object BoxStringToType(object value, Type castTo)
         {
             if (castTo == typeof(Il2CppSystem.String))
                 return (Il2CppSystem.String)(value as string);
@@ -540,18 +483,26 @@ namespace UniverseLib
         /// <summary>
         /// Unbox the provided value from either Il2CppSystem.Object or Il2CppSystem.String into a System.String
         /// </summary>
-        public string UnboxString(object value)
+        public static string UnboxString(object value)
         {
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
             if (value is string s)
                 return s;
 
-            s = null;
-            if (value is Il2CppSystem.Object cppObject)
-                s = cppObject.ToString();
-            else if (value is Il2CppSystem.String cppString)
-                s = cppString;
+            if (value is not Il2CppSystem.Object cppObject)
+                throw new NotSupportedException($"Unable to unbox string from type {value.GetActualType().FullName}.");
 
-            return s;
+            // I don't really know why this needs to be done this way.
+            // Doing it in any other order can give corrupt or null results.
+
+            // Try cast it to Il2CppSystem.String, and then cast that to System.String
+            var ret = (string)(cppObject as Il2CppSystem.String);
+            // If that fails, just do ToString()
+            if (string.IsNullOrEmpty(ret))
+                ret = cppObject.ToString();
+            return ret;
         }
 
 #endregion
@@ -881,6 +832,10 @@ namespace UniverseLib
                 valueInfo.moveNext.Invoke(valueEnumerator, null);
 
                 var key = keyInfo.current.GetValue(keyEnumerator, null);
+
+                if (key == null)
+                    continue;
+
                 var value = valueInfo.current.GetValue(valueEnumerator, null);
 
                 yield return new DictionaryEntry(key, value);
