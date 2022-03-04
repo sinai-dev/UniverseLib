@@ -12,7 +12,6 @@ using System.Collections;
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
 using UniverseLib;
-using Il2CppType = Il2CppSystem.Type;
 using BF = System.Reflection.BindingFlags;
 using UnhollowerBaseLib.Attributes;
 using UnityEngine;
@@ -38,6 +37,20 @@ namespace UniverseLib
             OnTypeLoaded += TryCacheDeobfuscatedType;
             Universe.Log($"Setup IL2CPP reflection in {Time.realtimeSinceStartup - start} seconds, " +
                 $"deobfuscated types count: {obfuscatedToDeobfuscatedTypes.Count}");
+
+            // Prepare our Regex and assembly signatures.
+            // Get the signature for mscorlib (System). We just want the part from "mscorlib, ..."
+            mscorlibSignature = typeof(object).AssemblyQualifiedName;
+            int assemblyStart = mscorlibSignature.IndexOf("mscorlib");
+            mscorlibSignature = mscorlibSignature.Substring(assemblyStart, mscorlibSignature.Length - assemblyStart);
+
+            // Create our mscorlib Regex
+            mscorlibRegex = new(@$"(\[System.)([^,]*)(, {mscorlibSignature}\])");
+
+            // Get the signature for Il2Cppmscorlib, same as mscorlib
+            il2cppMscorlibSignature = typeof(Il2CppSystem.Object).AssemblyQualifiedName;
+            assemblyStart = il2cppMscorlibSignature.IndexOf("Il2Cppmscorlib");
+            il2cppMscorlibSignature = il2cppMscorlibSignature.Substring(assemblyStart, il2cppMscorlibSignature.Length - assemblyStart);
         }
 
 #region IL2CPP Extern and pointers
@@ -148,12 +161,18 @@ namespace UniverseLib
                 if (IsIl2CppPrimitive(type))
                     return il2cppPrimitivesToMono[type.FullName];
 
-                if (obj is Il2CppSystem.Object cppObject)
+
+                if (obj is Il2CppObjectBase cppBase)
                 {
-                    var cppType = cppObject.GetIl2CppType();
+                    IntPtr classPtr = IL2CPP.il2cpp_object_get_class(cppBase.Pointer);
+
+                    Il2CppSystem.Type cppType;
+                    if (obj is Il2CppSystem.Object cppObject)
+                        cppType = cppObject.GetIl2CppType();
+                    else
+                        cppType = Il2CppType.TypeFromPointer(classPtr);
 
                     // check if type is injected
-                    IntPtr classPtr = IL2CPP.il2cpp_object_get_class(cppObject.Pointer);
                     if (RuntimeSpecificsStore.IsInjected(classPtr))
                     {
                         // Note: This will fail on injected subclasses.
@@ -180,7 +199,7 @@ namespace UniverseLib
         /// <summary>
         /// Try to get the Unhollowed <see cref="System.Type"/> for the provided <paramref name="cppType"/>.
         /// </summary>
-        public static Type GetUnhollowedType(Il2CppType cppType)
+        public static Type GetUnhollowedType(Il2CppSystem.Type cppType)
         {
             var fullname = cppType.FullName;
 
@@ -230,23 +249,6 @@ namespace UniverseLib
         // It does not replace System.String or any System primitive types, since "fixing" those seems to be incorrect behaviour.
         internal static string FixIl2CppGenericTypeName(string asmQualName)
         {
-            // Prepare our Regex and assembly signatures, if not done already.
-            if (mscorlibRegex == null)
-            {
-                // Get the signature for mscorlib (System). We just want the part from "mscorlib, ..."
-                mscorlibSignature = typeof(object).AssemblyQualifiedName;
-                int assemblyStart = mscorlibSignature.IndexOf("mscorlib");
-                mscorlibSignature = mscorlibSignature.Substring(assemblyStart, mscorlibSignature.Length - assemblyStart);
-
-                // Create our mscorlib Regex
-                mscorlibRegex = new(@$"(\[System.)([^,]*)(, {mscorlibSignature}\])");
-
-                // Get the signature for Il2Cppmscorlib, same as mscorlib
-                il2cppMscorlibSignature = typeof(Il2CppSystem.Object).AssemblyQualifiedName;
-                assemblyStart = il2cppMscorlibSignature.IndexOf("Il2Cppmscorlib");
-                il2cppMscorlibSignature = il2cppMscorlibSignature.Substring(assemblyStart, il2cppMscorlibSignature.Length - assemblyStart);
-            }
-
             var match = mscorlibRegex.Match(asmQualName);
 
             // Parse each match individually so we can check for strings and primitives
