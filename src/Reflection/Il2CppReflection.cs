@@ -205,7 +205,15 @@ namespace UniverseLib
             {
                 // If it's not in our dictionary, it's most likely a bound generic type.
                 // Let's use GetType with the AssemblyQualifiedName, and fix System.* types to be Il2CppSystem.*
-                string asmQualName = Il2CppTypeRedirector.GetAssemblyQualifiedName(cppType);
+                string asmQualName;
+                try
+                {
+                    asmQualName = Il2CppTypeRedirector.GetAssemblyQualifiedName(cppType);
+                }
+                catch
+                {
+                    asmQualName = cppType.AssemblyQualifiedName;
+                }
 
                 monoType = Type.GetType(asmQualName);
 

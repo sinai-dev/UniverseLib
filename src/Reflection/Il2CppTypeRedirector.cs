@@ -21,10 +21,13 @@ namespace UniverseLib.Reflection
             return sb.ToString();
         }
 
-        static string ProcessType(StringBuilder sb, Il2CppSystem.Type type)
+        static void ProcessType(StringBuilder sb, Il2CppSystem.Type type)
         {
             if (type.IsPrimitive || type.FullName == "System.String")
-                return type.AssemblyQualifiedName;
+            {
+                sb.Append(type.AssemblyQualifiedName);
+                return;
+            }
 
             if (!string.IsNullOrEmpty(type.Namespace))
             {
@@ -55,7 +58,7 @@ namespace UniverseLib.Reflection
                 foreach (var typeArg in genericArgs)
                 {
                     sb.Append('[');
-                    sb.Append(ProcessType(sb, typeArg));
+                    ProcessType(sb, typeArg);
                     sb.Append(']');
                     i++;
                     if (i < genericArgs.Length)
@@ -70,19 +73,15 @@ namespace UniverseLib.Reflection
             if (type.FullName.StartsWith("System."))
             {
                 if (!redirectors.ContainsKey(type.Assembly.FullName) && !TryRedirectSystemType(type))
-                {
                     // No redirect found for type?
-                    Universe.LogWarning($"No Il2CppSystem redirect found for system type: {type.FullName}");
-                    return sb.Append(type.Assembly.FullName).ToString();
-                }
+                    throw new TypeLoadException($"No Il2CppSystem redirect found for system type: {type.AssemblyQualifiedName}");
+                else
+                    // Type redirect was set up
+                    sb.Append(redirectors[type.Assembly.FullName]);
 
-                // Type redirect was set up
-                sb.Append(redirectors[type.Assembly.FullName]);
             }
             else // no redirect required
                 sb.Append(type.Assembly.FullName);
-
-            return sb.ToString();
         }
 
         static bool TryRedirectSystemType(Il2CppSystem.Type type)
