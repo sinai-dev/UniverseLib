@@ -40,85 +40,6 @@ namespace UniverseLib
                 $"deobfuscated types count: {obfuscatedToDeobfuscatedTypes.Count}");
         }
 
-#region IL2CPP Extern and pointers
-
-        private static readonly Dictionary<string, IntPtr> cppClassPointers = new();
-
-        /// <summary>
-        /// Returns true if the Type has a corresponding IL2CPP Type.
-        /// </summary>
-        public static bool Il2CppTypeNotNull(Type type) => Il2CppTypeNotNull(type, out _);
-
-        /// <summary>
-        /// Returns true if the Type has a corresponding IL2CPP Type, and assigns the IntPtr to the IL2CPP Type to <paramref name="il2cppPtr"/>.
-        /// </summary>
-        public static bool Il2CppTypeNotNull(Type type, out IntPtr il2cppPtr)
-        {
-            if (!cppClassPointers.TryGetValue(type.AssemblyQualifiedName, out il2cppPtr))
-            {
-                il2cppPtr = (IntPtr)typeof(Il2CppClassPointerStore<>)
-                    .MakeGenericType(new[] { type })
-                    .GetField("NativeClassPtr", BF.Public | BF.Static)
-                    .GetValue(null);
-
-                cppClassPointers.Add(type.AssemblyQualifiedName, il2cppPtr);
-            }
-
-            return il2cppPtr != IntPtr.Zero;
-        }
-
-#endregion
-
-
-#region Deobfuscation cache
-
-        private static readonly Dictionary<string, Type> obfuscatedToDeobfuscatedTypes = new();
-        private static readonly Dictionary<string, string> deobfuscatedToObfuscatedNames = new();
-
-        private static void BuildDeobfuscationCache()
-        {
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in asm.TryGetTypes())
-                    TryCacheDeobfuscatedType(type);
-            }
-        }
-
-        private static void TryCacheDeobfuscatedType(Type type)
-        {
-            try
-            {
-                if (!type.CustomAttributes.Any())
-                    return;
-
-                foreach (var att in type.CustomAttributes)
-                {
-                    if (att.AttributeType == typeof(ObfuscatedNameAttribute))
-                    {
-                        string obfuscatedName = att.ConstructorArguments[0].Value.ToString();
-
-                        obfuscatedToDeobfuscatedTypes.Add(obfuscatedName, type);
-                        deobfuscatedToObfuscatedNames.Add(type.FullName, obfuscatedName);
-
-                        break;
-                    }
-                }
-            }
-            catch { }
-        }
-
-        internal override string Internal_ProcessTypeInString(string theString, Type type)
-        {
-            if (deobfuscatedToObfuscatedNames.TryGetValue(type.FullName, out string obfuscated))
-                return theString.Replace(obfuscated, type.FullName);
-
-            return theString;
-        }
-
-#endregion
-
-        // Get type by name
-
         internal override Type Internal_GetTypeByName(string fullName)
         {
             if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullName, out Type deob))
@@ -128,7 +49,7 @@ namespace UniverseLib
         }
 
 
-#region Get actual type
+        #region Get Actual type
 
         internal override Type Internal_GetActualType(object obj)
         {
@@ -223,8 +144,6 @@ namespace UniverseLib
             return monoType;
         }
 
-        
-
         #endregion
 
 
@@ -312,7 +231,7 @@ namespace UniverseLib
 #endregion
 
 
-#region Boxing and unboxing ValueTypes
+        #region Boxing and unboxing ValueTypes
 
         // cached il2cpp unbox methods
         internal static readonly Dictionary<string, MethodInfo> unboxMethods = new();
@@ -455,7 +374,7 @@ namespace UniverseLib
 #endregion
 
 
-#region String boxing/unboxing
+        #region String boxing/unboxing
 
         private const string IL2CPP_STRING_FULLNAME = "Il2CppSystem.String";
         private const string STRING_FULLNAME = "System.String";
@@ -513,10 +432,88 @@ namespace UniverseLib
             return ret;
         }
 
-#endregion
+        #endregion
 
 
-#region Singleton finder
+        #region IL2CPP Extern and pointers
+
+        private static readonly Dictionary<string, IntPtr> cppClassPointers = new();
+
+        /// <summary>
+        /// Returns true if the Type has a corresponding IL2CPP Type.
+        /// </summary>
+        public static bool Il2CppTypeNotNull(Type type) => Il2CppTypeNotNull(type, out _);
+
+        /// <summary>
+        /// Returns true if the Type has a corresponding IL2CPP Type, and assigns the IntPtr to the IL2CPP Type to <paramref name="il2cppPtr"/>.
+        /// </summary>
+        public static bool Il2CppTypeNotNull(Type type, out IntPtr il2cppPtr)
+        {
+            if (!cppClassPointers.TryGetValue(type.AssemblyQualifiedName, out il2cppPtr))
+            {
+                il2cppPtr = (IntPtr)typeof(Il2CppClassPointerStore<>)
+                    .MakeGenericType(new[] { type })
+                    .GetField("NativeClassPtr", BF.Public | BF.Static)
+                    .GetValue(null);
+
+                cppClassPointers.Add(type.AssemblyQualifiedName, il2cppPtr);
+            }
+
+            return il2cppPtr != IntPtr.Zero;
+        }
+
+        #endregion
+
+
+        #region Deobfuscation cache
+
+        private static readonly Dictionary<string, Type> obfuscatedToDeobfuscatedTypes = new();
+        private static readonly Dictionary<string, string> deobfuscatedToObfuscatedNames = new();
+
+        private static void BuildDeobfuscationCache()
+        {
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in asm.TryGetTypes())
+                    TryCacheDeobfuscatedType(type);
+            }
+        }
+
+        private static void TryCacheDeobfuscatedType(Type type)
+        {
+            try
+            {
+                if (!type.CustomAttributes.Any())
+                    return;
+
+                foreach (var att in type.CustomAttributes)
+                {
+                    if (att.AttributeType == typeof(ObfuscatedNameAttribute))
+                    {
+                        string obfuscatedName = att.ConstructorArguments[0].Value.ToString();
+
+                        obfuscatedToDeobfuscatedTypes.Add(obfuscatedName, type);
+                        deobfuscatedToObfuscatedNames.Add(type.FullName, obfuscatedName);
+
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        internal override string Internal_ProcessTypeInString(string theString, Type type)
+        {
+            if (deobfuscatedToObfuscatedNames.TryGetValue(type.FullName, out string obfuscated))
+                return theString.Replace(obfuscated, type.FullName);
+
+            return theString;
+        }
+
+        #endregion
+
+
+        #region Singleton finder
 
         internal override void Internal_FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
         {
@@ -541,7 +538,7 @@ namespace UniverseLib
 #endregion
 
 
-#region Force-loading game modules
+        #region Force-loading game modules
 
         // Helper for IL2CPP to try to make sure the Unhollowed game assemblies are actually loaded.
 
@@ -580,7 +577,7 @@ namespace UniverseLib
 #endregion
 
 
-#region IL2CPP IEnumerable and IDictionary
+        #region IL2CPP IEnumerable and IDictionary
 
         protected override bool Internal_TryGetEntryType(Type enumerableType, out Type type)
         {
