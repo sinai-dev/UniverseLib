@@ -69,8 +69,7 @@ namespace UniverseLib
                 if (obj is Il2CppObjectBase cppBase)
                 {
                     // Don't need to cast ArrayBase
-                    if (type.BaseType != null
-                        && type.BaseType.IsConstructedGenericType 
+                    if (type.BaseType.IsGenericType 
                         && type.BaseType.GetGenericTypeDefinition() == typeof(Il2CppArrayBase<>))
                         return type;
 
