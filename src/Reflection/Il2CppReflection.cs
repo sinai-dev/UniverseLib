@@ -197,7 +197,7 @@ namespace UniverseLib
                 return UnboxString(obj);
 
             // ... to another il2cpp object
-            if (toType.IsSubclassOf(typeof(Il2CppSystem.Object)))
+            if (toType.IsSubclassOf(typeof(Il2CppObjectBase)))
             {
                 if (!Il2CppTypeNotNull(toType, out IntPtr castToPtr))
                     return obj;
