@@ -19,10 +19,10 @@ namespace UniverseLib.Runtime.Il2Cpp
 {
     internal class Il2CppProvider : RuntimeHelper
     {
-        readonly AmbiguousMemberHandler<ColorBlock, Color> normalColor = new("normalColor", "m_NormalColor");
-        readonly AmbiguousMemberHandler<ColorBlock, Color> highlightedColor = new("highlightedColor", "m_HighlightedColor");
-        readonly AmbiguousMemberHandler<ColorBlock, Color> pressedColor = new("pressedColor", "m_PressedColor");
-        readonly AmbiguousMemberHandler<ColorBlock, Color> disabledColor = new("disabledColor", "m_DisabledColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> normalColor = new(true, true, "normalColor", "m_NormalColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> highlightedColor = new(true, true, "highlightedColor", "m_HighlightedColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> pressedColor = new(true, true, "pressedColor", "m_PressedColor");
+        readonly AmbiguousMemberHandler<ColorBlock, Color> disabledColor = new(true, true, "disabledColor", "m_DisabledColor");
 
         internal delegate IntPtr d_LayerToName(int layer);
 

@@ -17,17 +17,22 @@ namespace UniverseLib.Runtime
         private readonly MemberInfo member;
         private readonly MemberTypes memberType;
 
-        public AmbiguousMemberHandler(params string[] possibleNames)
+        public AmbiguousMemberHandler(bool canWrite, bool canRead, params string[] possibleNames)
         {
             foreach (var name in possibleNames)
             {
-                if (typeof(TClass).GetProperty(name, AccessTools.all) is PropertyInfo pi && typeof(TValue).IsAssignableFrom(pi.PropertyType))
+                if (typeof(TClass).GetProperty(name, AccessTools.all) is PropertyInfo pi 
+                    && typeof(TValue).IsAssignableFrom(pi.PropertyType)
+                    && (!canWrite || pi.CanWrite)
+                    && (!canRead || pi.CanRead))
                 {
                     member = pi;
                     memberType = MemberTypes.Property;
                     break;
                 }
-                if (typeof(TClass).GetField(name, AccessTools.all) is FieldInfo fi && typeof(TValue).IsAssignableFrom(fi.FieldType))
+                if (typeof(TClass).GetField(name, AccessTools.all) is FieldInfo fi 
+                    && typeof(TValue).IsAssignableFrom(fi.FieldType)
+                    && (!canWrite || !(fi.IsLiteral && !fi.IsInitOnly))) // (don't need to write or is not constant)
                 {
                     member = fi;
                     memberType = MemberTypes.Field;
@@ -115,7 +120,7 @@ namespace UniverseLib.Runtime
             }
             catch (Exception ex)
             {
-                Universe.LogWarning($"Exception setting value '{value}' to member {member}: {ex}");
+                Universe.LogWarning($"Exception setting value '{value}' to member {member.DeclaringType.Name}.{member}: {ex}");
             }
         }
     }

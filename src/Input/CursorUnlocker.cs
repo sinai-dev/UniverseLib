@@ -33,7 +33,7 @@ namespace UniverseLib.Input
             set => EventSystemCurrent_Handler.SetValue(value);
         }
 
-        static readonly AmbiguousMemberHandler<EventSystem, EventSystem> EventSystemCurrent_Handler = new("current", "main");
+        static readonly AmbiguousMemberHandler<EventSystem, EventSystem> EventSystemCurrent_Handler = new(true, true, "current", "main");
 
         private static bool currentlySettingCursor;
         private static CursorLockMode lastLockMode;
