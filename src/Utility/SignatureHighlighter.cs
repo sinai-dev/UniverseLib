@@ -88,12 +88,14 @@ namespace UniverseLib.Utility
         }
 
         private static bool TryGetNamespace(Type type, out string ns)
-        {
-            var ret = !string.IsNullOrEmpty(ns = type.Namespace?.Trim());
-            return ret;
-        }
+            => !string.IsNullOrEmpty(ns = type.Namespace?.Trim());
 
-        private static StringBuilder OpenColor(StringBuilder sb, string color) => sb.Append(OPEN_COLOR).Append(color).Append('>');
+        private static StringBuilder AppendOpenColor(StringBuilder sb, string color)
+        {
+            return sb.Append(OPEN_COLOR)
+                .Append(color)
+                .Append('>');
+        }
 
         /// <summary>
         /// Highlight the full signature of the Type, including optionally the Namespace, and optionally combined with a MemberInfo.
@@ -106,46 +108,32 @@ namespace UniverseLib.Utility
             var sb = new StringBuilder();
 
             if (type.IsByRef)
-                OpenColor(sb, $"#{keywordBlueHex}").Append("ref ").Append(CLOSE_COLOR);
+                AppendOpenColor(sb, $"#{keywordBlueHex}").Append("ref ").Append(CLOSE_COLOR);
 
             // Namespace
 
             // Never include namespace for built-in types.
-            Type nsTest = type;
-            while (nsTest.HasElementType)
-                nsTest = nsTest.GetElementType();
-            includeNamespace &= !builtInTypesToShorthand.ContainsKey(nsTest);
+            Type temp = type;
+            while (temp.HasElementType)
+                temp = temp.GetElementType();
+            includeNamespace &= !builtInTypesToShorthand.ContainsKey(temp);
 
-            bool isGeneric = type.IsGenericParameter || (type.HasElementType && type.GetElementType().IsGenericParameter);
-
-            if (!isGeneric)
+            if (!(type.IsGenericParameter || (type.HasElementType && type.GetElementType().IsGenericParameter)))
             {
                 if (includeNamespace && TryGetNamespace(type, out string ns))
-                    OpenColor(sb, NAMESPACE).Append(ns).Append(CLOSE_COLOR).Append('.');
-
-                // Declaring type
-
-                var declaring = type.DeclaringType;
-                while (declaring != null)
-                {
-                    sb.Append(HighlightType(declaring));
-                    sb.Append('.');
-                    declaring = declaring.DeclaringType;
-                }
+                    AppendOpenColor(sb, NAMESPACE).Append(ns).Append(CLOSE_COLOR).Append('.');
             }
 
-            // Highlight the type name
+            // Highlight the type and optional memberinfo 
 
-            sb.Append(HighlightType(type));
-
-            // If memberInfo, highlight the member info
+            sb.Append(ProcessType(type));
 
             if (memberInfo != null)
             {
                 sb.Append('.');
-
                 int start = sb.Length - 1;
-                OpenColor(sb, GetMemberInfoColor(memberInfo, out bool isStatic))
+
+                AppendOpenColor(sb, GetMemberInfoColor(memberInfo, out bool isStatic))
                     .Append(memberInfo.Name)
                     .Append(CLOSE_COLOR);
 
@@ -154,111 +142,175 @@ namespace UniverseLib.Utility
                     sb.Insert(start, OPEN_ITALIC);
                     sb.Append(CLOSE_ITALIC);
                 }
-
-                if (memberInfo is MethodInfo method)
-                {
-                    var args = method.GetGenericArguments();
-                    if (args.Length > 0)
-                        sb.Append('<').Append(ParseGenericArgs(args, true)).Append('>');
-                }
             }
 
             return sb.ToString();
         }
 
-        private static string HighlightType(Type type)
+        static string ProcessType(Type type)
         {
             string key = type.ToString();
-
             if (typeToRichType.ContainsKey(key))
                 return typeToRichType[key];
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new();
 
-            if (type.IsByRef)
-                type = type.GetElementType();
-
-            int arrayDimensions = 0;
-            if (ArrayTokenRegex.Match(type.Name) is Match match && match.Success)
-            { 
-                arrayDimensions = 1 + match.Value.Count(c => c == ',');
-                type = type.GetElementType();
-            }
-
-            // Check for built-in types
-            if (builtInTypesToShorthand.TryGetValue(type, out string builtInName))
-                OpenColor(sb, $"#{keywordBlueHex}").Append(builtInName).Append(CLOSE_COLOR);
-            else
-                sb.Append(type.Name);
-
-            if (string.IsNullOrEmpty(builtInName))
+            // Declaring type
+            int start = sb.Length;
+            Type declaring = type.DeclaringType;
+            while (declaring != null)
             {
-                if (type.IsGenericParameter || (type.HasElementType && type.GetElementType().IsGenericParameter))
-                {
-                    sb.Insert(0, $"<color={CONST}>");
-                    sb.Append(CLOSE_COLOR);
-                }
-                else
-                {
-                    var args = type.GetGenericArguments();
-
-                    if (args.Length > 0)
-                    {
-                        // remove the `N from the end of the type name
-                        // this could actually be >9 in some cases, so get the length of the length string and use that.
-                        // eg, if it was "List`15", we would remove the ending 3 chars
-
-                        int suffixLen = 1 + args.Length.ToString().Length;
-
-                        // make sure the typename actually has expected "`N" format.
-                        if (sb[sb.Length - suffixLen] == '`')
-                            sb.Remove(sb.Length - suffixLen, suffixLen);
-                    }
-
-                    // highlight the base name itself
-                    // do this after removing the `N suffix, so only the name itself is in the color tags.
-                    sb.Insert(0, $"{OPEN_COLOR}{GetClassColor(type)}>");
-                    sb.Append(CLOSE_COLOR);
-
-                    // parse the generic args, if any
-                    if (args.Length > 0)
-                        sb.Append('<').Append(ParseGenericArgs(args)).Append('>');
-                }
+                sb.Insert(start, $"{HighlightType(declaring)}.");
+                declaring = declaring.DeclaringType;
             }
 
-            if (arrayDimensions > 0)
-                sb.Append('[').Append(new string(',', arrayDimensions - 1)).Append(']');
+            // Type itself
+            sb.Append(HighlightType(type));
+
+            // Process generic arguments
+            if (type.IsGenericType)
+                ProcessGenericArguments(type, sb);
 
             var ret = sb.ToString();
             typeToRichType.Add(key, ret);
             return ret;
         }
 
-        /// <summary>
-        /// Highlight the provided Types into a generic-arguments formatted rich-text string, optionally formatted as unbound generic parameters.
-        /// </summary>
-        public static string ParseGenericArgs(Type[] args, bool isGenericParams = false)
+        static string HighlightType(Type type)
         {
-            if (args.Length < 1)
-                return string.Empty;
+            StringBuilder sb = new();
 
-            var sb = new StringBuilder();
-
-            for (int i = 0; i < args.Length; i++)
+            if (!type.IsGenericParameter)
             {
-                if (i > 0)
-                    sb.Append(',').Append(' ');
+                if (type.IsByRef)
+                    type = type.GetElementType();
 
-                if (isGenericParams)
+                int arrayDimensions = 0;
+                if (ArrayTokenRegex.Match(type.Name) is Match match && match.Success)
                 {
-                    sb.Append(OPEN_COLOR).Append(CONST).Append('>').Append(args[i].Name).Append(CLOSE_COLOR);
-                    continue;
+                    arrayDimensions = 1 + match.Value.Count(c => c == ',');
+                    type = type.GetElementType();
                 }
 
-                sb.Append(HighlightType(args[i]));
+                // Append type name, and replace with built-in shorthand name if applicable (eg System.String -> string)
+                if (builtInTypesToShorthand.TryGetValue(type, out string builtInName))
+                {
+                    AppendOpenColor(sb, $"#{keywordBlueHex}")
+                       .Append(builtInName)
+                       .Append(CLOSE_COLOR);
+                }
+                else // not a built-in type
+                {
+                    sb.Append($"{OPEN_COLOR}{GetClassColor(type)}>")
+                        .Append(type.Name)
+                        .Append(CLOSE_COLOR);
+                }
+
+                if (arrayDimensions > 0)
+                    sb.Append('[').Append(new string(',', arrayDimensions - 1)).Append(']');
+            }
+            else // generic parameter (eg <T>)
+            {
+                sb.Append(OPEN_COLOR)
+                    .Append(CONST)
+                    .Append('>')
+                    .Append(type.Name)
+                    .Append(CLOSE_COLOR);
             }
 
             return sb.ToString();
+        }
+        
+        static void ProcessGenericArguments(Type type, StringBuilder sb)
+        {
+            // This will include inherited generic arguments.
+            // Eg, A<string>.B<int> would return [String, Int]
+            List<Type> allArguments = type.GetGenericArguments().ToList();
+
+            // Go through the StringBuilder and replace all `N to be <T> instead.
+            // Eg A`2.B`1 -> A<string, bool>.B<int>
+
+            int i = 0;
+            while (i < sb.Length)
+            {
+                if (!allArguments.Any())
+                    break;
+
+                // Check for opening `
+                if (sb[i] == '`')
+                {
+                    int start = i;
+                    i++;
+                    // Get the length string (it might not just be one digit)
+                    StringBuilder lenBuilder = new();
+                    while (char.IsDigit(sb[i]))
+                    {
+                        lenBuilder.Append(sb[i]);
+                        i++;
+                    }
+
+                    string lengthString = lenBuilder.ToString();
+                    int argCount = int.Parse(lengthString);
+                    // Remove the `N
+                    sb.Remove(start, lengthString.Length + 1);
+
+                    // move forward past the </color> tag
+                    int closeColorIdx = 1;
+                    start++;
+                    while (closeColorIdx < CLOSE_COLOR.Length && sb[start] == CLOSE_COLOR[closeColorIdx])
+                    {
+                        closeColorIdx++;
+                        start++;
+                    }
+
+                    // Insert the highlighted generic arguments
+                    sb.Insert(start, '<');
+                    start++;
+                    int prevLen = sb.Length;
+                    while (argCount > 0)
+                    {
+                        if (!allArguments.Any())
+                            break;
+                        argCount--;
+
+                        var argument = allArguments.First();
+                        allArguments.RemoveAt(0);
+
+                        sb.Insert(start, ProcessType(argument));
+
+                        // if still more arguments
+                        if (argCount > 0)
+                        {
+                            start += sb.Length - prevLen;
+                            sb.Insert(start, ", ");
+                            start += 2;
+                            prevLen = sb.Length;
+                        }
+                    }
+                    sb.Insert(start + sb.Length - prevLen, '>');
+                }
+
+                i++;
+            }
+        }
+
+        static readonly Regex colorTagRegex = new(@"<color=#?[\d|\w]*>");
+
+        /// <summary>
+        /// Removes highlighting from the string (color and italics only, as that is all this class handles).
+        /// </summary>
+        public static string RemoveHighlighting(string _string)
+        {
+            if (_string == null)
+                throw new ArgumentNullException(nameof(_string));
+
+            _string = _string.Replace(OPEN_ITALIC, string.Empty);
+            _string = _string.Replace(CLOSE_ITALIC, string.Empty);
+
+            _string = colorTagRegex.Replace(_string, string.Empty);
+            _string = _string.Replace(CLOSE_COLOR, string.Empty);
+
+            return _string;
         }
 
         /// <summary>
@@ -272,7 +324,7 @@ namespace UniverseLib.Utility
 
             var sb = new StringBuilder();
 
-            // declaring type
+            // highlight declaring type
             sb.Append(Parse(method.DeclaringType, false));
             sb.Append('.');
 
@@ -352,18 +404,36 @@ namespace UniverseLib.Utility
 
                 return PROP_INSTANCE;
             }
-            //else if (memberInfo is EventInfo ei)
-            //{
-            //    if (ei.GetAddMethod().IsStatic)
-            //    {
-            //        isStatic = true;
-            //        return EVENT_STATIC;
-            //    }
-
-            //    return EVENT_INSTANCE;
-            //}
 
             throw new NotImplementedException(memberInfo.GetType().Name + " is not supported");
         }
+
+
+
+        [Obsolete("No longer maintained or used.")]
+        public static string ParseGenericArgs(Type[] args, bool isGenericParams = false)
+        {
+            if (args.Length < 1)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (i > 0)
+                    sb.Append(',').Append(' ');
+
+                if (isGenericParams)
+                {
+                    sb.Append(OPEN_COLOR).Append(CONST).Append('>').Append(args[i].Name).Append(CLOSE_COLOR);
+                    continue;
+                }
+
+                sb.Append(ProcessType(args[i]));
+            }
+
+            return sb.ToString();
+        }
+
     }
 }
