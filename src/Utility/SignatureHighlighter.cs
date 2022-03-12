@@ -155,21 +155,32 @@ namespace UniverseLib.Utility
 
             StringBuilder sb = new();
 
-            // Declaring type
-            int start = sb.Length;
-            Type declaring = type.DeclaringType;
-            while (declaring != null)
+            if (!type.IsGenericParameter)
             {
-                sb.Insert(start, $"{HighlightType(declaring)}.");
-                declaring = declaring.DeclaringType;
+                // Declaring type
+                int start = sb.Length;
+                Type declaring = type.DeclaringType;
+                while (declaring != null)
+                {
+                    sb.Insert(start, $"{HighlightType(declaring)}.");
+                    declaring = declaring.DeclaringType;
+                }
+
+                // Type itself
+                sb.Append(HighlightType(type));
+
+                // Process generic arguments
+                if (type.IsGenericType)
+                    ProcessGenericArguments(type, sb);
             }
-
-            // Type itself
-            sb.Append(HighlightType(type));
-
-            // Process generic arguments
-            if (type.IsGenericType)
-                ProcessGenericArguments(type, sb);
+            else
+            {
+                sb.Append(OPEN_COLOR)
+                    .Append(CONST)
+                    .Append('>')
+                    .Append(type.Name)
+                    .Append(CLOSE_COLOR);
+            }
 
             var ret = sb.ToString();
             typeToRichType.Add(key, ret);
@@ -180,43 +191,32 @@ namespace UniverseLib.Utility
         {
             StringBuilder sb = new();
 
-            if (!type.IsGenericParameter)
+            if (type.IsByRef)
+                type = type.GetElementType();
+
+            int arrayDimensions = 0;
+            if (ArrayTokenRegex.Match(type.Name) is Match match && match.Success)
             {
-                if (type.IsByRef)
-                    type = type.GetElementType();
-
-                int arrayDimensions = 0;
-                if (ArrayTokenRegex.Match(type.Name) is Match match && match.Success)
-                {
-                    arrayDimensions = 1 + match.Value.Count(c => c == ',');
-                    type = type.GetElementType();
-                }
-
-                // Append type name, and replace with built-in shorthand name if applicable (eg System.String -> string)
-                if (builtInTypesToShorthand.TryGetValue(type, out string builtInName))
-                {
-                    AppendOpenColor(sb, $"#{keywordBlueHex}")
-                       .Append(builtInName)
-                       .Append(CLOSE_COLOR);
-                }
-                else // not a built-in type
-                {
-                    sb.Append($"{OPEN_COLOR}{GetClassColor(type)}>")
-                        .Append(type.Name)
-                        .Append(CLOSE_COLOR);
-                }
-
-                if (arrayDimensions > 0)
-                    sb.Append('[').Append(new string(',', arrayDimensions - 1)).Append(']');
+                arrayDimensions = 1 + match.Value.Count(c => c == ',');
+                type = type.GetElementType();
             }
-            else // generic parameter (eg <T>)
+
+            // Append type name, and replace with built-in shorthand name if applicable (eg System.String -> string)
+            if (builtInTypesToShorthand.TryGetValue(type, out string builtInName))
             {
-                sb.Append(OPEN_COLOR)
-                    .Append(CONST)
-                    .Append('>')
+                AppendOpenColor(sb, $"#{keywordBlueHex}")
+                   .Append(builtInName)
+                   .Append(CLOSE_COLOR);
+            }
+            else // not a built-in type
+            {
+                sb.Append($"{OPEN_COLOR}{GetClassColor(type)}>")
                     .Append(type.Name)
                     .Append(CLOSE_COLOR);
             }
+
+            if (arrayDimensions > 0)
+                sb.Append('[').Append(new string(',', arrayDimensions - 1)).Append(']');
 
             return sb.ToString();
         }
