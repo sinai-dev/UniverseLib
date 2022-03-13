@@ -105,6 +105,11 @@ namespace UniverseLib.Utility
             if (type == null)
                 throw new ArgumentNullException("type");
 
+            if (memberInfo is MethodInfo mi)
+                return HighlightMethod(mi);
+            else if (memberInfo is ConstructorInfo ci)
+                return HighlightConstructor(ci);
+
             var sb = new StringBuilder();
 
             if (type.IsByRef)
@@ -351,15 +356,12 @@ namespace UniverseLib.Utility
             // arguments
             sb.Append('(');
             var parameters = method.GetParameters();
-            if (parameters.Any())
+            for (int i = 0; i < parameters.Length; i++)
             {
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    var param = parameters[i];
-                    sb.Append(Parse(param.ParameterType, false));
-                    if (i < parameters.Length - 1)
-                        sb.Append(", ");
-                }
+                var param = parameters[i];
+                sb.Append(Parse(param.ParameterType, false));
+                if (i < parameters.Length - 1)
+                    sb.Append(", ");
             }
             sb.Append(')');
 
@@ -367,6 +369,41 @@ namespace UniverseLib.Utility
             highlightedMethods.Add(sig, ret);
             return ret;
         }
+
+        /// <summary>
+        /// Highlight the provided constructors's signature with it's containing Type, and all arguments.
+        /// </summary>
+        public static string HighlightConstructor(ConstructorInfo ctor)
+        {
+            var sig = ctor.FullDescription();
+            if (highlightedMethods.ContainsKey(sig))
+                return highlightedMethods[sig];
+
+            var sb = new StringBuilder();
+
+            // highlight declaring type, then again to signify the constructor
+            sb.Append(Parse(ctor.DeclaringType, false));
+            var copy = sb.ToString();
+            sb.Append('.');
+            sb.Append(copy);
+
+            // arguments
+            sb.Append('(');
+            var parameters = ctor.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var param = parameters[i];
+                sb.Append(Parse(param.ParameterType, false));
+                if (i < parameters.Length - 1)
+                    sb.Append(", ");
+            }
+            sb.Append(')');
+
+            var ret = sb.ToString();
+            highlightedMethods.Add(sig, ret);
+            return ret;
+        }
+
 
         /// <summary>
         /// Get the color used by SignatureHighlighter for the provided member, and whether it is static or not.
@@ -403,6 +440,11 @@ namespace UniverseLib.Utility
                 }
 
                 return PROP_INSTANCE;
+            }
+            else if (memberInfo is ConstructorInfo)
+            {
+                isStatic = true;
+                return CLASS_INSTANCE;
             }
 
             throw new NotImplementedException(memberInfo.GetType().Name + " is not supported");
