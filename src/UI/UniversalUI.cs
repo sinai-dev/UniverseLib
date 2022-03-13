@@ -94,7 +94,7 @@ namespace UniverseLib.UI
             var canvas = uiRoot.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.referencePixelsPerUnit = 100;
-            canvas.sortingOrder = 999;
+            canvas.sortingOrder = int.MaxValue;
 
             CanvasScaler scaler = uiRoot.AddComponent<CanvasScaler>();
             scaler.referenceResolution = new Vector2(1920, 1080);
