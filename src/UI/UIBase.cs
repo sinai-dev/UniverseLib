@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UniverseLib.UI
 {
@@ -25,12 +26,32 @@ namespace UniverseLib.UI
             set => UniversalUI.SetUIActive(this.ID, value);
         }
 
-        internal UIBase(string id, GameObject rootObject, Action updateMethod)
+        internal UIBase(string id, Action updateMethod)
         {
             ID = id;
-            RootObject = rootObject;
             UpdateMethod = updateMethod;
-            Canvas = RootObject.GetComponent<Canvas>();
+
+            RootObject = UIFactory.CreateUIObject($"{id}_Root", UniversalUI.CanvasRoot);
+            RootObject.SetActive(false);
+
+            Canvas = RootObject.AddComponent<Canvas>();
+            Canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            Canvas.referencePixelsPerUnit = 100;
+            Canvas.sortingOrder = 9999;
+
+            CanvasScaler scaler = RootObject.AddComponent<CanvasScaler>();
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+
+            RootObject.AddComponent<GraphicRaycaster>();
+
+            RectTransform uiRect = RootObject.GetComponent<RectTransform>();
+            uiRect.anchorMin = Vector2.zero;
+            uiRect.anchorMax = Vector2.one;
+            uiRect.pivot = new Vector2(0.5f, 0.5f);
+            uiRect.SetParent(UniversalUI.CanvasRoot.transform, false);
+
+            RootObject.SetActive(true);
         }
 
         internal void Update()

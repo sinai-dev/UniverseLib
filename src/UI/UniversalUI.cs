@@ -16,62 +16,45 @@ using UniverseLib.Utility;
 
 namespace UniverseLib.UI
 {
-    /// <summary>
-    /// Handles all <see cref="UIBase"/> UIs on the UniverseLib UI canvas.
-    /// </summary>
+    /// <summary>Handles all <see cref="UIBase"/> UIs on the UniverseLib UI canvas.</summary>
     public static class UniversalUI
     {
-        /// <summary>
-        /// Returns true if UniverseLib is currently initializing it's UI.
-        /// </summary>
-        public static bool Initializing { get; internal set; } = true;
-
-        /// <summary>
-        /// Returns true if any <see cref="UIBase"/> is being displayed.
-        /// </summary>
-        public static bool AnyUIShowing => registeredUIs.Any(it => it.Value.Enabled);
         internal static readonly Dictionary<string, UIBase> registeredUIs = new();
 
-        /// <summary>
-        /// The UniverseLib global Canvas root.
-        /// </summary>
+        /// <summary>Returns true if UniverseLib is currently initializing it's UI.</summary>
+        public static bool Initializing { get; internal set; } = true;
+
+        /// <summary>Returns true if any <see cref="UIBase"/> is being displayed.</summary>
+        public static bool AnyUIShowing => registeredUIs.Any(it => it.Value.Enabled);
+
+        /// <summary>The UniverseLib global Canvas root.</summary>
         public static GameObject CanvasRoot { get; private set; }
-        /// <summary>
-        /// The UniverseLib global EventSystem.
-        /// </summary>
+
+        /// <summary>The UniverseLib global EventSystem.</summary>
         public static EventSystem EventSys { get; private set; }
 
+        /// <summary>The GameObject used to hold returned <see cref="UI.ObjectPool.IPooledObject"/> objects.</summary>
         public static GameObject PoolHolder { get; private set; }
 
-        /// <summary>
-        /// The Consola font asset, if it was successfully loaded.
-        /// </summary>
+        /// <summary>The Consola font asset, if it was successfully loaded.</summary>
         public static Font ConsoleFont { get; private set; }
-        /// <summary>
-        /// The default font asset.
-        /// </summary>
+
+        /// <summary>The default font asset.</summary>
         public static Font DefaultFont { get; private set; }
-        /// <summary>
-        /// The backup UI shader, if it was loaded.
-        /// </summary>
+
+        /// <summary>The backup UI shader, if it was loaded.</summary>
         public static Shader BackupShader { get; private set; }
 
-        /// <summary>
-        /// The default color used by UniverseLib for enabled buttons.
-        /// </summary>
+        /// <summary>The default color used by UniverseLib for enabled buttons.</summary>
         public static Color EnabledButtonColor { get; } = new(0.2f, 0.4f, 0.28f);
-        /// <summary>
-        /// The default color used by UniverseLib for disabled buttons.
-        /// </summary>
+
+        /// <summary>The default color used by UniverseLib for disabled buttons.</summary>
         public static Color DisabledButtonColor { get; } = new(0.25f, 0.25f, 0.25f);
 
-        /// <summary>
-        /// A safe value for the maximum amount of characters allowed in an InputField.
-        /// </summary>
+        /// <summary>A safe value for the maximum amount of characters allowed in an InputField.</summary>
         public const int MAX_INPUTFIELD_CHARS = 16000;
-        /// <summary>
-        /// The maximum amount of vertices allowed in an InputField's UI mesh.
-        /// </summary>
+
+        /// <summary>The maximum amount of vertices allowed in an InputField's UI mesh.</summary>
         public const int MAX_TEXT_VERTS = 65000;
 
         /// <summary>
@@ -88,28 +71,7 @@ namespace UniverseLib.UI
             if (registeredUIs.ContainsKey(id))
                 throw new ArgumentException($"A UI with the id '{id}' is already registered!");
 
-            var uiRoot = UIFactory.CreateUIObject($"{id}_Root", CanvasRoot);
-            uiRoot.SetActive(false);
-
-            var canvas = uiRoot.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.referencePixelsPerUnit = 100;
-            canvas.sortingOrder = int.MaxValue;
-
-            CanvasScaler scaler = uiRoot.AddComponent<CanvasScaler>();
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-
-            uiRoot.AddComponent<GraphicRaycaster>();
-
-            var uiRect = uiRoot.GetComponent<RectTransform>();
-            uiRect.anchorMin = Vector2.zero;
-            uiRect.anchorMax = Vector2.one;
-            uiRect.pivot = new Vector2(0.5f, 0.5f);
-            uiRoot.SetActive(true);
-            uiRoot.transform.SetParent(CanvasRoot.transform, false);
-
-            UIBase uiBase = new(id, uiRoot, updateMethod);
+            UIBase uiBase = new(id, updateMethod);
             registeredUIs.Add(id, uiBase);
 
             return uiBase;
