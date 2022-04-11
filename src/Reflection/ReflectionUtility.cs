@@ -129,6 +129,9 @@ namespace UniverseLib
 
         #endregion
 
+
+        #region Main Utility methods
+
         /// <summary>
         /// Find a <see cref="Type"/> in the current AppDomain whose <see cref="Type.FullName"/> matches the provided <paramref name="fullName"/>.
         /// </summary>
@@ -185,6 +188,24 @@ namespace UniverseLib
                 }
             }
         }
+
+        /// <summary>
+        /// Attempts to extract loaded Types from a ReflectionTypeLoadException.
+        /// </summary>
+        public static Type[] TryExtractTypesFromException(ReflectionTypeLoadException e)
+        {
+            try
+            {
+                return e.Types.Where(it => it != null).ToArray();
+            }
+            catch
+            {
+                return ArgumentUtility.EmptyTypes;
+            }
+        }
+
+        #endregion
+
 
         #region Type inheritance cache
 
@@ -361,6 +382,9 @@ namespace UniverseLib
 
         #endregion
 
+
+        #region IL2CPP IEnumerable / IDictionary
+
         // Temp fix for IL2CPP until interface support improves
 
         // IsEnumerable 
@@ -485,5 +509,7 @@ namespace UniverseLib
             values = typeof(object);
             return false;
         }
+
+        #endregion
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
+using UniverseLib.Utility;
 
 namespace UniverseLib
 {
@@ -24,30 +25,28 @@ namespace UniverseLib
             }
         }
 
-        private static readonly Type[] emptyTypes = new Type[0];
-
         public static Exception Assembly_GetTypes(Assembly __instance, Exception __exception, ref Type[] __result)
         {
             if (__exception != null)
             {
-                try
+                if (__exception is ReflectionTypeLoadException rtle)
                 {
-                    __result = __instance.GetExportedTypes();
+                    __result = ReflectionUtility.TryExtractTypesFromException(rtle);
                 }
-                catch (ReflectionTypeLoadException e)
+                else // It was some other exception, try use GetExportedTypes
                 {
                     try
                     {
-                        __result = e.Types.Where(it => it != null).ToArray();
+                        __result = __instance.GetExportedTypes();
+                    }
+                    catch (ReflectionTypeLoadException e)
+                    {
+                        __result = ReflectionUtility.TryExtractTypesFromException(e);
                     }
                     catch
                     {
-                        __result = emptyTypes;
+                        __result = ArgumentUtility.EmptyTypes;
                     }
-                }
-                catch
-                {
-                    __result = emptyTypes;
                 }
             }
 

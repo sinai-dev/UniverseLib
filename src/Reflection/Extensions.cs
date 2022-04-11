@@ -48,27 +48,10 @@ namespace UniverseLib
         /// </summary>
         public static IEnumerable<Type> TryGetTypes(this Assembly asm)
         {
-            try
-            {
-                return asm.GetTypes();
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                try
-                {
-                    return asm.GetExportedTypes();
-                }
-                catch
-                {
-                    return e.Types.Where(t => t != null);
-                }
-            }
-            catch
-            {
-                return Enumerable.Empty<Type>();
-            }
+            // This is redundant since we patch Assembly.GetTypes with a Finalizer anyway.
+            // Let's just call the method and let our patch handle it should exceptions occur.
+            return asm.GetTypes();
         }
-
 
         /// <summary>
         /// Check if the two objects are reference-equal, including checking for UnityEngine.Object-equality and Il2CppSystem.Object-equality.
