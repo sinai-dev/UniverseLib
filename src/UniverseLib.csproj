@@ -35,6 +35,7 @@
     <AssemblyName>UniverseLib.IL2CPP</AssemblyName>
     <IsCpp>true</IsCpp>
     <DocumentationFile>..\Release\UniverseLib.Il2Cpp\UniverseLib.IL2CPP.xml</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Mono|AnyCPU' ">
@@ -45,6 +46,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <IsCpp>false</IsCpp>
     <DocumentationFile>..\Release\UniverseLib.Mono\UniverseLib.Mono.xml</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <!-- Global refs, Mono and Il2Cpp -->
   <ItemGroup>
