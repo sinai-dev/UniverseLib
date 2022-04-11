@@ -185,6 +185,9 @@
         <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" 
               DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net472" 
               Condition="'$(Configuration)' == 'Release_IL2CPP'" />
+        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+              DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net6.0"
+              Condition="'$(Configuration)' == 'Release_IL2CPP'" />
         <!-- Mono -->
         <Message Text="Copying $(OutputPath)$(AssemblyName).dll to $(OutputPath)..\NuGet_Mono\lib\net35"
                  Importance="high"

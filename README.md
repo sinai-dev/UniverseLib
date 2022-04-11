@@ -1,8 +1,12 @@
 # UniverseLib
 
-[![](https://img.shields.io/nuget/v/UniverseLib)](https://www.nuget.org/packages/UniverseLib)
-
 UniverseLib is a library for making plugins which target IL2CPP and Mono Unity games, with a focus on UI-driven plugins.
+
+## NuGet
+
+[![](https://img.shields.io/nuget/v/UniverseLib.Mono?label=UniverseLib.Mono)](https://www.nuget.org/packages/UniverseLib.Mono)  
+
+[![](https://img.shields.io/nuget/v/UniverseLib.IL2CPP?label=UniverseLib.IL2CPP)](https://www.nuget.org/packages/UniverseLib.IL2CPP)
 
 ## Documentation
 
