@@ -33,9 +33,9 @@ namespace UniverseLib
 #else
                 new ReflectionUtility();
 #endif
-            Instance.Initialize();
-
             ReflectionPatches.Init();
+
+            Instance.Initialize();
         }
 
         protected virtual void Initialize()
