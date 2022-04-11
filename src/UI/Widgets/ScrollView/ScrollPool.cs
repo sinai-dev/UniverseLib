@@ -149,11 +149,16 @@ namespace UniverseLib.UI.Widgets.ScrollView
         /// </summary>
         public void JumpToIndex(int index, Action<T> onJumped)
         {
-            RefreshCells(true, true);
+            CheckDataSourceCountChange();
+
+            if (HeightCache.Count <= index)
+                throw new IndexOutOfRangeException($"Requested jump index {index} is out of bounds. Data count: {HeightCache.Count}");
 
             // Slide to the normalized position of the index
-            var cache = HeightCache[index];
-            float normalized = (cache.startPosition + (cache.height * 0.5f)) / HeightCache.TotalHeight;
+            DataViewInfo view = HeightCache[index];
+
+            float offset = view.height * (float)((decimal)view.dataIndex / HeightCache.Count);
+            float normalized = (view.startPosition + offset) / HeightCache.TotalHeight;
 
             RuntimeHelper.Instance.Internal_StartCoroutine(ForceDelayedJump(index, normalized, onJumped));
         }
@@ -164,6 +169,9 @@ namespace UniverseLib.UI.Widgets.ScrollView
             yield return null;
             yield return null;
             slider.value = normalizedPos;
+            yield return null;
+
+            RefreshCells(true, false);
 
             // Get the cell containing the data index and invoke the onJumped listener for it
             foreach (var cellInfo in this)

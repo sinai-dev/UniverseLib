@@ -247,38 +247,38 @@ namespace UniverseLib.UI.Widgets.ScrollView
                 prev = cache;
             }
         }
+    }
 
-        public struct DataViewInfo
+    public struct DataViewInfo
+    {
+        // static
+        public static DataViewInfo None => s_default;
+        private static DataViewInfo s_default = default;
+
+        public static implicit operator float(DataViewInfo it) => it.height;
+
+        public DataViewInfo(int index, float height, float startPos, int spread)
         {
-            // static
-            public static DataViewInfo None => s_default;
-            private static DataViewInfo s_default = default;
-
-            public static implicit operator float(DataViewInfo it) => it.height;
-
-            public DataViewInfo(int index, float height, float startPos, int spread)
-            {
-                this.dataIndex = index;
-                this.height = height;
-                this.startPosition = startPos;
-                this.normalizedSpread = spread;
-            }
-
-            // instance
-            public int dataIndex, normalizedSpread;
-            public float height, startPosition;
-
-            public override bool Equals(object obj)
-            {
-                var other = (DataViewInfo)obj;
-
-                return this.dataIndex == other.dataIndex
-                    && this.height == other.height
-                    && this.startPosition == other.startPosition
-                    && this.normalizedSpread == other.normalizedSpread;
-            }
-
-            public override int GetHashCode() => base.GetHashCode();
+            this.dataIndex = index;
+            this.height = height;
+            this.startPosition = startPos;
+            this.normalizedSpread = spread;
         }
+
+        // instance
+        public int dataIndex, normalizedSpread;
+        public float height, startPosition;
+
+        public override bool Equals(object obj)
+        {
+            var other = (DataViewInfo)obj;
+
+            return this.dataIndex == other.dataIndex
+                && this.height == other.height
+                && this.startPosition == other.startPosition
+                && this.normalizedSpread == other.normalizedSpread;
+        }
+
+        public override int GetHashCode() => base.GetHashCode();
     }
 }
