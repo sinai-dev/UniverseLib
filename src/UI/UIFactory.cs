@@ -757,8 +757,9 @@ namespace UniverseLib.UI
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
             viewportRect.sizeDelta = new Vector2(0f, 0.0f);
             viewportRect.offsetMax = new Vector2(-10.0f, 0.0f);
-            viewportObj.AddComponent<Image>().color = Color.white;
-            viewportObj.AddComponent<Mask>().showMaskGraphic = false;
+            //viewportObj.AddComponent<Image>().color = Color.white;
+            // viewportObj.AddComponent<Mask>().showMaskGraphic = false;
+            viewportObj.AddComponent<RectMask2D>();
 
             content = CreateUIObject("Content", viewportObj);
             var contentRect = content.GetComponent<RectTransform>();
