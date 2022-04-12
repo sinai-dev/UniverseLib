@@ -81,15 +81,6 @@ namespace UniverseLib
                     else
                         cppType = Il2CppType.TypeFromPointer(classPtr);
 
-                    // check if type is injected
-                    if (RuntimeSpecificsStore.IsInjected(classPtr))
-                    {
-                        // Note: This will fail on injected subclasses.
-                        // - {Namespace}.{Class}.{Subclass} would be {Namespace}.{Subclass} when injected.
-                        // Not sure on solution yet.
-                        return GetTypeByName(cppType.FullName) ?? type;
-                    }
-
                     // Check for boxed primitives (Unhollower will return "System.*" for Il2CppSystem types.
                     if (AllTypes.TryGetValue(cppType.FullName, out Type primitive) && primitive.IsPrimitive)
                         return primitive;
@@ -209,9 +200,9 @@ namespace UniverseLib
                 if (!IL2CPP.il2cpp_class_is_assignable_from(castToPtr, castFromPtr))
                     return obj;
 
-                if (RuntimeSpecificsStore.IsInjected(castToPtr))
-                    return UnhollowerBaseLib.Runtime.ClassInjectorBase.GetMonoObjectFromIl2CppPointer(cppObj.Pointer) 
-                           ?? obj;
+                if (RuntimeSpecificsStore.IsInjected(castToPtr)
+                    && UnhollowerBaseLib.Runtime.ClassInjectorBase.GetMonoObjectFromIl2CppPointer(cppObj.Pointer) is object monoObject)
+                    return monoObject;
 
                 try
                 {
@@ -263,7 +254,7 @@ namespace UniverseLib
                         return cppObj;
                     }
 
-                    return Enum.Parse(toType, cppObj.ToString());
+                    return Enum.Parse(toType, cppObj.TryCast<Il2CppSystem.Enum>().ToString());
                 }
 
                 // Not enum, unbox with Il2CppObjectBase.Unbox
