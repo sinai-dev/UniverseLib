@@ -134,7 +134,7 @@ namespace UniverseLib
             if (onInitialized == null)
                 return;
 
-            foreach (var listener in onInitialized.GetInvocationList())
+            foreach (Delegate listener in onInitialized.GetInvocationList())
             {
                 try
                 {

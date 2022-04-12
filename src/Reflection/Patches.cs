@@ -14,8 +14,8 @@ namespace UniverseLib
         {
             try
             {
-                var method = typeof(Assembly).GetMethod(nameof(Assembly.GetTypes), new Type[0]);
-                var processor = Universe.Harmony.CreateProcessor(method);
+                MethodInfo method = typeof(Assembly).GetMethod(nameof(Assembly.GetTypes), new Type[0]);
+                PatchProcessor processor = Universe.Harmony.CreateProcessor(method);
                 processor.AddFinalizer(typeof(ReflectionPatches).GetMethod(nameof(Assembly_GetTypes)));
                 processor.Patch();
             }

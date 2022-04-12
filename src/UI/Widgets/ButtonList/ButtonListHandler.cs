@@ -52,10 +52,10 @@ namespace UniverseLib.UI.Widgets.ButtonList
 
         public void RefreshData()
         {
-            var allEntries = GetEntries();
+            List<TData> allEntries = GetEntries();
             CurrentEntries.Clear();
 
-            foreach (var entry in allEntries)
+            foreach (TData entry in allEntries)
             {
                 if (!string.IsNullOrEmpty(currentFilter))
                 {

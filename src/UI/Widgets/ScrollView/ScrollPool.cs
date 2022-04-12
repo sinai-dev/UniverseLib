@@ -174,7 +174,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             RefreshCells(true, false);
 
             // Get the cell containing the data index and invoke the onJumped listener for it
-            foreach (var cellInfo in this)
+            foreach (CellInfo cellInfo in this)
             {
                 if (cellInfo.dataIndex == dataIndex)
                 {
@@ -226,7 +226,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             // create initial cell pool and set cells
             CreateCellPool();
 
-            foreach (var cell in this)
+            foreach (CellInfo cell in this)
                 SetCell(CellPool[cell.cellIndex], cell.dataIndex);
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(Content);
@@ -305,7 +305,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             {
                 bottomPoolIndex++;
 
-                var cell = Pool<T>.Borrow();
+                T cell = Pool<T>.Borrow();
                 CellPool.Add(cell);
                 DataSource.OnCellBorrowed(cell);
                 cell.Rect.SetParent(ScrollRect.content, false);
@@ -322,8 +322,8 @@ namespace UniverseLib.UI.Widgets.ScrollView
         {
             CheckDataSourceCountChange();
 
-            var requiredCoverage = Math.Abs(RecycleViewBounds.y - RecycleViewBounds.x);
-            var currentCoverage = CellPool.Count * PrototypeHeight;
+            float requiredCoverage = Math.Abs(RecycleViewBounds.y - RecycleViewBounds.x);
+            float currentCoverage = CellPool.Count * PrototypeHeight;
             int cellsRequired = (int)Math.Floor((decimal)(requiredCoverage - currentCoverage) / (decimal)PrototypeHeight);
             if (cellsRequired > 0)
             {
@@ -337,7 +337,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
                 for (int i = 0; i < cellsRequired; i++)
                 {
-                    var cell = Pool<T>.Borrow();
+                    T cell = Pool<T>.Borrow();
                     DataSource.OnCellBorrowed(cell);
                     cell.Rect.SetParent(ScrollRect.content, false);
                     CellPool.Add(cell);
@@ -359,13 +359,13 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
                 if (Content.localPosition.y != prevAnchor)
                 {
-                    var diff = Content.localPosition.y - prevAnchor;
+                    float diff = Content.localPosition.y - prevAnchor;
                     Content.localPosition = new Vector3(Content.localPosition.x, Content.localPosition.y - diff);
                 }
 
                 if (Content.rect.height != prevHeight)
                 {
-                    var diff = Content.rect.height - prevHeight;
+                    float diff = Content.rect.height - prevHeight;
                     //UniverseLib.Log("Height diff: " + diff);
                     //Content.localPosition = new Vector3(Content.localPosition.x, Content.localPosition.y - diff);
                 }
@@ -415,9 +415,9 @@ namespace UniverseLib.UI.Widgets.ScrollView
             CheckDataSourceCountChange(out bool jumpToBottom);
 
             // update date height cache, and set cells if 'andReload'
-            foreach (var cellInfo in this)
+            foreach (CellInfo cellInfo in this)
             {
-                var cell = CellPool[cellInfo.cellIndex];
+                T cell = CellPool[cellInfo.cellIndex];
                 if (andReloadFromDataSource)
                     SetCell(cell, cellInfo.dataIndex);
                 else
@@ -436,7 +436,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
             if (jumpToBottom)
             {
-                var diff = Viewport.MaxY() - CellPool[bottomPoolIndex].Rect.MaxY();
+                float diff = Viewport.MaxY() - CellPool[bottomPoolIndex].Rect.MaxY();
                 Content.anchoredPosition += Vector2.up * diff;
             }
 
@@ -449,7 +449,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
         private void RefreshCellHeightsFast()
         {
-            foreach (var cellInfo in this)
+            foreach (CellInfo cellInfo in this)
                 HeightCache.SetIndex(cellInfo.dataIndex, CellPool[cellInfo.cellIndex].Rect.rect.height);
         }
 
@@ -491,7 +491,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
                     adjust = RecycleBottomToTop();
             }
 
-            var vector = new Vector2(0, adjust);
+            Vector2 vector = new Vector2(0, adjust);
             ScrollRect.m_ContentStartPosition += vector;
             ScrollRect.m_PrevPosition += vector;
 
@@ -516,11 +516,11 @@ namespace UniverseLib.UI.Widgets.ScrollView
             while (ShouldRecycleTop && CurrentDataCount < DataSource.ItemCount)
             {
                 WritingLocked = true;
-                var cell = CellPool[topPoolIndex];
+                T cell = CellPool[topPoolIndex];
 
                 //Move top cell to bottom
                 cell.Rect.SetAsLastSibling();
-                var prevHeight = cell.Rect.rect.height;
+                float prevHeight = cell.Rect.rect.height;
 
                 // update content position
                 Content.anchoredPosition -= Vector2.up * prevHeight;
@@ -546,11 +546,11 @@ namespace UniverseLib.UI.Widgets.ScrollView
             while (ShouldRecycleBottom && CurrentDataCount > CellPool.Count)
             {
                 WritingLocked = true;
-                var cell = CellPool[bottomPoolIndex];
+                T cell = CellPool[bottomPoolIndex];
 
                 //Move bottom cell to top
                 cell.Rect.SetAsFirstSibling();
-                var prevHeight = cell.Rect.rect.height;
+                float prevHeight = cell.Rect.rect.height;
 
                 // update content position
                 Content.anchoredPosition += Vector2.up * prevHeight;
@@ -563,8 +563,8 @@ namespace UniverseLib.UI.Widgets.ScrollView
                 SetCell(cell, TopDataIndex);
 
                 // move content again for new cell size
-                var newHeight = cell.Rect.rect.height;
-                var diff = newHeight - prevHeight;
+                float newHeight = cell.Rect.rect.height;
+                float diff = newHeight - prevHeight;
                 if (diff != 0.0f)
                 {
                     Content.anchoredPosition += Vector2.up * diff;
@@ -593,11 +593,11 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
             // normalize the scroll position for the scroll bounds.
             // point at the center of the viewport
-            var desiredPosition = val * (NormalizedScrollBounds.y - NormalizedScrollBounds.x) + NormalizedScrollBounds.x;
+            float desiredPosition = val * (NormalizedScrollBounds.y - NormalizedScrollBounds.x) + NormalizedScrollBounds.x;
 
             // add offset above it for viewport height
-            var halfView = Viewport.rect.height * 0.5f;
-            var desiredMinY = desiredPosition - halfView;
+            float halfView = Viewport.rect.height * 0.5f;
+            float desiredMinY = desiredPosition - halfView;
 
             // get the data index at the top of the viewport
             int topViewportIndex = HeightCache.GetFirstDataIndexAtPosition(desiredMinY);
@@ -608,7 +608,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             int poolStartIndex = Math.Max(0, topViewportIndex - (int)(ExtraPoolCells * 0.5f));
             poolStartIndex = Math.Min(Math.Max(0, DataSource.ItemCount - CellPool.Count), poolStartIndex);
 
-            var topStartPos = HeightCache[poolStartIndex].startPosition;
+            float topStartPos = HeightCache[poolStartIndex].startPosition;
 
             float desiredAnchor;
             if (desiredMinY < HalfThreshold)
@@ -659,9 +659,9 @@ namespace UniverseLib.UI.Widgets.ScrollView
             else
             {
                 bottomDataIndex = desiredBottomIndex;
-                foreach (var info in this)
+                foreach (CellInfo info in this)
                 {
-                    var cell = CellPool[info.cellIndex];
+                    T cell = CellPool[info.cellIndex];
                     SetCell(cell, info.dataIndex);
                 }
             }
@@ -678,15 +678,15 @@ namespace UniverseLib.UI.Widgets.ScrollView
         {
             CheckDataSourceCountChange(out _);
 
-            var dataHeight = TotalDataHeight;
+            float dataHeight = TotalDataHeight;
 
             // calculate handle size based on viewport / total data height
-            var viewportHeight = Viewport.rect.height;
-            var handleHeight = viewportHeight * Math.Min(1, viewportHeight / dataHeight);
+            float viewportHeight = Viewport.rect.height;
+            float handleHeight = viewportHeight * Math.Min(1, viewportHeight / dataHeight);
             handleHeight = Math.Max(15f, handleHeight);
 
             // resize the handle container area for the size of the handle (bigger handle = smaller container)
-            var container = slider.m_HandleContainerRect;
+            RectTransform container = slider.m_HandleContainerRect;
             container.offsetMax = new Vector2(container.offsetMax.x, -(handleHeight * 0.5f));
             container.offsetMin = new Vector2(container.offsetMin.x, handleHeight * 0.5f);
 
@@ -703,9 +703,9 @@ namespace UniverseLib.UI.Widgets.ScrollView
                 if (HeightCache.Count > 0)
                     topPos = HeightCache[TopDataIndex].startPosition;
 
-                var scrollPos = topPos + Content.anchoredPosition.y;
+                float scrollPos = topPos + Content.anchoredPosition.y;
 
-                var viewHeight = TotalDataHeight - Viewport.rect.height;
+                float viewHeight = TotalDataHeight - Viewport.rect.height;
                 if (viewHeight != 0.0f)
                     val = (float)((decimal)scrollPos / (decimal)(viewHeight));
                 else

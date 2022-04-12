@@ -66,7 +66,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             }
 
             int dataIndex = rangeCache[rangeIndex];
-            var cache = heightCache[dataIndex];
+            DataViewInfo cache = heightCache[dataIndex];
 
             // if the DataViewInfo is outdated, need to rebuild
             int expectedMin = GetRangeCeilingOfPosition(cache.startPosition);
@@ -156,10 +156,10 @@ namespace UniverseLib.UI.Widgets.ScrollView
             }
 
             // We are actually updating an index. First, update the height and the totalHeight.
-            var cache = heightCache[dataIndex];
+            DataViewInfo cache = heightCache[dataIndex];
             if (cache.height != height)
             {
-                var diff = height - cache.height;
+                float diff = height - cache.height;
                 totalHeight += diff;
                 cache.height = height;
             }
@@ -167,7 +167,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             // update our start position using the previous cell (if it exists)
             if (dataIndex > 0)
             {
-                var prev = heightCache[dataIndex - 1];
+                DataViewInfo prev = heightCache[dataIndex - 1];
                 cache.startPosition = prev.startPosition + prev.height;
             }
 
@@ -271,7 +271,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
 
         public override bool Equals(object obj)
         {
-            var other = (DataViewInfo)obj;
+            DataViewInfo other = (DataViewInfo)obj;
 
             return this.dataIndex == other.dataIndex
                 && this.height == other.height

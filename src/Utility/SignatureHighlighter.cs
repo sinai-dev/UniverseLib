@@ -110,7 +110,7 @@ namespace UniverseLib.Utility
             else if (memberInfo is ConstructorInfo ci)
                 return HighlightConstructor(ci);
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             if (type.IsByRef)
                 AppendOpenColor(sb, $"#{keywordBlueHex}").Append("ref ").Append(CLOSE_COLOR);
@@ -187,7 +187,7 @@ namespace UniverseLib.Utility
                     .Append(CLOSE_COLOR);
             }
 
-            var ret = sb.ToString();
+            string ret = sb.ToString();
             typeToRichType.Add(key, ret);
             return ret;
         }
@@ -278,7 +278,7 @@ namespace UniverseLib.Utility
                             break;
                         argCount--;
 
-                        var argument = allArguments.First();
+                        Type argument = allArguments.First();
                         allArguments.RemoveAt(0);
 
                         sb.Insert(start, ProcessType(argument));
@@ -323,18 +323,18 @@ namespace UniverseLib.Utility
         /// </summary>
         public static string HighlightMethod(MethodInfo method)
         {
-            var sig = method.FullDescription();
+            string sig = method.FullDescription();
             if (highlightedMethods.ContainsKey(sig))
                 return highlightedMethods[sig];
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // highlight declaring type
             sb.Append(Parse(method.DeclaringType, false));
             sb.Append('.');
 
             // method name
-            var color = !method.IsStatic
+            string color = !method.IsStatic
                     ? METHOD_INSTANCE
                     : METHOD_STATIC;
             sb.Append($"<color={color}>{method.Name}</color>");
@@ -343,7 +343,7 @@ namespace UniverseLib.Utility
             if (method.ContainsGenericParameters)
             {
                 sb.Append("<");
-                var genericArgs = method.GetGenericArguments();
+                Type[] genericArgs = method.GetGenericArguments();
                 for (int i = 0; i < genericArgs.Length; i++)
                 {
                     sb.Append($"<color={CONST}>{genericArgs[i].Name}</color>");
@@ -355,17 +355,17 @@ namespace UniverseLib.Utility
 
             // arguments
             sb.Append('(');
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             for (int i = 0; i < parameters.Length; i++)
             {
-                var param = parameters[i];
+                ParameterInfo param = parameters[i];
                 sb.Append(Parse(param.ParameterType, false));
                 if (i < parameters.Length - 1)
                     sb.Append(", ");
             }
             sb.Append(')');
 
-            var ret = sb.ToString();
+            string ret = sb.ToString();
             highlightedMethods.Add(sig, ret);
             return ret;
         }
@@ -375,31 +375,31 @@ namespace UniverseLib.Utility
         /// </summary>
         public static string HighlightConstructor(ConstructorInfo ctor)
         {
-            var sig = ctor.FullDescription();
+            string sig = ctor.FullDescription();
             if (highlightedMethods.ContainsKey(sig))
                 return highlightedMethods[sig];
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             // highlight declaring type, then again to signify the constructor
             sb.Append(Parse(ctor.DeclaringType, false));
-            var copy = sb.ToString();
+            string copy = sb.ToString();
             sb.Append('.');
             sb.Append(copy);
 
             // arguments
             sb.Append('(');
-            var parameters = ctor.GetParameters();
+            ParameterInfo[] parameters = ctor.GetParameters();
             for (int i = 0; i < parameters.Length; i++)
             {
-                var param = parameters[i];
+                ParameterInfo param = parameters[i];
                 sb.Append(Parse(param.ParameterType, false));
                 if (i < parameters.Length - 1)
                     sb.Append(", ");
             }
             sb.Append(')');
 
-            var ret = sb.ToString();
+            string ret = sb.ToString();
             highlightedMethods.Add(sig, ret);
             return ret;
         }
@@ -458,7 +458,7 @@ namespace UniverseLib.Utility
             if (args.Length < 1)
                 return string.Empty;
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < args.Length; i++)
             {

@@ -57,7 +57,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         /// <inheritdoc/>
         protected internal override void Internal_GraphicRaycast(GraphicRaycaster raycaster, PointerEventData data, List<RaycastResult> list)
         {
-            var il2cppList = new Il2CppSystem.Collections.Generic.List<RaycastResult>();
+            Il2CppSystem.Collections.Generic.List<RaycastResult> il2cppList = new Il2CppSystem.Collections.Generic.List<RaycastResult>();
 
             raycaster.Raycast(data, il2cppList);
 
@@ -68,7 +68,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         /// <inheritdoc/>
         protected internal override string Internal_LayerToName(int layer)
         {
-            var iCall = ICallManager.GetICall<d_LayerToName>("UnityEngine.LayerMask::LayerToName");
+            d_LayerToName iCall = ICallManager.GetICall<d_LayerToName>("UnityEngine.LayerMask::LayerToName");
             return IL2CPP.Il2CppStringToManaged(iCall.Invoke(layer));
         }
 
@@ -92,7 +92,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             if (count < 1)
                 return new GameObject[0];
 
-            var list = new Il2CppSystem.Collections.Generic.List<GameObject>(count);
+            Il2CppSystem.Collections.Generic.List<GameObject> list = new Il2CppSystem.Collections.Generic.List<GameObject>(count);
             ICallManager.GetICall<d_GetRootGameObjects>("UnityEngine.SceneManagement.Scene::GetRootGameObjectsInternal")
                 .Invoke(scene.handle, list.Pointer);
             return list.ToArray();
@@ -130,7 +130,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         /// <inheritdoc/>
         protected internal override void Internal_SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null, Color? disabled = null)
         {
-            var colors = selectable.colors;
+            ColorBlock colors = selectable.colors;
             colors.colorMultiplier = 1;
 
             object boxedColors = colors;

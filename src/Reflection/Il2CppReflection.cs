@@ -56,7 +56,7 @@ namespace UniverseLib
             if (obj == null)
                 return null;
 
-            var type = obj.GetType();
+            Type type = obj.GetType();
 
             try
             {
@@ -110,7 +110,7 @@ namespace UniverseLib
         /// </summary>
         public static Type GetUnhollowedType(Il2CppSystem.Type cppType)
         {
-            var fullname = cppType.FullName;
+            string fullname = cppType.FullName;
 
             if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullname, out Type deob))
                 return deob;
@@ -153,7 +153,7 @@ namespace UniverseLib
             if (obj == null)
                 return null;
 
-            var fromType = obj.GetType();
+            Type fromType = obj.GetType();
 
             if (fromType == toType)
                 return obj;
@@ -248,15 +248,15 @@ namespace UniverseLib
                 if (toType.IsEnum)
                 {
                     // Check for nullable enums
-                    var type = cppObj.GetType();
+                    Type type = cppObj.GetType();
                     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Il2CppSystem.Nullable<>))
                     {
-                        var nullable = cppObj.TryCast(type);
-                        var nullableHasValueProperty = type.GetProperty("HasValue");
+                        object nullable = cppObj.TryCast(type);
+                        PropertyInfo nullableHasValueProperty = type.GetProperty("HasValue");
                         if ((bool)nullableHasValueProperty.GetValue(nullable, null))
                         {
                             // nullable has a value.
-                            var nullableValueProperty = type.GetProperty("Value");
+                            PropertyInfo nullableValueProperty = type.GetProperty("Value");
                             return Enum.Parse(toType, nullableValueProperty.GetValue(nullable, null).ToString());
                         }
                         // nullable and no current value.
@@ -268,7 +268,7 @@ namespace UniverseLib
 
                 // Not enum, unbox with Il2CppObjectBase.Unbox
 
-                var name = toType.AssemblyQualifiedName;
+                string name = toType.AssemblyQualifiedName;
 
                 if (!unboxMethods.ContainsKey(name))
                 {
@@ -296,7 +296,7 @@ namespace UniverseLib
 
             try
             {
-                var type = value.GetType();
+                Type type = value.GetType();
                 if (!type.IsValueType)
                     return null;
 
@@ -365,7 +365,7 @@ namespace UniverseLib
         /// </summary>
         public static object MakeIl2CppPrimitive(Type cppType, object monoValue)
         {
-            var cppStruct = Activator.CreateInstance(cppType);
+            object cppStruct = Activator.CreateInstance(cppType);
             AccessTools.Field(cppType, "m_value").SetValue(cppStruct, monoValue);
             return cppStruct;
         }
@@ -388,7 +388,7 @@ namespace UniverseLib
         
             if (obj is Il2CppSystem.Object cppObj)
             {
-                var type = cppObj.GetIl2CppType();
+                Il2CppSystem.Type type = cppObj.GetIl2CppType();
                 return type.FullName == IL2CPP_STRING_FULLNAME || type.FullName == STRING_FULLNAME;
             }
 
@@ -424,7 +424,7 @@ namespace UniverseLib
             // Doing it in any other order can give corrupt or null results.
 
             // Try cast it to Il2CppSystem.String, and then cast that to System.String
-            var ret = (string)(cppObject as Il2CppSystem.String);
+            string ret = (string)(cppObject as Il2CppSystem.String);
             // If that fails, just do ToString()
             if (string.IsNullOrEmpty(ret))
                 ret = cppObject.ToString();
@@ -471,9 +471,9 @@ namespace UniverseLib
 
         private static void BuildDeobfuscationCache()
         {
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in asm.TryGetTypes())
+                foreach (Type type in asm.TryGetTypes())
                     TryCacheDeobfuscatedType(type);
             }
         }
@@ -485,7 +485,7 @@ namespace UniverseLib
                 if (!type.CustomAttributes.Any())
                     return;
 
-                foreach (var att in type.CustomAttributes)
+                foreach (CustomAttributeData att in type.CustomAttributes)
                 {
                     if (att.AttributeType == typeof(ObfuscatedNameAttribute))
                     {
@@ -517,12 +517,12 @@ namespace UniverseLib
         internal override void Internal_FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
         {
             PropertyInfo pi;
-            foreach (var name in possibleNames)
+            foreach (string name in possibleNames)
             {
                 pi = type.GetProperty(name, flags);
                 if (pi != null)
                 {
-                    var instance = pi.GetValue(null, null);
+                    object instance = pi.GetValue(null, null);
                     if (instance != null)
                     {
                         instances.Add(instance);
@@ -545,10 +545,10 @@ namespace UniverseLib
 
         internal void TryLoadGameModules()
         {
-            var dir = ConfigManager.Unhollowed_Modules_Folder;
+            string dir = ConfigManager.Unhollowed_Modules_Folder;
             if (Directory.Exists(dir))
             {
-                foreach (var filePath in Directory.GetFiles(dir, "*.dll"))
+                foreach (string filePath in Directory.GetFiles(dir, "*.dll"))
                     DoLoadModule(filePath);
             }
             else
@@ -599,36 +599,11 @@ namespace UniverseLib
             return false;
         }
 
-        protected override bool Internal_TryGetEntryTypes(Type type, out Type keys, out Type values)
-        {
-            if (base.Internal_TryGetEntryTypes(type, out keys, out values))
-                return true;
-
-            // Type is either an IL2CPP dictionary, or its not generic.
-            if (type.IsGenericType)
-            {
-                // Naive solution until IL2CPP interfaces improve.
-                var args = type.GetGenericArguments();
-                if (args.Length == 2)
-                {
-                    keys = args[0];
-                    values = args[1];
-                    return true;
-                }
-            }
-
-            keys = typeof(object);
-            values = typeof(object);
-            return false;
-        }
-
-        // Temp fix until Unhollower interface support improves
+        // IEnumerables
 
         internal static readonly Dictionary<string, MethodInfo> getEnumeratorMethods = new();
         internal static readonly Dictionary<string, EnumeratorInfo> enumeratorInfos = new();
         internal static readonly HashSet<string> notSupportedTypes = new();
-
-        // IEnumerables
 
         internal static IntPtr cppIEnumerablePointer;
 
@@ -688,19 +663,19 @@ namespace UniverseLib
 
             // Some ugly reflection to use the il2cpp interface for the instance type
 
-            var type = list.GetActualType();
-            var key = type.AssemblyQualifiedName;
+            Type type = list.GetActualType();
+            string key = type.AssemblyQualifiedName;
 
             if (!getEnumeratorMethods.ContainsKey(key))
             {
-                var method = type.GetMethod("GetEnumerator")
+                MethodInfo method = type.GetMethod("GetEnumerator")
                              ?? type.GetMethod("System_Collections_IEnumerable_GetEnumerator", FLAGS);
                 getEnumeratorMethods.Add(key, method);
 
                 // ensure the enumerator type is supported
                 try
                 {
-                    var test = getEnumeratorMethods[key].Invoke(list, null);
+                    object test = getEnumeratorMethods[key].Invoke(list, null);
                     test.GetActualType().GetMethod("MoveNext").Invoke(test, null);
                 }
                 catch (Exception ex)
@@ -714,9 +689,9 @@ namespace UniverseLib
                 throw new NotSupportedException($"The IEnumerable type '{type.FullName}' does not support MoveNext.");
 
             cppEnumerator = getEnumeratorMethods[key].Invoke(list, null);
-            var enumeratorType = cppEnumerator.GetActualType();
+            Type enumeratorType = cppEnumerator.GetActualType();
 
-            var enumInfoKey = enumeratorType.AssemblyQualifiedName;
+            string enumInfoKey = enumeratorType.AssemblyQualifiedName;
 
             if (!enumeratorInfos.ContainsKey(enumInfoKey))
             {
@@ -740,6 +715,29 @@ namespace UniverseLib
         // IDictionary
 
         internal static IntPtr cppIDictionaryPointer;
+
+        protected override bool Internal_TryGetEntryTypes(Type type, out Type keys, out Type values)
+        {
+            if (base.Internal_TryGetEntryTypes(type, out keys, out values))
+                return true;
+
+            // Type is either an IL2CPP dictionary, or its not generic.
+            if (type.IsGenericType)
+            {
+                // Naive solution until IL2CPP interfaces improve.
+                Type[] args = type.GetGenericArguments();
+                if (args.Length == 2)
+                {
+                    keys = args[0];
+                    values = args[1];
+                    return true;
+                }
+            }
+
+            keys = typeof(object);
+            values = typeof(object);
+            return false;
+        }
 
         protected override bool Internal_IsDictionary(Type type)
         {
@@ -768,7 +766,7 @@ namespace UniverseLib
 
             try
             {
-                var type = dictionary.GetActualType();
+                Type type = dictionary.GetActualType();
 
                 if (typeof(Il2CppSystem.Collections.Hashtable).IsAssignableFrom(type))
                 {
@@ -776,20 +774,20 @@ namespace UniverseLib
                     return true;
                 }
 
-                var keys = type.GetProperty("Keys").GetValue(dictionary, null);
+                object keys = type.GetProperty("Keys").GetValue(dictionary, null);
 
-                var keyCollType = keys.GetActualType();
-                var cacheKey = keyCollType.AssemblyQualifiedName;
+                Type keyCollType = keys.GetActualType();
+                string cacheKey = keyCollType.AssemblyQualifiedName;
                 if (!getEnumeratorMethods.ContainsKey(cacheKey))
                 {
-                    var method = keyCollType.GetMethod("GetEnumerator")
+                    MethodInfo method = keyCollType.GetMethod("GetEnumerator")
                                  ?? keyCollType.GetMethod("System_Collections_IDictionary_GetEnumerator", FLAGS);
                     getEnumeratorMethods.Add(cacheKey, method);
 
                     // test support
                     try
                     {
-                        var test = getEnumeratorMethods[cacheKey].Invoke(keys, null);
+                        object test = getEnumeratorMethods[cacheKey].Invoke(keys, null);
                         test.GetActualType().GetMethod("MoveNext").Invoke(test, null);
                     }
                     catch (Exception ex)
@@ -802,16 +800,16 @@ namespace UniverseLib
                 if (notSupportedTypes.Contains(cacheKey))
                     throw new Exception($"The IDictionary type '{type.FullName}' does not support MoveNext.");
 
-                var keyEnumerator = getEnumeratorMethods[cacheKey].Invoke(keys, null);
-                var keyInfo = new EnumeratorInfo
+                object keyEnumerator = getEnumeratorMethods[cacheKey].Invoke(keys, null);
+                EnumeratorInfo keyInfo = new EnumeratorInfo
                 {
                     current = keyEnumerator.GetActualType().GetProperty("Current"),
                     moveNext = keyEnumerator.GetActualType().GetMethod("MoveNext"),
                 };
 
-                var values = type.GetProperty("Values").GetValue(dictionary, null);
-                var valueEnumerator = values.GetActualType().GetMethod("GetEnumerator").Invoke(values, null);
-                var valueInfo = new EnumeratorInfo
+                object values = type.GetProperty("Values").GetValue(dictionary, null);
+                object valueEnumerator = values.GetActualType().GetMethod("GetEnumerator").Invoke(values, null);
+                EnumeratorInfo valueInfo = new EnumeratorInfo
                 {
                     current = valueEnumerator.GetActualType().GetProperty("Current"),
                     moveNext = valueEnumerator.GetActualType().GetMethod("MoveNext"),
@@ -835,12 +833,12 @@ namespace UniverseLib
             {
                 valueInfo.moveNext.Invoke(valueEnumerator, null);
 
-                var key = keyInfo.current.GetValue(keyEnumerator, null);
+                object key = keyInfo.current.GetValue(keyEnumerator, null);
 
                 if (key == null)
                     continue;
 
-                var value = valueInfo.current.GetValue(valueEnumerator, null);
+                object value = valueInfo.current.GetValue(valueEnumerator, null);
 
                 yield return new DictionaryEntry(key, value);
             }
@@ -850,7 +848,7 @@ namespace UniverseLib
         {
             for (int i = 0; i < hashtable.buckets.Count; i++)
             {
-                var bucket = hashtable.buckets[i];
+                Il2CppSystem.Collections.Hashtable.bucket bucket = hashtable.buckets[i];
                 if (bucket == null || bucket.key == null)
                     continue;
 

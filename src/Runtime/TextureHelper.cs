@@ -109,13 +109,13 @@ namespace UniverseLib.Runtime
 
                 origTex.filterMode = FilterMode.Point;
 
-                var rt = RenderTexture.GetTemporary(origTex.width, origTex.height, 0, RenderTextureFormat.ARGB32);
+                RenderTexture rt = RenderTexture.GetTemporary(origTex.width, origTex.height, 0, RenderTextureFormat.ARGB32);
                 rt.filterMode = FilterMode.Point;
                 RenderTexture.active = rt;
 
                 Instance.Internal_Blit(origTex, rt);
 
-                var newTex = Instance.Internal_NewTexture2D((int)dimensions.width, (int)dimensions.height);
+                Texture2D newTex = Instance.Internal_NewTexture2D((int)dimensions.width, (int)dimensions.height);
                 newTex.ReadPixels(dimensions, 0, 0);
                 newTex.Apply(false, false);
 

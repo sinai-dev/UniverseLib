@@ -67,7 +67,7 @@ namespace UniverseLib.Runtime.Mono
         protected internal override void Internal_SetColorBlock(Selectable selectable, Color? normal = null, Color? highlighted = null, Color? pressed = null,
             Color? disabled = null)
         {
-            var colors = selectable.colors;
+            ColorBlock colors = selectable.colors;
 
             if (normal != null)
                 colors.normalColor = (Color)normal;

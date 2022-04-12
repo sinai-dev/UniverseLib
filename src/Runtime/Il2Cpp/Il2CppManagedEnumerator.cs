@@ -70,7 +70,7 @@ namespace UniverseLib.Runtime.Il2Cpp
 
         private static Object ManagedToIl2CppObject(object obj)
         {
-            var t = obj.GetType();
+            Type t = obj.GetType();
             if (obj is string s)
                 return new Object(IL2CPP.ManagedStringToIl2Cpp(s));
             if (t.IsPrimitive)
@@ -80,14 +80,14 @@ namespace UniverseLib.Runtime.Il2Cpp
 
         private static System.Func<object, Object> GetValueBoxer(Type t)
         {
-            if (boxers.TryGetValue(t, out var conv))
+            if (boxers.TryGetValue(t, out System.Func<object, Object> conv))
                 return conv;
 
-            var dm = new DynamicMethod($"Il2CppUnbox_{t.FullDescription()}", typeof(Object),
+            DynamicMethod dm = new DynamicMethod($"Il2CppUnbox_{t.FullDescription()}", typeof(Object),
                                        new[] { typeof(object) });
-            var il = dm.GetILGenerator();
-            var loc = il.DeclareLocal(t);
-            var classField = typeof(Il2CppClassPointerStore<>).MakeGenericType(t)
+            ILGenerator il = dm.GetILGenerator();
+            LocalBuilder loc = il.DeclareLocal(t);
+            System.Reflection.FieldInfo classField = typeof(Il2CppClassPointerStore<>).MakeGenericType(t)
                                                               .GetField(nameof(Il2CppClassPointerStore<int>
                                                                                    .NativeClassPtr));
             il.Emit(OpCodes.Ldsfld, classField);
@@ -100,7 +100,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             il.Emit(OpCodes.Newobj, typeof(Object).GetConstructor(new[] { typeof(IntPtr) }));
             il.Emit(OpCodes.Ret);
 
-            var converter = dm.CreateDelegate(typeof(System.Func<object, Object>)) as System.Func<object, Object>;
+            System.Func<object, Object> converter = dm.CreateDelegate(typeof(System.Func<object, Object>)) as System.Func<object, Object>;
             boxers[t] = converter;
             return converter;
         }

@@ -32,7 +32,7 @@ namespace UniverseLib.Utility
             if (string.IsNullOrEmpty(s))
                 return s;
 
-            var sb = new StringBuilder(Math.Max(chars, s.Length));
+            StringBuilder sb = new StringBuilder(Math.Max(chars, s.Length));
             int newlines = 0;
             for (int i = 0; i < s.Length; i++)
             {
@@ -63,7 +63,7 @@ namespace UniverseLib.Utility
 
             string richType = SignatureHighlighter.Parse(type, includeNamespace);
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
             if (value.IsNullOrDestroyed())
             {
@@ -101,7 +101,7 @@ namespace UniverseLib.Utility
             }
             else
             {
-                var toString = ToString(value);
+                string toString = ToString(value);
 
                 if (type.IsGenericType
                     || toString == type.FullName
@@ -139,13 +139,13 @@ namespace UniverseLib.Utility
                     return destroyedString;
             }
 
-            var type = value.GetActualType();
+            Type type = value.GetActualType();
 
             // Find and cache the ToString method for this Type, if haven't already.
 
             if (!toStringMethods.ContainsKey(type.AssemblyQualifiedName))
             {
-                var toStringMethod = type.GetMethod("ToString", ArgumentUtility.EmptyTypes);
+                MethodInfo toStringMethod = type.GetMethod("ToString", ArgumentUtility.EmptyTypes);
                 toStringMethods.Add(type.AssemblyQualifiedName, toStringMethod);
             }
 
@@ -168,7 +168,7 @@ namespace UniverseLib.Utility
 #if CPP
             if (value is Il2CppSystem.Type cppType)
             {
-                var monoType = Il2CppReflection.GetUnhollowedType(cppType);
+                Type monoType = Il2CppReflection.GetUnhollowedType(cppType);
                 if (monoType != null)
                     toString = ReflectionUtility.ProcessTypeInString(monoType, toString);
             }

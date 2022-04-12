@@ -109,7 +109,7 @@ namespace UniverseLib.UI.ObjectPool
             InactiveHolder.SetActive(false);
 
             // Create an instance (just the C# class, not content) to grab the default height
-            var obj = (T)Activator.CreateInstance(typeof(T));
+            T obj = (T)Activator.CreateInstance(typeof(T));
             DefaultHeight = obj.DefaultHeight;
         }
 
@@ -124,7 +124,7 @@ namespace UniverseLib.UI.ObjectPool
             if (available.Count <= 0)
                 IncrementPool();
 
-            var obj = available.First();
+            T obj = available.First();
             available.Remove(obj);
             borrowed.Add(obj);
 
@@ -133,7 +133,7 @@ namespace UniverseLib.UI.ObjectPool
 
         private void IncrementPool()
         {
-            var obj = (T)Activator.CreateInstance(typeof(T));
+            T obj = (T)Activator.CreateInstance(typeof(T));
             obj.CreateContent(InactiveHolder);
             available.Add(obj);
         }

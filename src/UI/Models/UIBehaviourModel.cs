@@ -23,7 +23,7 @@ namespace UniverseLib.UI.Models
             {
                 for (int i = Instances.Count - 1; i >= 0; i--)
                 {
-                    var instance = Instances[i];
+                    UIBehaviourModel instance = Instances[i];
                     if (instance == null || !instance.UIRoot)
                     {
                         Instances.RemoveAt(i);

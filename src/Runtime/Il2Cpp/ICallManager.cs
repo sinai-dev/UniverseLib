@@ -55,7 +55,7 @@ namespace UniverseLib.Runtime.Il2Cpp
 
             T iCall;
             IntPtr ptr;
-            foreach (var sig in possibleSignatures)
+            foreach (string sig in possibleSignatures)
             {
                 ptr = IL2CPP.il2cpp_resolve_icall(sig);
                 if (ptr != IntPtr.Zero)

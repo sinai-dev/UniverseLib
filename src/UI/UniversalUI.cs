@@ -127,7 +127,7 @@ namespace UniverseLib.UI
             UIBehaviourModel.UpdateInstances();
 
             // Update registered UIs
-            foreach (var ui in registeredUIs.Values)
+            foreach (UIBase ui in registeredUIs.Values)
             {
                 if (ui.Enabled)
                     ui.Update();
@@ -164,7 +164,7 @@ namespace UniverseLib.UI
             try
             {
                 // Get the Major and Minor of the Unity version
-                var split = Application.unityVersion.Split('.');
+                string[] split = Application.unityVersion.Split('.');
                 int major = int.Parse(split[0]);
                 int minor = int.Parse(split[1]);
 
@@ -187,7 +187,7 @@ namespace UniverseLib.UI
 
             static AssetBundle LoadBundle(string id)
             {
-                var bundle = AssetBundle.LoadFromMemory(ReadFully(typeof(Universe)
+                AssetBundle bundle = AssetBundle.LoadFromMemory(ReadFully(typeof(Universe)
                         .Assembly
                         .GetManifestResourceStream($"UniverseLib.Resources.{id}.bundle")));
                 if (bundle)
@@ -227,7 +227,7 @@ namespace UniverseLib.UI
 
         private static byte[] ReadFully(Stream input)
         {
-            using var ms = new MemoryStream();
+            using MemoryStream ms = new MemoryStream();
             byte[] buffer = new byte[81920];
             int read;
             while ((read = input.Read(buffer, 0, buffer.Length)) != 0)
@@ -250,8 +250,8 @@ namespace UniverseLib.UI
                     if (UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(unloadAllBundles) == null)
                         return;
 #endif
-                    var processor = Universe.Harmony.CreateProcessor(unloadAllBundles);
-                    var prefix = new HarmonyMethod(typeof(UniversalUI).GetMethod(nameof(Prefix_UnloadAllAssetBundles), AccessTools.all));
+                    PatchProcessor processor = Universe.Harmony.CreateProcessor(unloadAllBundles);
+                    HarmonyMethod prefix = new HarmonyMethod(typeof(UniversalUI).GetMethod(nameof(Prefix_UnloadAllAssetBundles), AccessTools.all));
                     processor.AddPrefix(prefix);
                     processor.Patch();
                 }
@@ -266,11 +266,11 @@ namespace UniverseLib.UI
         {
             try
             {
-                var method = typeof(AssetBundle).GetMethod("GetAllLoadedAssetBundles", AccessTools.all);
+                MethodInfo method = typeof(AssetBundle).GetMethod("GetAllLoadedAssetBundles", AccessTools.all);
                 if (method == null)
                     return true;
-                var bundles = method.Invoke(null, ArgumentUtility.EmptyArgs) as AssetBundle[];
-                foreach (var obj in bundles)
+                AssetBundle[] bundles = method.Invoke(null, ArgumentUtility.EmptyArgs) as AssetBundle[];
+                foreach (AssetBundle obj in bundles)
                 {
                     if (obj.m_CachedPtr == UIBundle.m_CachedPtr)
                         continue;

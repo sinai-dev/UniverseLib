@@ -20,9 +20,9 @@ namespace UniverseLib.UI.Models
         {
             if (inputsPendingUpdate.Any())
             {
-                var entries = inputsPendingUpdate.ToArray();
+                InputFieldRef[] entries = inputsPendingUpdate.ToArray();
 
-                foreach (var entry in entries)
+                foreach (InputFieldRef entry in entries)
                 {
                     LayoutRebuilder.MarkLayoutForRebuild(entry.Transform);
                     entry.OnValueChanged?.Invoke(entry.Component.text);

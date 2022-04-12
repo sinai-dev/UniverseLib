@@ -71,8 +71,8 @@ namespace UniverseLib.UI.Widgets
         public void UpdateSliderHandle()
         {
             // calculate handle size based on viewport / total data height
-            var totalHeight = ContentRect.rect.height;
-            var viewportHeight = ViewportRect.rect.height;
+            float totalHeight = ContentRect.rect.height;
+            float viewportHeight = ViewportRect.rect.height;
 
             if (totalHeight <= viewportHeight)
             {
@@ -82,11 +82,11 @@ namespace UniverseLib.UI.Widgets
                 return;
             }
 
-            var handleHeight = viewportHeight * Math.Min(1, viewportHeight / totalHeight);
+            float handleHeight = viewportHeight * Math.Min(1, viewportHeight / totalHeight);
             handleHeight = Math.Max(15f, handleHeight);
 
             // resize the handle container area for the size of the handle (bigger handle = smaller container)
-            var container = Slider.m_HandleContainerRect;
+            RectTransform container = Slider.m_HandleContainerRect;
             container.offsetMax = new Vector2(container.offsetMax.x, -(handleHeight * 0.5f));
             container.offsetMin = new Vector2(container.offsetMin.x, handleHeight * 0.5f);
 

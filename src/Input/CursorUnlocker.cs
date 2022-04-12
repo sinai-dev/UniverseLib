@@ -120,7 +120,7 @@ namespace UniverseLib.Input
             if (!UniversalUI.EventSys)
                 return;
 
-            var current = CurrentEventSystem;
+            EventSystem current = CurrentEventSystem;
             if (current && !current.ReferenceEqual(UniversalUI.EventSys) && current.isActiveAndEnabled)
             {
                 lastEventSystem = current;
@@ -135,10 +135,10 @@ namespace UniverseLib.Input
             {
                 timeOfLastEventSystemSearch = Time.realtimeSinceStartup;
                 // Universe.Log("No previous EventSystem detected, doing expensive manual search...");
-                var allSystems = RuntimeHelper.FindObjectsOfTypeAll<EventSystem>();
-                foreach (var obj in allSystems)
+                UnityEngine.Object[] allSystems = RuntimeHelper.FindObjectsOfTypeAll<EventSystem>();
+                foreach (UnityEngine.Object obj in allSystems)
                 {
-                    var system = obj.TryCast<EventSystem>();
+                    EventSystem system = obj.TryCast<EventSystem>();
                     if (system.ReferenceEqual(UniversalUI.EventSys))
                         continue;
                     if (system.isActiveAndEnabled)
@@ -256,7 +256,7 @@ namespace UniverseLib.Input
         {
             try
             {
-                var methodInfo = type.GetMethod(method, ReflectionUtility.FLAGS, null, arguments, null);
+                MethodInfo methodInfo = type.GetMethod(method, ReflectionUtility.FLAGS, null, arguments, null);
                 if (methodInfo == null)
                 {
                     if (backupArgs != null)
@@ -266,7 +266,7 @@ namespace UniverseLib.Input
                         throw new MissingMethodException($"Could not find method for patching - '{type.FullName}.{method}'!");
                 }
 
-                var processor = Universe.Harmony.CreateProcessor(methodInfo);
+                PatchProcessor processor = Universe.Harmony.CreateProcessor(methodInfo);
                 processor.AddPrefix(prefix);
                 processor.Patch();
             }
@@ -280,7 +280,7 @@ namespace UniverseLib.Input
         {
             try
             {
-                var propInfo = type.GetProperty(property, ReflectionUtility.FLAGS)?.GetSetMethod();
+                MethodInfo propInfo = type.GetProperty(property, ReflectionUtility.FLAGS)?.GetSetMethod();
 
                 if (propInfo == null && !string.IsNullOrEmpty(backupName))
                     propInfo = type.GetProperty(backupName, ReflectionUtility.FLAGS).GetSetMethod();
@@ -288,7 +288,7 @@ namespace UniverseLib.Input
                 if (propInfo == null)
                     throw new MissingMethodException($"Could not find property {type.FullName}.{property}{(!string.IsNullOrEmpty(backupName) ? $" or {backupName}" : string.Empty)}!");
 
-                var processor = Universe.Harmony.CreateProcessor(propInfo);
+                PatchProcessor processor = Universe.Harmony.CreateProcessor(propInfo);
                 processor.AddPrefix(prefix);
                 processor.Patch();
             }

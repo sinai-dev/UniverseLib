@@ -16,7 +16,7 @@ namespace UniverseLib.Reflection
 
         public static string GetAssemblyQualifiedName(Il2CppSystem.Type type)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             ProcessType(sb, type);
             return sb.ToString();
         }
@@ -39,7 +39,7 @@ namespace UniverseLib.Reflection
             }
 
             int start = sb.Length;
-            var declaring = type.DeclaringType;
+            Il2CppSystem.Type declaring = type.DeclaringType;
             while (declaring != null)
             {
                 sb.Insert(start, $"{declaring.Name}+");
@@ -55,7 +55,7 @@ namespace UniverseLib.Reflection
                 // Process and append each type argument (recursive)
                 sb.Append('[');
                 int i = 0;
-                foreach (var typeArg in genericArgs)
+                foreach (Il2CppSystem.Type typeArg in genericArgs)
                 {
                     sb.Append('[');
                     ProcessType(sb, typeArg);

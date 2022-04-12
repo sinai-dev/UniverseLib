@@ -76,8 +76,8 @@ namespace UniverseLib.Input
         {
             // Cache keycodes for rebinding
 
-            var keycodes = Enum.GetValues(typeof(KeyCode));
-            var list = new List<KeyCode>();
+            Array keycodes = Enum.GetValues(typeof(KeyCode));
+            List<KeyCode> list = new List<KeyCode>();
             foreach (KeyCode kc in keycodes)
             {
                 string s = kc.ToString();
@@ -204,7 +204,7 @@ namespace UniverseLib.Input
         {
             if (Rebinding)
             {
-                var kc = GetCurrentKeyDown();
+                KeyCode? kc = GetCurrentKeyDown();
                 if (kc != null)
                 {
                     LastRebindKey = kc;
@@ -215,7 +215,7 @@ namespace UniverseLib.Input
 
         internal static KeyCode? GetCurrentKeyDown()
         {
-            foreach (var kc in allKeycodes)
+            foreach (KeyCode kc in allKeycodes)
             {
                 if (inputHandler.GetKeyDown(kc))
                     return kc;

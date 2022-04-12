@@ -19,7 +19,7 @@ namespace UniverseLib.Runtime
 
         public AmbiguousMemberHandler(bool canWrite, bool canRead, params string[] possibleNames)
         {
-            foreach (var name in possibleNames)
+            foreach (string name in possibleNames)
             {
                 if (typeof(TClass).GetProperty(name, AccessTools.all) is PropertyInfo pi 
                     && typeof(TValue).IsAssignableFrom(pi.PropertyType)

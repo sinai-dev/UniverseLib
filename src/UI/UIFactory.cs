@@ -29,7 +29,7 @@ namespace UniverseLib.UI
             //    Universe.Log(Environment.StackTrace);
             //}
 
-            var obj = new GameObject(name)
+            GameObject obj = new GameObject(name)
             {
                 layer = 5,
                 hideFlags = HideFlags.HideAndDontSave,
@@ -52,7 +52,7 @@ namespace UniverseLib.UI
 
         internal static void SetDefaultSelectableValues(Selectable selectable)
         {
-            var nav = selectable.navigation;
+            Navigation nav = selectable.navigation;
             nav.mode = Navigation.Mode.Explicit;
             selectable.navigation = nav;
 
@@ -70,7 +70,7 @@ namespace UniverseLib.UI
             int? flexibleWidth = null, int? flexibleHeight = null, int? preferredWidth = null, int? preferredHeight = null,
             bool? ignoreLayout = null)
         {
-            var layout = gameObject.GetComponent<LayoutElement>();
+            LayoutElement layout = gameObject.GetComponent<LayoutElement>();
             if (!layout)
                 layout = gameObject.AddComponent<LayoutElement>();
 
@@ -106,7 +106,7 @@ namespace UniverseLib.UI
             int? padBottom = null, int? padLeft = null, int? padRight = null, TextAnchor? childAlignment = null)
             where T : HorizontalOrVerticalLayoutGroup
         {
-            var group = gameObject.GetComponent<T>();
+            T group = gameObject.GetComponent<T>();
             if (!group)
                 group = gameObject.AddComponent<T>();
 
@@ -161,10 +161,10 @@ namespace UniverseLib.UI
         /// <returns>The base panel GameObject (not for adding content to).</returns>
         public static GameObject CreatePanel(string name, GameObject parent, out GameObject contentHolder, Color? bgColor = null)
         {
-            var panelObj = CreateUIObject(name, parent);
+            GameObject panelObj = CreateUIObject(name, parent);
             SetLayoutGroup<VerticalLayoutGroup>(panelObj, true, true, true, true);
 
-            var rect = panelObj.GetComponent<RectTransform>();
+            RectTransform rect = panelObj.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.anchoredPosition = Vector2.zero;
@@ -231,7 +231,7 @@ namespace UniverseLib.UI
         /// </summary>
         public static GameObject CreateGridGroup(GameObject parent, string name, Vector2 cellSize, Vector2 spacing, Color bgColor = default)
         {
-            var groupObj = CreateUIObject(name, parent);
+            GameObject groupObj = CreateUIObject(name, parent);
 
             GridLayoutGroup gridGroup = groupObj.AddComponent<GridLayoutGroup>();
             gridGroup.childAlignment = TextAnchor.UpperLeft;
@@ -266,8 +266,8 @@ namespace UniverseLib.UI
         public static Text CreateLabel(GameObject parent, string name, string defaultText, TextAnchor alignment = TextAnchor.MiddleLeft,
             Color color = default, bool supportRichText = true, int fontSize = 14)
         {
-            var obj = CreateUIObject(name, parent);
-            var textComp = obj.AddComponent<Text>();
+            GameObject obj = CreateUIObject(name, parent);
+            Text textComp = obj.AddComponent<Text>();
 
             SetDefaultTextValues(textComp);
 
@@ -291,7 +291,7 @@ namespace UniverseLib.UI
         public static ButtonRef CreateButton(GameObject parent, string name, string text, Color? normalColor = null)
         {
             normalColor ??= new Color(0.25f, 0.25f, 0.25f);
-            var buttonRef = CreateButton(parent, name, text, default(ColorBlock));
+            ButtonRef buttonRef = CreateButton(parent, name, text, default(ColorBlock));
             RuntimeHelper.Instance.Internal_SetColorBlock(buttonRef.Component, normalColor, normalColor * 1.2f, normalColor * 0.7f);
             return buttonRef;
         }
@@ -308,13 +308,13 @@ namespace UniverseLib.UI
         {
             GameObject buttonObj = CreateUIObject(name, parent, smallElementSize);
 
-            var textObj = CreateUIObject("Text", buttonObj);
+            GameObject textObj = CreateUIObject("Text", buttonObj);
 
             Image image = buttonObj.AddComponent<Image>();
             image.type = Image.Type.Sliced;
             image.color = new Color(1, 1, 1, 1);
 
-            var button = buttonObj.AddComponent<Button>();
+            Button button = buttonObj.AddComponent<Button>();
             SetDefaultSelectableValues(button);
 
             colors.colorMultiplier = 1;
@@ -515,7 +515,7 @@ namespace UniverseLib.UI
             mainImage.type = Image.Type.Sliced;
             mainImage.color = new Color(0, 0, 0, 0.5f);
 
-            var inputField = mainObj.AddComponent<InputField>();
+            InputField inputField = mainObj.AddComponent<InputField>();
             Navigation nav = inputField.navigation;
             nav.mode = Navigation.Mode.None;
             inputField.navigation = nav;
@@ -616,10 +616,10 @@ namespace UniverseLib.UI
             itemLabelText.text = defaultItemText;
             itemLabelText.fontSize = itemFontSize;
 
-            var arrowText = arrowObj.AddComponent<Text>();
+            Text arrowText = arrowObj.AddComponent<Text>();
             SetDefaultTextValues(arrowText);
             arrowText.text = "▼";
-            var arrowRect = arrowObj.GetComponent<RectTransform>();
+            RectTransform arrowRect = arrowObj.GetComponent<RectTransform>();
             arrowRect.anchorMin = new Vector2(1f, 0.5f);
             arrowRect.anchorMax = new Vector2(1f, 0.5f);
             arrowRect.sizeDelta = new Vector2(20f, 20f);
@@ -639,7 +639,7 @@ namespace UniverseLib.UI
             templateImage.type = Image.Type.Sliced;
             templateImage.color = Color.black;
 
-            var scrollRect = templateObj.AddComponent<ScrollRect>();
+            ScrollRect scrollRect = templateObj.AddComponent<ScrollRect>();
             scrollRect.scrollSensitivity = 35;
             scrollRect.content = contentObj.GetComponent<RectTransform>();
             scrollRect.viewport = viewportObj.GetComponent<RectTransform>();
@@ -719,7 +719,7 @@ namespace UniverseLib.UI
 
             if (defaultOptions != null)
             {
-                foreach (var option in defaultOptions)
+                foreach (string option in defaultOptions)
                     dropdown.options.Add(new Dropdown.OptionData(option));
             }
 
@@ -745,24 +745,22 @@ namespace UniverseLib.UI
         public static ScrollPool<T> CreateScrollPool<T>(GameObject parent, string name, out GameObject uiRoot,
             out GameObject content, Color? bgColor = null) where T : ICell
         {
-            var mainObj = CreateUIObject(name, parent, new Vector2(1, 1));
+            GameObject mainObj = CreateUIObject(name, parent, new Vector2(1, 1));
             mainObj.AddComponent<Image>().color = bgColor ?? new Color(0.12f, 0.12f, 0.12f);
             SetLayoutGroup<HorizontalLayoutGroup>(mainObj, false, true, true, true);
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
             SetLayoutElement(viewportObj, flexibleWidth: 9999, flexibleHeight: 9999);
-            var viewportRect = viewportObj.GetComponent<RectTransform>();
+            RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
             viewportRect.sizeDelta = new Vector2(0f, 0.0f);
             viewportRect.offsetMax = new Vector2(-10.0f, 0.0f);
-            //viewportObj.AddComponent<Image>().color = Color.white;
-            // viewportObj.AddComponent<Mask>().showMaskGraphic = false;
             viewportObj.AddComponent<RectMask2D>();
 
             content = CreateUIObject("Content", viewportObj);
-            var contentRect = content.GetComponent<RectTransform>();
+            RectTransform contentRect = content.GetComponent<RectTransform>();
             contentRect.anchorMin = Vector2.zero;
             contentRect.anchorMax = Vector2.one;
             contentRect.pivot = new Vector2(0.5f, 1f);
@@ -771,7 +769,7 @@ namespace UniverseLib.UI
             SetLayoutGroup<VerticalLayoutGroup>(content, true, false, true, true, 0, 2, 2, 2, 2, TextAnchor.UpperCenter);
             content.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var scrollRect = mainObj.AddComponent<ScrollRect>();
+            ScrollRect scrollRect = mainObj.AddComponent<ScrollRect>();
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
             //scrollRect.inertia = false;
             scrollRect.inertia = true;
@@ -785,7 +783,7 @@ namespace UniverseLib.UI
 
             // Slider
 
-            var sliderContainer = CreateVerticalGroup(mainObj, "SliderContainer",
+            GameObject sliderContainer = CreateVerticalGroup(mainObj, "SliderContainer",
                 false, false, true, true, 0, default, new Color(0.05f, 0.05f, 0.05f));
             SetLayoutElement(sliderContainer, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
             sliderContainer.AddComponent<Mask>().showMaskGraphic = false;
@@ -797,7 +795,7 @@ namespace UniverseLib.UI
             // finalize and create ScrollPool
 
             uiRoot = mainObj;
-            var scrollPool = new ScrollPool<T>(scrollRect);
+            ScrollPool<T> scrollPool = new ScrollPool<T>(scrollRect);
 
             return scrollPool;
         }
@@ -841,11 +839,11 @@ namespace UniverseLib.UI
             Image handleImage = handleObj.AddComponent<Image>();
             handleImage.color = new Color(0.5f, 0.5f, 0.5f, 1.0f);
 
-            var handleRect = handleObj.GetComponent<RectTransform>();
+            RectTransform handleRect = handleObj.GetComponent<RectTransform>();
             handleRect.pivot = new Vector2(0.5f, 0.5f);
             SetLayoutElement(handleObj, minWidth: 21, flexibleWidth: 0);
 
-            var sliderBarLayout = mainObj.AddComponent<LayoutElement>();
+            LayoutElement sliderBarLayout = mainObj.AddComponent<LayoutElement>();
             sliderBarLayout.minWidth = 25;
             sliderBarLayout.flexibleWidth = 0;
             sliderBarLayout.minHeight = 30;
@@ -880,7 +878,7 @@ namespace UniverseLib.UI
             Color color = default)
         {
             GameObject mainObj = CreateUIObject(name, parent);
-            var mainRect = mainObj.GetComponent<RectTransform>();
+            RectTransform mainRect = mainObj.GetComponent<RectTransform>();
             mainRect.anchorMin = Vector2.zero;
             mainRect.anchorMax = Vector2.one;
             Image mainImage = mainObj.AddComponent<Image>();
@@ -888,7 +886,7 @@ namespace UniverseLib.UI
             mainImage.color = (color == default) ? new Color(0.3f, 0.3f, 0.3f, 1f) : color;
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
-            var viewportRect = viewportObj.GetComponent<RectTransform>();
+            RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
@@ -899,7 +897,7 @@ namespace UniverseLib.UI
             content = CreateUIObject("Content", viewportObj);
             SetLayoutGroup<VerticalLayoutGroup>(content, true, false, true, true, childAlignment: TextAnchor.UpperLeft);
             SetLayoutElement(content, flexibleHeight: 9999);
-            var contentRect = content.GetComponent<RectTransform>();
+            RectTransform contentRect = content.GetComponent<RectTransform>();
             contentRect.anchorMin = Vector2.zero;
             contentRect.anchorMax = Vector2.one;
             contentRect.pivot = new Vector2(0.0f, 1.0f);
@@ -908,7 +906,7 @@ namespace UniverseLib.UI
             // Slider
 
             GameObject scrollBarObj = CreateUIObject("AutoSliderScrollbar", mainObj);
-            var scrollBarRect = scrollBarObj.GetComponent<RectTransform>();
+            RectTransform scrollBarRect = scrollBarObj.GetComponent<RectTransform>();
             scrollBarRect.anchorMin = new Vector2(1, 0);
             scrollBarRect.anchorMax = Vector2.one;
             scrollBarRect.offsetMin = new Vector2(-25, 0);
@@ -916,12 +914,12 @@ namespace UniverseLib.UI
             scrollBarObj.AddComponent<Image>().color = Color.white;
             scrollBarObj.AddComponent<Mask>().showMaskGraphic = false;
 
-            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out var hiddenScrollbar);
+            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out Scrollbar hiddenScrollbar);
             hiddenScrollbar.SetDirection(Scrollbar.Direction.BottomToTop, true);
 
             for (int i = 0; i < hiddenBar.transform.childCount; i++)
             {
-                var child = hiddenBar.transform.GetChild(i);
+                Transform child = hiddenBar.transform.GetChild(i);
                 child.gameObject.SetActive(false);
             }
 
@@ -931,7 +929,7 @@ namespace UniverseLib.UI
 
             // Set up the ScrollRect component
 
-            var scrollRect = mainObj.AddComponent<ScrollRect>();
+            ScrollRect scrollRect = mainObj.AddComponent<ScrollRect>();
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.verticalScrollbar = hiddenScrollbar;
@@ -971,7 +969,7 @@ namespace UniverseLib.UI
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
             SetLayoutElement(viewportObj, minWidth: 1, flexibleWidth: 9999, flexibleHeight: 9999);
-            var viewportRect = viewportObj.GetComponent<RectTransform>();
+            RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
@@ -980,9 +978,9 @@ namespace UniverseLib.UI
 
             // Input Field
 
-            var inputField = CreateInputField(viewportObj, "InputField", placeHolderText);
-            var content = inputField.UIRoot;
-            var textComp = inputField.Component.textComponent;
+            InputFieldRef inputField = CreateInputField(viewportObj, "InputField", placeHolderText);
+            GameObject content = inputField.UIRoot;
+            Text textComp = inputField.Component.textComponent;
             textComp.alignment = TextAnchor.UpperLeft;
             textComp.fontSize = fontSize;
             textComp.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -994,7 +992,7 @@ namespace UniverseLib.UI
 
             //var content = CreateInputField(viewportObj, name, placeHolderText ?? "...", out InputField inputField, fontSize, 0);
             SetLayoutElement(content, flexibleHeight: 9999, flexibleWidth: 9999);
-            var contentRect = content.GetComponent<RectTransform>();
+            RectTransform contentRect = content.GetComponent<RectTransform>();
             contentRect.pivot = new Vector2(0, 1);
             contentRect.anchorMin = new Vector2(0, 1);
             contentRect.anchorMax = new Vector2(1, 1);
@@ -1011,12 +1009,12 @@ namespace UniverseLib.UI
             scrollBarObj.AddComponent<Image>().color = Color.white;
             scrollBarObj.AddComponent<Mask>().showMaskGraphic = false;
 
-            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out var hiddenScrollbar);
+            GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out Scrollbar hiddenScrollbar);
             hiddenScrollbar.SetDirection(Scrollbar.Direction.BottomToTop, true);
 
             for (int i = 0; i < hiddenBar.transform.childCount; i++)
             {
-                var child = hiddenBar.transform.GetChild(i);
+                Transform child = hiddenBar.transform.GetChild(i);
                 child.gameObject.SetActive(false);
             }
 
@@ -1024,9 +1022,9 @@ namespace UniverseLib.UI
 
             // Set up the AutoSliderScrollbar module
 
-            var autoScroller = new AutoSliderScrollbar(hiddenScrollbar, scrollSlider, contentRect, viewportRect);
+            AutoSliderScrollbar autoScroller = new AutoSliderScrollbar(hiddenScrollbar, scrollSlider, contentRect, viewportRect);
 
-            var sliderContainer = autoScroller.Slider.m_HandleContainerRect.gameObject;
+            GameObject sliderContainer = autoScroller.Slider.m_HandleContainerRect.gameObject;
             SetLayoutElement(sliderContainer, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
             //sliderContainer.AddComponent<Mask>().showMaskGraphic = false;
 
@@ -1037,7 +1035,7 @@ namespace UniverseLib.UI
 
             // Set up the ScrollRect component
 
-            var scrollRect = mainObj.AddComponent<ScrollRect>();
+            ScrollRect scrollRect = mainObj.AddComponent<ScrollRect>();
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.verticalScrollbar = hiddenScrollbar;

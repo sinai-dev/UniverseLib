@@ -43,7 +43,7 @@ namespace UniverseLib.UI.Widgets.ButtonList
 
             this.Button = UIFactory.CreateButton(UIRoot, "NameButton", "Name");
             UIFactory.SetLayoutElement(Button.Component.gameObject, flexibleWidth: 9999, minHeight: 25, flexibleHeight: 0);
-            var buttonText = Button.Component.GetComponentInChildren<Text>();
+            Text buttonText = Button.Component.GetComponentInChildren<Text>();
             buttonText.horizontalOverflow = HorizontalWrapMode.Overflow;
             buttonText.alignment = TextAnchor.MiddleLeft;
 

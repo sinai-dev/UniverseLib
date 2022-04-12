@@ -108,16 +108,16 @@ namespace UniverseLib.UI.Widgets
 
         internal void ProcessInputText()
         {
-            var curInputRect = InputField.Component.textComponent.rectTransform.rect;
-            var scaleFactor = RootScaler.scaleFactor;
+            Rect curInputRect = InputField.Component.textComponent.rectTransform.rect;
+            float scaleFactor = RootScaler.scaleFactor;
 
             // Current text settings
-            var texGenSettings = InputField.Component.textComponent.GetGenerationSettings(curInputRect.size);
+            TextGenerationSettings texGenSettings = InputField.Component.textComponent.GetGenerationSettings(curInputRect.size);
             texGenSettings.generateOutOfBounds = false;
             texGenSettings.scaleFactor = scaleFactor;
 
             // Preferred text rect height
-            var textGen = InputField.Component.textComponent.cachedTextGeneratorForLayout;
+            TextGenerator textGen = InputField.Component.textComponent.cachedTextGeneratorForLayout;
             desiredContentHeight = textGen.GetPreferredHeight(lastText, texGenSettings) + 10;
         }
 

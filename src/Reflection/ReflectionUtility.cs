@@ -60,7 +60,7 @@ namespace UniverseLib
             {
                 allTypesArray = new string[AllTypes.Count];
                 int i = 0;
-                foreach (var name in AllTypes.Keys)
+                foreach (string name in AllTypes.Keys)
                 {
                     allTypesArray[i] = name;
                     i++;
@@ -73,7 +73,7 @@ namespace UniverseLib
         {
             float start = Time.realtimeSinceStartup;
 
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                 CacheTypes(asm);
 
             AppDomain.CurrentDomain.AssemblyLoad += AssemblyLoaded;
@@ -91,7 +91,7 @@ namespace UniverseLib
 
         private static void CacheTypes(Assembly asm)
         {
-            foreach (var type in asm.TryGetTypes())
+            foreach (Type type in asm.TryGetTypes())
             {
                 // Cache namespace if there is one
                 if (!string.IsNullOrEmpty(type.Namespace) && !uniqueNamespaces.Contains(type.Namespace))
@@ -114,11 +114,11 @@ namespace UniverseLib
                 OnTypeLoaded?.Invoke(type);
 
                 // Check type inheritance cache, add this to any lists it should be in
-                foreach (var key in typeInheritance.Keys)
+                foreach (string key in typeInheritance.Keys)
                 {
                     try
                     {
-                        var baseType = AllTypes[key];
+                        Type baseType = AllTypes[key];
                         if (baseType.IsAssignableFrom(type) && !typeInheritance[key].Contains(type))
                             typeInheritance[key].Add(type);
                     }
@@ -174,12 +174,12 @@ namespace UniverseLib
         {
             // Look for a typical Instance backing field.
             FieldInfo fi;
-            foreach (var name in possibleNames)
+            foreach (string name in possibleNames)
             {
                 fi = type.GetField(name, flags);
                 if (fi != null)
                 {
-                    var instance = fi.GetValue(null);
+                    object instance = fi.GetValue(null);
                     if (instance != null)
                     {
                         instances.Add(instance);
@@ -225,7 +225,7 @@ namespace UniverseLib
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            var name = type.AssemblyQualifiedName;
+            string name = type.AssemblyQualifiedName;
 
             if (baseTypes.TryGetValue(name, out Type[] ret))
                 return ret;
@@ -263,10 +263,10 @@ namespace UniverseLib
                 return type.FullName;
             else
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
                 sb.Append(type.GenericParameterAttributes)
                     .Append('|');
-                foreach (var c in type.GetGenericParameterConstraints())
+                foreach (Type c in type.GetGenericParameterConstraints())
                     sb.Append(c.FullName).Append(',');
                 return sb.ToString();
             }
@@ -280,7 +280,7 @@ namespace UniverseLib
         /// <returns>All implementations of the type in the current AppDomain.</returns>
         public static HashSet<Type> GetImplementationsOf(Type baseType, bool allowAbstract, bool allowGeneric, bool allowEnum, bool allowRecursive = true)
         {
-            var key = GetImplementationKey(baseType);
+            string key = GetImplementationKey(baseType);
 
             int count = AllTypes.Count;
             HashSet<Type> ret;
@@ -300,14 +300,14 @@ namespace UniverseLib
         {
             if (!typeInheritance.ContainsKey(key))
             {
-                var set = new HashSet<Type>();
-                var names = GetTypeNameArray();
+                HashSet<Type> set = new HashSet<Type>();
+                string[] names = GetTypeNameArray();
                 for (int i = 0; i < names.Length; i++)
                 {
-                    var name = names[i];
+                    string name = names[i];
                     try
                     {
-                        var type = AllTypes[name];
+                        Type type = AllTypes[name];
 
                         if (set.Contains(type)
                             || (type.IsAbstract && type.IsSealed) // ignore static classes
@@ -337,15 +337,15 @@ namespace UniverseLib
         {
             if (!genericParameterInheritance.ContainsKey(key))
             {
-                var set = new HashSet<Type>();
+                HashSet<Type> set = new HashSet<Type>();
 
-                var names = GetTypeNameArray();
+                string[] names = GetTypeNameArray();
                 for (int i = 0; i < names.Length; i++)
                 {
-                    var name = names[i];
+                    string name = names[i];
                     try
                     {
-                        var type = AllTypes[name];
+                        Type type = AllTypes[name];
 
                         if (set.Contains(type)
                             || (type.IsAbstract && type.IsSealed) // ignore static classes
@@ -431,11 +431,11 @@ namespace UniverseLib
             }
 
             // Check for implementation of IEnumerable<T>, IList<T> or ICollection<T>
-            foreach (var t in enumerableType.GetInterfaces())
+            foreach (Type t in enumerableType.GetInterfaces())
             {
                 if (t.IsGenericType)
                 {
-                    var typeDef = t.GetGenericTypeDefinition();
+                    Type typeDef = t.GetGenericTypeDefinition();
                     if (typeDef == typeof(IEnumerable<>) || typeDef == typeof(IList<>) || typeDef == typeof(ICollection<>))
                     {
                         type = t.GetGenericArguments()[0];
@@ -477,7 +477,7 @@ namespace UniverseLib
 
         private IEnumerator<DictionaryEntry> EnumerateDictionary(IDictionary dict)
         {
-            var enumerator = dict.GetEnumerator();
+            IDictionaryEnumerator enumerator = dict.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 yield return new DictionaryEntry(enumerator.Key, enumerator.Value);
@@ -494,11 +494,11 @@ namespace UniverseLib
 
         protected virtual bool Internal_TryGetEntryTypes(Type dictionaryType, out Type keys, out Type values)
         {
-            foreach (var t in dictionaryType.GetInterfaces())
+            foreach (Type t in dictionaryType.GetInterfaces())
             {
                 if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>))
                 {
-                    var args = t.GetGenericArguments();
+                    Type[] args = t.GetGenericArguments();
                     keys = args[0];
                     values = args[1];
                     return true;

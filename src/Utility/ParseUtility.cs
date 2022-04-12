@@ -214,7 +214,7 @@ namespace UniverseLib.Utility
                         typeInputExamples.Add(type.AssemblyQualifiedName, Enum.GetNames(type).First());
                     else
                     {
-                        var instance = Activator.CreateInstance(type);
+                        object instance = Activator.CreateInstance(type);
                         typeInputExamples.Add(type.AssemblyQualifiedName, ToStringForInput(instance, type));
                     }
                 }
@@ -237,7 +237,7 @@ namespace UniverseLib.Utility
         {
             Vector2 vector = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             vector.x = float.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             vector.y = float.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
@@ -259,7 +259,7 @@ namespace UniverseLib.Utility
         {
             Vector3 vector = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             vector.x = float.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             vector.y = float.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
@@ -282,7 +282,7 @@ namespace UniverseLib.Utility
         {
             Vector4 vector = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             vector.x = float.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             vector.y = float.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
@@ -306,7 +306,7 @@ namespace UniverseLib.Utility
         {
             Vector3 vector = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             if (split.Length == 4)
             {
@@ -342,7 +342,7 @@ namespace UniverseLib.Utility
         {
             Rect rect = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             rect.x = float.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             rect.y = float.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
@@ -366,7 +366,7 @@ namespace UniverseLib.Utility
         {
             Color color = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             color.r = float.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             color.g = float.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
@@ -393,7 +393,7 @@ namespace UniverseLib.Utility
         {
             Color32 color = default;
 
-            var split = input.Split(' ');
+            string[] split = input.Split(' ');
 
             color.r = byte.Parse(split[0].Trim(), CultureInfo.CurrentCulture);
             color.g = byte.Parse(split[1].Trim(), CultureInfo.CurrentCulture);
