@@ -1,63 +1,45 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release_IL2CPP</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{49736F05-474F-49DA-ADB5-ED85BA079FFD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <LangVersion>9.0</LangVersion>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
     <DefineConstants>
     </DefineConstants>
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
-    <Optimize>false</Optimize>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-    <RootNamespace>UniverseLib</RootNamespace>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+      <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+      <Configurations>Release_Mono;Release_IL2CPP</Configurations>
   </PropertyGroup>
-  <!-- CONFIGURATIONS -->
-  <!-- IL2CPP -->
+  <!-- Configurations -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release_IL2CPP' ">
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFramework>net472</TargetFramework>
     <OutputPath>..\Release\UniverseLib.Il2Cpp\</OutputPath>
     <DefineConstants>CPP</DefineConstants>
     <AssemblyName>UniverseLib.IL2CPP</AssemblyName>
     <DocumentationFile>..\Release\UniverseLib.Il2Cpp\UniverseLib.IL2CPP.xml</DocumentationFile>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <!-- MONO -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release_Mono' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFramework>net35</TargetFramework>
     <OutputPath>..\Release\UniverseLib.Mono\</OutputPath>
     <DefineConstants>MONO</DefineConstants>
     <AssemblyName>UniverseLib.Mono</AssemblyName>
     <DocumentationFile>..\Release\UniverseLib.Mono\UniverseLib.Mono.xml</DocumentationFile>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <!-- Global refs, Mono and Il2Cpp -->
+  <!-- NuGet -->
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="0Harmony">
-      <HintPath>packages\HarmonyX.2.5.2\lib\net35\0Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <PackageReference Include="HarmonyX" Version="2.5.2" IncludeAssets="compile" />
+    <PackageReference Include="UniverseLib.Analyzers" Version="1.0.3" IncludeAssets="compile" />
   </ItemGroup>
-  <!-- Mono refs -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP'">
+    <PackageReference Include="Il2CppAssemblyUnhollower.BaseLib" Version="0.4.22" IncludeAssets="compile" />
+  </ItemGroup>
+  <!-- Assembly References -->
   <ItemGroup Condition="'$(Configuration)' == 'Release_Mono'">
     <Reference Include="UnityEngine">
       <HintPath>..\lib\mono\UnityEngine_publicized.dll</HintPath>
@@ -68,12 +50,7 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <!-- Il2Cpp refs -->
   <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP'">
-    <Reference Include="UnhollowerBaseLib, Version=0.4.22.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Il2CppAssemblyUnhollower.BaseLib.0.4.22\lib\net472\UnhollowerBaseLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
       <Private>False</Private>
@@ -112,88 +89,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\ConfigManager.cs" />
-    <Compile Include="Config\UniverseLibConfig.cs" />
-    <Compile Include="Input\InputType.cs" />
-    <Compile Include="Reflection\Il2CppTypeRedirector.cs" />
-    <Compile Include="Runtime\AmbiguousMemberHandler.cs" />
-    <Compile Include="UI\ObjectPool\IPooledObject.cs" />
-    <Compile Include="UniversalBehaviour.cs" />
-    <Compile Include="Input\CursorUnlocker.cs" />
-    <Compile Include="Input\IHandleInput.cs" />
-    <Compile Include="Input\InputManager.cs" />
-    <Compile Include="Input\InputSystem.cs" />
-    <Compile Include="Input\LegacyInput.cs" />
-    <Compile Include="Input\NoInput.cs" />
-    <Compile Include="Reflection\Extensions.cs" />
-    <Compile Include="Reflection\Il2CppReflection.cs" />
-    <Compile Include="Reflection\Patches.cs" />
-    <Compile Include="Reflection\ReflectionUtility.cs" />
-    <Compile Include="Runtime\Il2Cpp\AssetBundle.cs" />
-    <Compile Include="Runtime\Il2Cpp\ICallManager.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppManagedEnumerator.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppProvider.cs" />
-    <Compile Include="Runtime\Il2Cpp\Il2CppTextureHelper.cs" />
-    <Compile Include="Runtime\Mono\MonoProvider.cs" />
-    <Compile Include="Runtime\Mono\MonoTextureHelper.cs" />
-    <Compile Include="Runtime\RuntimeContext.cs" />
-    <Compile Include="RuntimeHelper.cs" />
-    <Compile Include="Runtime\TextureHelper.cs" />
-    <Compile Include="Utility\ArgumentUtility.cs" />
-    <Compile Include="Utility\IOUtility.cs" />
-    <Compile Include="Utility\MiscUtility.cs" />
-    <Compile Include="Utility\ParseUtility.cs" />
-    <Compile Include="Utility\SignatureHighlighter.cs" />
-    <Compile Include="Utility\ToStringUtility.cs" />
-    <Compile Include="Utility\UnityHelpers.cs" />
-    <Compile Include="UI\UIBase.cs" />
-    <Compile Include="Universe.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\UniversalUI.cs" />
-    <Compile Include="UI\Models\ButtonRef.cs" />
-    <Compile Include="UI\Models\InputFieldRef.cs" />
-    <Compile Include="UI\Models\UIBehaviourModel.cs" />
-    <Compile Include="UI\Models\UIModel.cs" />
-    <Compile Include="UI\ObjectPool\Pool.cs" />
-    <Compile Include="UI\UIFactory.cs" />
-    <Compile Include="UI\Widgets\AutoSliderScrollbar.cs" />
-    <Compile Include="UI\Widgets\ButtonList\ButtonCell.cs" />
-    <Compile Include="UI\Widgets\ButtonList\ButtonListHandler.cs" />
-    <Compile Include="UI\Widgets\InputFieldScroller.cs" />
-    <Compile Include="UI\Widgets\ScrollView\DataHeightCache.cs" />
-    <Compile Include="UI\Widgets\ScrollView\ICell.cs" />
-    <Compile Include="UI\Widgets\ScrollView\ICellPoolDataSource.cs" />
-    <Compile Include="UI\Widgets\ScrollView\ScrollPool.cs" />
-    <Compile Include="UI\Widgets\ScrollView\UIExtensions.cs" />
     <EmbeddedResource Include="Resources\*" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".editorconfig" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\UniverseLib.Analyzers.1.0.3\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
   </ItemGroup>
-
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-
-    <Target Name="AfterBuild">
-        <!-- IL2CPP -->
-        <Message Text="Copying $(OutputPath)$(AssemblyName).dll to $(OutputPath)..\NuGet_IL2CPP\lib\net472" 
-                 Importance="high" 
-                 Condition="'$(Configuration)' == 'Release_IL2CPP'"/>
-        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" 
-              DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net472" 
-              Condition="'$(Configuration)' == 'Release_IL2CPP'" />
-        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
-              DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net6.0"
-              Condition="'$(Configuration)' == 'Release_IL2CPP'" />
-        <!-- Mono -->
-        <Message Text="Copying $(OutputPath)$(AssemblyName).dll to $(OutputPath)..\NuGet_Mono\lib\net35"
-                 Importance="high"
-              Condition="'$(Configuration)' == 'Release_Mono'" />
-        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
-              DestinationFolder="$(OutputPath)..\NuGet_Mono\lib\net35"
-              Condition="'$(Configuration)' == 'Release_Mono'"  />
-    </Target>
+  <Target Name="AfterBuild">
+    <Message Text="Copying $(OutputPath)$(AssemblyName).dll to $(OutputPath)..\NuGet_IL2CPP\lib\net472" Importance="high" Condition="'$(Configuration)' == 'Release_IL2CPP'" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net472" Condition="'$(Configuration)' == 'Release_IL2CPP'" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP\lib\net6.0" Condition="'$(Configuration)' == 'Release_IL2CPP'" />
+    <Message Text="Copying $(OutputPath)$(AssemblyName).dll to $(OutputPath)..\NuGet_Mono\lib\net35" Importance="high" Condition="'$(Configuration)' == 'Release_Mono'" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_Mono\lib\net35" Condition="'$(Configuration)' == 'Release_Mono'" />
+  </Target>
 </Project>
