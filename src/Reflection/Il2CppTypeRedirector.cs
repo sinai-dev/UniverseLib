@@ -16,7 +16,7 @@ namespace UniverseLib.Reflection
 
         public static string GetAssemblyQualifiedName(Il2CppSystem.Type type)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             ProcessType(sb, type);
             return sb.ToString();
         }

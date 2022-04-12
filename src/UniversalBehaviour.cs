@@ -23,7 +23,7 @@ namespace UniverseLib
             UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<UniversalBehaviour>();
 #endif
 
-            GameObject obj = new GameObject("UniverseLibBehaviour");
+            GameObject obj = new("UniverseLibBehaviour");
             GameObject.DontDestroyOnLoad(obj);
             obj.hideFlags |= HideFlags.HideAndDontSave;
             Instance = obj.AddComponent<UniversalBehaviour>();

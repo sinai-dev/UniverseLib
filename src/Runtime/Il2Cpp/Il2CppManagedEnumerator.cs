@@ -83,7 +83,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             if (boxers.TryGetValue(t, out System.Func<object, Object> conv))
                 return conv;
 
-            DynamicMethod dm = new DynamicMethod($"Il2CppUnbox_{t.FullDescription()}", typeof(Object),
+            DynamicMethod dm = new($"Il2CppUnbox_{t.FullDescription()}", typeof(Object),
                                        new[] { typeof(object) });
             ILGenerator il = dm.GetILGenerator();
             LocalBuilder loc = il.DeclareLocal(t);

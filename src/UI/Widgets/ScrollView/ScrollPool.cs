@@ -491,7 +491,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
                     adjust = RecycleBottomToTop();
             }
 
-            Vector2 vector = new Vector2(0, adjust);
+            Vector2 vector = new(0, adjust);
             ScrollRect.m_ContentStartPosition += vector;
             ScrollRect.m_PrevPosition += vector;
 

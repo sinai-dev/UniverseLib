@@ -20,6 +20,7 @@ using HarmonyLib;
 using UniverseLib.Utility;
 using System.Text.RegularExpressions;
 using UniverseLib.Reflection;
+using UnhollowerBaseLib.Runtime;
 
 namespace UniverseLib
 {
@@ -131,6 +132,7 @@ namespace UniverseLib
                 if (monoType == null)
                     Universe.LogWarning($"Failed to get Unhollowed type from '{asmQualName}' (originally '{cppType.AssemblyQualifiedName}')!");
             }
+
             return monoType;
         }
 
@@ -201,7 +203,7 @@ namespace UniverseLib
                     return obj;
 
                 if (RuntimeSpecificsStore.IsInjected(castToPtr)
-                    && UnhollowerBaseLib.Runtime.ClassInjectorBase.GetMonoObjectFromIl2CppPointer(cppObj.Pointer) is object monoObject)
+                    && ClassInjectorBase.GetMonoObjectFromIl2CppPointer(cppObj.Pointer) is object monoObject)
                     return monoObject;
 
                 try
@@ -292,7 +294,7 @@ namespace UniverseLib
                     return null;
 
                 if (type.IsEnum)
-                    return Il2CppSystem.Enum.Parse(UnhollowerRuntimeLib.Il2CppType.From(type), value.ToString());
+                    return Il2CppSystem.Enum.Parse(Il2CppType.From(type), value.ToString());
 
                 if (type.IsPrimitive && AllTypes.TryGetValue($"Il2Cpp{type.FullName}", out Type cppType))
                     return BoxIl2CppObject(MakeIl2CppPrimitive(cppType, value), cppType);
@@ -792,7 +794,7 @@ namespace UniverseLib
                     throw new Exception($"The IDictionary type '{type.FullName}' does not support MoveNext.");
 
                 object keyEnumerator = getEnumeratorMethods[cacheKey].Invoke(keys, null);
-                EnumeratorInfo keyInfo = new EnumeratorInfo
+                EnumeratorInfo keyInfo = new()
                 {
                     current = keyEnumerator.GetActualType().GetProperty("Current"),
                     moveNext = keyEnumerator.GetActualType().GetMethod("MoveNext"),
@@ -800,7 +802,7 @@ namespace UniverseLib
 
                 object values = type.GetProperty("Values").GetValue(dictionary, null);
                 object valueEnumerator = values.GetActualType().GetMethod("GetEnumerator").Invoke(values, null);
-                EnumeratorInfo valueInfo = new EnumeratorInfo
+                EnumeratorInfo valueInfo = new()
                 {
                     current = valueEnumerator.GetActualType().GetProperty("Current"),
                     moveNext = valueEnumerator.GetActualType().GetMethod("MoveNext"),

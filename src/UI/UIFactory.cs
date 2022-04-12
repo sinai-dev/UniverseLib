@@ -29,7 +29,7 @@ namespace UniverseLib.UI
             //    Universe.Log(Environment.StackTrace);
             //}
 
-            GameObject obj = new GameObject(name)
+            GameObject obj = new(name)
             {
                 layer = 5,
                 hideFlags = HideFlags.HideAndDontSave,
@@ -795,7 +795,7 @@ namespace UniverseLib.UI
             // finalize and create ScrollPool
 
             uiRoot = mainObj;
-            ScrollPool<T> scrollPool = new ScrollPool<T>(scrollRect);
+            ScrollPool<T> scrollPool = new(scrollRect);
 
             return scrollPool;
         }
@@ -1022,7 +1022,7 @@ namespace UniverseLib.UI
 
             // Set up the AutoSliderScrollbar module
 
-            AutoSliderScrollbar autoScroller = new AutoSliderScrollbar(hiddenScrollbar, scrollSlider, contentRect, viewportRect);
+            AutoSliderScrollbar autoScroller = new(hiddenScrollbar, scrollSlider, contentRect, viewportRect);
 
             GameObject sliderContainer = autoScroller.Slider.m_HandleContainerRect.gameObject;
             SetLayoutElement(sliderContainer, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);

@@ -263,7 +263,7 @@ namespace UniverseLib
                 return type.FullName;
             else
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.Append(type.GenericParameterAttributes)
                     .Append('|');
                 foreach (Type c in type.GetGenericParameterConstraints())
@@ -300,7 +300,7 @@ namespace UniverseLib
         {
             if (!typeInheritance.ContainsKey(key))
             {
-                HashSet<Type> set = new HashSet<Type>();
+                HashSet<Type> set = new();
                 string[] names = GetTypeNameArray();
                 for (int i = 0; i < names.Length; i++)
                 {
@@ -337,7 +337,7 @@ namespace UniverseLib
         {
             if (!genericParameterInheritance.ContainsKey(key))
             {
-                HashSet<Type> set = new HashSet<Type>();
+                HashSet<Type> set = new();
 
                 string[] names = GetTypeNameArray();
                 for (int i = 0; i < names.Length; i++)

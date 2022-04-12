@@ -32,7 +32,7 @@ namespace UniverseLib.Utility
             if (string.IsNullOrEmpty(s))
                 return s;
 
-            StringBuilder sb = new StringBuilder(Math.Max(chars, s.Length));
+            StringBuilder sb = new(Math.Max(chars, s.Length));
             int newlines = 0;
             for (int i = 0; i < s.Length; i++)
             {
@@ -63,7 +63,7 @@ namespace UniverseLib.Utility
 
             string richType = SignatureHighlighter.Parse(type, includeNamespace);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             if (value.IsNullOrDestroyed())
             {

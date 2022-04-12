@@ -20,7 +20,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
             ScrollPool = scrollPool;
         }
 
-        private readonly List<DataViewInfo> heightCache = new List<DataViewInfo>();
+        private readonly List<DataViewInfo> heightCache = new();
 
         public DataViewInfo this[int index]
         {
@@ -41,7 +41,7 @@ namespace UniverseLib.UI.Widgets.ScrollView
         /// Index: DefaultHeight * index from top of data<br/>
         /// Value: the first data index at this position<br/>
         /// </summary>
-        private readonly List<int> rangeCache = new List<int>();
+        private readonly List<int> rangeCache = new();
 
         /// <summary>Same as GetRangeIndexOfPosition, except this rounds up to the next division if there was remainder from the previous cell.</summary>
         private int GetRangeCeilingOfPosition(float position) => (int)Math.Ceiling((decimal)position / (decimal)DefaultHeight);

@@ -68,7 +68,7 @@ namespace UniverseLib.Utility
         /// </summary>
         public static string GetTransformPath(this Transform transform, bool includeSelf = false)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             if (includeSelf)
                 sb.Append(transform.name);
 
@@ -109,7 +109,7 @@ namespace UniverseLib.Utility
             byte g = byte.Parse(_string.Substring(2, 2), NumberStyles.HexNumber);
             byte b = byte.Parse(_string.Substring(4, 2), NumberStyles.HexNumber);
 
-            Color color = new Color
+            Color color = new()
             {
                 r = (float)(r / (decimal)255),
                 g = (float)(g / (decimal)255),

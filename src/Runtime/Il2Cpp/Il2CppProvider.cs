@@ -57,7 +57,7 @@ namespace UniverseLib.Runtime.Il2Cpp
         /// <inheritdoc/>
         protected internal override void Internal_GraphicRaycast(GraphicRaycaster raycaster, PointerEventData data, List<RaycastResult> list)
         {
-            Il2CppSystem.Collections.Generic.List<RaycastResult> il2cppList = new Il2CppSystem.Collections.Generic.List<RaycastResult>();
+            Il2CppSystem.Collections.Generic.List<RaycastResult> il2cppList = new();
 
             raycaster.Raycast(data, il2cppList);
 
@@ -92,7 +92,7 @@ namespace UniverseLib.Runtime.Il2Cpp
             if (count < 1)
                 return new GameObject[0];
 
-            Il2CppSystem.Collections.Generic.List<GameObject> list = new Il2CppSystem.Collections.Generic.List<GameObject>(count);
+            Il2CppSystem.Collections.Generic.List<GameObject> list = new(count);
             ICallManager.GetICall<d_GetRootGameObjects>("UnityEngine.SceneManagement.Scene::GetRootGameObjectsInternal")
                 .Invoke(scene.handle, list.Pointer);
             return list.ToArray();

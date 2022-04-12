@@ -77,7 +77,7 @@ namespace UniverseLib.Input
             // Cache keycodes for rebinding
 
             Array keycodes = Enum.GetValues(typeof(KeyCode));
-            List<KeyCode> list = new List<KeyCode>();
+            List<KeyCode> list = new();
             foreach (KeyCode kc in keycodes)
             {
                 string s = kc.ToString();

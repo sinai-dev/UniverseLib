@@ -47,10 +47,10 @@ namespace UniverseLib.UI.Widgets.ButtonList
             buttonText.horizontalOverflow = HorizontalWrapMode.Overflow;
             buttonText.alignment = TextAnchor.MiddleLeft;
 
-            Color normal = new Color(0.11f, 0.11f, 0.11f);
-            Color highlight = new Color(0.16f, 0.16f, 0.16f);
-            Color pressed = new Color(0.05f, 0.05f, 0.05f);
-            Color disabled = new Color(1, 1, 1, 0);
+            Color normal = new(0.11f, 0.11f, 0.11f);
+            Color highlight = new(0.16f, 0.16f, 0.16f);
+            Color pressed = new(0.05f, 0.05f, 0.05f);
+            Color disabled = new(1, 1, 1, 0);
             RuntimeHelper.Instance.Internal_SetColorBlock(Button.Component, normal, highlight, pressed, disabled);
 
             Button.OnClick += () => { OnClick?.Invoke(CurrentDataIndex); };

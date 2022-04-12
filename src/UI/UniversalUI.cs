@@ -227,7 +227,7 @@ namespace UniverseLib.UI
 
         private static byte[] ReadFully(Stream input)
         {
-            using MemoryStream ms = new MemoryStream();
+            using MemoryStream ms = new();
             byte[] buffer = new byte[81920];
             int read;
             while ((read = input.Read(buffer, 0, buffer.Length)) != 0)
@@ -251,7 +251,7 @@ namespace UniverseLib.UI
                         return;
 #endif
                     PatchProcessor processor = Universe.Harmony.CreateProcessor(unloadAllBundles);
-                    HarmonyMethod prefix = new HarmonyMethod(typeof(UniversalUI).GetMethod(nameof(Prefix_UnloadAllAssetBundles), AccessTools.all));
+                    HarmonyMethod prefix = new(typeof(UniversalUI).GetMethod(nameof(Prefix_UnloadAllAssetBundles), AccessTools.all));
                     processor.AddPrefix(prefix);
                     processor.Patch();
                 }

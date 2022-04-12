@@ -110,7 +110,7 @@ namespace UniverseLib.Utility
             else if (memberInfo is ConstructorInfo ci)
                 return HighlightConstructor(ci);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             if (type.IsByRef)
                 AppendOpenColor(sb, $"#{keywordBlueHex}").Append("ref ").Append(CLOSE_COLOR);
@@ -327,7 +327,7 @@ namespace UniverseLib.Utility
             if (highlightedMethods.ContainsKey(sig))
                 return highlightedMethods[sig];
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             // highlight declaring type
             sb.Append(Parse(method.DeclaringType, false));
@@ -379,7 +379,7 @@ namespace UniverseLib.Utility
             if (highlightedMethods.ContainsKey(sig))
                 return highlightedMethods[sig];
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             // highlight declaring type, then again to signify the constructor
             sb.Append(Parse(ctor.DeclaringType, false));
@@ -458,7 +458,7 @@ namespace UniverseLib.Utility
             if (args.Length < 1)
                 return string.Empty;
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             for (int i = 0; i < args.Length; i++)
             {
