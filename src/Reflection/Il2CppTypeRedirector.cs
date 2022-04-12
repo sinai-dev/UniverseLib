@@ -40,7 +40,7 @@ namespace UniverseLib.Reflection
 
             int start = sb.Length;
             Il2CppSystem.Type declaring = type.DeclaringType;
-            while (declaring != null)
+            while (declaring is not null)
             {
                 sb.Insert(start, $"{declaring.Name}+");
                 declaring = declaring.DeclaringType;
@@ -48,7 +48,7 @@ namespace UniverseLib.Reflection
 
             sb.Append(type.Name);
 
-            if (type.IsConstructedGenericType)
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
             {
                 Il2CppSystem.Type[] genericArgs = type.GetGenericArguments();
 
@@ -86,7 +86,7 @@ namespace UniverseLib.Reflection
 
         static bool TryRedirectSystemType(Il2CppSystem.Type type)
         {
-            if (type.IsConstructedGenericType)
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
                 type = type.GetGenericTypeDefinition();
 
             if (ReflectionUtility.AllTypes.TryGetValue($"Il2Cpp{type.FullName}", out Type il2cppType))
