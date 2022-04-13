@@ -18,17 +18,13 @@ namespace UniverseLib.UI.Models
 
         internal static void UpdateInstances()
         {
-            if (inputsPendingUpdate.Any())
+            while (inputsPendingUpdate.Any())
             {
-                InputFieldRef[] entries = inputsPendingUpdate.ToArray();
+                InputFieldRef inputField = inputsPendingUpdate.First();
+                LayoutRebuilder.MarkLayoutForRebuild(inputField.Transform);
+                inputField.OnValueChanged?.Invoke(inputField.Component.text);
 
-                foreach (InputFieldRef entry in entries)
-                {
-                    LayoutRebuilder.MarkLayoutForRebuild(entry.Transform);
-                    entry.OnValueChanged?.Invoke(entry.Component.text);
-                }
-
-                inputsPendingUpdate.Clear();
+                inputsPendingUpdate.Remove(inputField);
             }
         }
 
