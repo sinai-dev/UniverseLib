@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UniverseLib.Input;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.ObjectPool;
+using UniverseLib.UI.Panels;
 using UniverseLib.Utility;
 
 namespace UniverseLib.UI.Widgets.ScrollView
@@ -78,19 +79,14 @@ namespace UniverseLib.UI.Widgets.ScrollView
         private float prevViewportHeight;
         private float prevContentHeight = 1.0f;
 
-        private event Action OnHeightChanged;
-
-        /// <summary>
-        /// Global listeners to determine whether any ScrollPool should be in a readonly state or not. Add to this only if you understand what it does.
-        /// </summary>
-        public static readonly List<Func<bool>> writingLockedListeners = new();
+        event Action OnHeightChanged;
 
         /// <summary>
         /// If true, prevents the ScrollPool for writing any values, essentially making it readonly.
         /// </summary>
         public bool WritingLocked
         {
-            get => writingLocked || writingLockedListeners.Any(it => it());
+            get => writingLocked || PanelManager.Resizing;
             internal set
             {
                 if (writingLocked == value)
