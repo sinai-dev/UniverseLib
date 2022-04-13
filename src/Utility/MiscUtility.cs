@@ -21,8 +21,16 @@ namespace UniverseLib.Utility
         /// </summary>
         public static bool HasFlag(this Enum flags, Enum value)
         {
-            ulong flag = Convert.ToUInt64(value);
-            return (Convert.ToUInt64(flags) & flag) == flag;
+            try
+            {
+                ulong flag = Convert.ToUInt64(value);
+                return (Convert.ToUInt64(flags) & flag) == flag;
+            }
+            catch
+            {
+                long flag = Convert.ToInt64(value);
+                return (Convert.ToInt64(flags) & flag) == flag;
+            }
         }
 
         /// <summary>
