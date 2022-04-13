@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using UniverseLib.Config;
 using UniverseLib.Input;
 using UniverseLib.UI.Models;
+using UniverseLib.UI.Panels;
 using UniverseLib.Utility;
 
 namespace UniverseLib.UI
@@ -20,6 +21,7 @@ namespace UniverseLib.UI
     public static class UniversalUI
     {
         internal static readonly Dictionary<string, UIBase> registeredUIs = new();
+        internal static readonly List<UIBase> uiBases = new();
 
         /// <summary>Returns true if UniverseLib is currently initializing it's UI.</summary>
         public static bool Initializing { get; internal set; } = true;
@@ -65,16 +67,19 @@ namespace UniverseLib.UI
         /// <returns>Your newly created <see cref="UIBase"/>, if successful.</returns>
         public static UIBase RegisterUI(string id, Action updateMethod)
         {
-            if (string.IsNullOrEmpty(id))
-                throw new ArgumentException("Cannot register a UI with a null or empty id!");
+            return new(id, updateMethod);
+        }
 
-            if (registeredUIs.ContainsKey(id))
-                throw new ArgumentException($"A UI with the id '{id}' is already registered!");
-
-            UIBase uiBase = new(id, updateMethod);
-            registeredUIs.Add(id, uiBase);
-
-            return uiBase;
+        /// <summary>
+        /// Create and register a <typeparamref name="T"/> with the provided ID, and optional update method.<br />
+        /// You can use this to register a custom <see cref="UIBase"/> type instead of the default type.
+        /// </summary>
+        /// <param name="id">A unique ID for your UI.</param>
+        /// <param name="updateMethod">An optional method to receive Update calls with, invoked when your UI is displayed.</param>
+        /// <returns>Your newly created <typeparamref name="T"/>, if successful.</returns>
+        public static T RegisterUI<T>(string id, Action updateMethod) where T : UIBase
+        {
+            return (T)Activator.CreateInstance(typeof(T), new object[] { id, updateMethod });
         }
 
         /// <summary>
@@ -86,7 +91,7 @@ namespace UniverseLib.UI
             {
                 uiBase.RootObject.SetActive(active);
                 if (active)
-                    uiBase.RootObject.transform.SetAsLastSibling();
+                    uiBase.SetOnTop();
                 CursorUnlocker.UpdateCursorControl();
                 return;
             }
@@ -116,19 +121,32 @@ namespace UniverseLib.UI
             if (!CanvasRoot || Initializing)
                 return;
 
-            // return if menu closed
             if (!AnyUIShowing)
                 return;
 
+            // Prevent click-through
+            if (EventSys.IsPointerOverGameObject())
+            {
+                if (InputManager.MouseScrollDelta.y != 0 
+                    || InputManager.GetMouseButtonUp(0) 
+                    || InputManager.GetMouseButtonUp(1))
+                {
+                    InputManager.ResetInputAxes();
+                }
+            }
+
             InputManager.Update();
 
-            // update UI model instances
             InputFieldRef.UpdateInstances();
             UIBehaviourModel.UpdateInstances();
 
             // Update registered UIs
-            foreach (UIBase ui in registeredUIs.Values)
+            PanelManager.focusHandledThisFrame = false;
+            PanelManager.draggerHandledThisFrame = false;
+
+            for (int i = 0; i < uiBases.Count; i++)
             {
+                UIBase ui = uiBases[i];
                 if (ui.Enabled)
                     ui.Update();
             }
@@ -138,6 +156,8 @@ namespace UniverseLib.UI
 
         private static void CreateRootCanvas()
         {
+
+
             CanvasRoot = new GameObject("UniverseLibCanvas");
             UnityEngine.Object.DontDestroyOnLoad(CanvasRoot);
             CanvasRoot.hideFlags |= HideFlags.HideAndDontSave;

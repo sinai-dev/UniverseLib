@@ -7,7 +7,7 @@
         </DefineConstants>
         <DebugSymbols>false</DebugSymbols>
         <DebugType>none</DebugType>
-        <PlatformTarget>x64</PlatformTarget>
+        <PlatformTarget>AnyCPU</PlatformTarget>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -90,9 +90,6 @@
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\*" />
-    </ItemGroup>
-    <ItemGroup>
-        <Analyzer Include="packages\UniverseLib.Analyzers.1.0.3\analyzers\dotnet\cs\UniverseLib.Analyzers.dll" />
     </ItemGroup>
     <Target Name="CopyNuget" AfterTargets="build">
         <!-- if IL2CPP -->

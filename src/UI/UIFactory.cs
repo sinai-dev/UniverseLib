@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UniverseLib.Runtime;
 using UniverseLib.UI.Models;
+using UniverseLib.UI.Panels;
 using UniverseLib.UI.Widgets;
 using UniverseLib.UI.Widgets.ScrollView;
 
@@ -153,6 +154,7 @@ namespace UniverseLib.UI
 
         /// <summary>
         /// Create a simple UI Object with a VerticalLayoutGroup and an Image component.
+        /// <br /><br />See also: <see cref="PanelBase"/>
         /// </summary>
         /// <param name="name">The name of the panel GameObject, useful for debugging purposes</param>
         /// <param name="parent">The parent GameObject to attach this to</param>
@@ -162,7 +164,7 @@ namespace UniverseLib.UI
         public static GameObject CreatePanel(string name, GameObject parent, out GameObject contentHolder, Color? bgColor = null)
         {
             GameObject panelObj = CreateUIObject(name, parent);
-            SetLayoutGroup<VerticalLayoutGroup>(panelObj, true, true, true, true);
+            SetLayoutGroup<VerticalLayoutGroup>(panelObj, true, true, true, true, 0, 1, 1, 1, 1);
 
             RectTransform rect = panelObj.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
@@ -170,8 +172,8 @@ namespace UniverseLib.UI
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = Vector2.zero;
 
-            panelObj.AddComponent<Image>().color = Color.white;
-            panelObj.AddComponent<Mask>().showMaskGraphic = false;
+            panelObj.AddComponent<Image>().color = Color.black;
+            panelObj.AddComponent<RectMask2D>();
 
             contentHolder = CreateUIObject("Content", panelObj);
 
