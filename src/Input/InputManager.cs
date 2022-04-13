@@ -17,9 +17,9 @@ namespace UniverseLib.Input
         /// </summary>
         public static InputType CurrentType { get; private set; }
 
-        private static IHandleInput inputHandler;
+        static IHandleInput inputHandler;
 
-        // Core init
+        #region Internal Init
 
         internal static void Init()
         {
@@ -87,7 +87,9 @@ namespace UniverseLib.Input
             allKeycodes = list.ToArray();
         }
 
-        // Main Input API
+        #endregion
+
+        // ~~~~~~ Main Input API ~~~~~~
 
         /// <summary>
         /// The current user Cursor position, with (0,0) being the bottom-left of the game display window.
@@ -118,7 +120,8 @@ namespace UniverseLib.Input
         }
 
         /// <summary>
-        /// Returns true if the provided KeyCode was pressed this frame. Translates KeyCodes into Key if InputSystem is being used.
+        /// Returns true if the provided KeyCode was pressed this frame. 
+        /// Translates KeyCodes into Key if InputSystem is being used.
         /// </summary>
         public static bool GetKeyDown(KeyCode key)
         {
@@ -131,7 +134,8 @@ namespace UniverseLib.Input
         }
 
         /// <summary>
-        /// Returns true if the provided KeyCode is being held down (not necessarily just pressed). Translates KeyCodes into Key if InputSystem is being used.
+        /// Returns true if the provided KeyCode is being held down (not necessarily just pressed). 
+        /// Translates KeyCodes into Key if InputSystem is being used.
         /// </summary>
         public static bool GetKey(KeyCode key)
         {
@@ -141,6 +145,20 @@ namespace UniverseLib.Input
             if (key == KeyCode.None)
                 return false;
             return inputHandler.GetKey(key);
+        }
+
+        /// <summary>
+        /// Returns true if the provided KeyCode was released this frame.
+        /// Translates KeyCodes into Key if InputSystem is being used.
+        /// </summary>
+        public static bool GetKeyUp(KeyCode key)
+        {
+            if (Rebinding || Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            if (key == KeyCode.None)
+                return false;
+            return inputHandler.GetKeyUp(key);
         }
 
         /// <summary>
@@ -165,6 +183,28 @@ namespace UniverseLib.Input
             return inputHandler.GetMouseButton(btn);
         }
 
+        /// <summary>
+        /// Returns true if the provided mouse button was released this frame. 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// </summary>
+        public static bool GetMouseButtonUp(int btn)
+        {
+            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return false;
+
+            return inputHandler.GetMouseButtonUp(btn);
+        }
+
+        /// <summary>
+        /// Calls the equivalent method for the current <see cref="InputType"/> to reset the Input axes.
+        /// </summary>
+        public static void ResetInputAxes()
+        {
+            if (Universe.CurrentGlobalState != Universe.GlobalState.SetupCompleted)
+                return;
+
+            inputHandler.ResetInputAxes();
+        }
+
         // UI
 
         /// <summary>
@@ -184,12 +224,17 @@ namespace UniverseLib.Input
             inputHandler.ActivateModule();
         }
 
-        // Rebinding and Update
+        // ~~~~~~ Rebinding ~~~~~~
 
         /// <summary>
-        /// Whether anything is currently using the Rebinding feature.
+        /// Whether anything is currently using the Rebinding feature. If no UI is showing, this will return false.
         /// </summary>
-        public static bool Rebinding { get; internal set; }
+        public static bool Rebinding 
+        {
+            get => isRebinding && UniversalUI.AnyUIShowing;
+            set => isRebinding = value;
+        }
+        static bool isRebinding;
 
         /// <summary>
         /// The last pressed Key during rebinding.

@@ -12,9 +12,13 @@ namespace UniverseLib.Input
 
         public bool GetKey(KeyCode key) => false;
         public bool GetKeyDown(KeyCode key) => false;
+        public bool GetKeyUp(KeyCode key) => false;
 
         public bool GetMouseButton(int btn) => false;
         public bool GetMouseButtonDown(int btn) => false;
+        public bool GetMouseButtonUp(int btn) => false;
+
+        public void ResetInputAxes() { }
 
         public BaseInputModule UIInputModule => null;
         public void ActivateModule() { }

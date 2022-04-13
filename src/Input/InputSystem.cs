@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,71 +16,73 @@ namespace UniverseLib.Input
         #region Reflection cache
 
         // typeof(InputSystem.Keyboard)
-        public static Type TKeyboard => m_tKeyboard ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Keyboard");
-        private static Type m_tKeyboard;
+        public static Type TKeyboard => t_Keyboard ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Keyboard");
+        static Type t_Keyboard;
 
         // typeof(InputSystem.Mouse)
-        public static Type TMouse => m_tMouse ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Mouse");
-        private static Type m_tMouse;
+        public static Type TMouse => t_Mouse ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Mouse");
+        static Type t_Mouse;
 
         // typeof (InputSystem.Key)
-        public static Type TKey => m_tKey ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Key");
-        private static Type m_tKey;
+        public static Type TKey => t_Key ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Key");
+        static Type t_Key;
 
         // InputSystem.Controls.ButtonControl.isPressed
-        private static PropertyInfo btnIsPressedProp;
+        static PropertyInfo p_btnIsPressed;
         // InputSystem.Controls.ButtonControl.wasPressedThisFrame
-        private static PropertyInfo btnWasPressedProp;
+        static PropertyInfo p_btnWasPressed;
+        // InputSystem.Controls.ButtonControl.wasReleasedThisFrame
+        static PropertyInfo p_btnWasReleased;
 
         // Keyboard.current
-        private static object CurrentKeyboard => m_currentKeyboard ??= kbCurrentProp.GetValue(null, null);
-        private static object m_currentKeyboard;
-        private static PropertyInfo kbCurrentProp;
+        static object CurrentKeyboard => currentKeyboard ??= p_kbCurrent.GetValue(null, null);
+        static object currentKeyboard;
+        static PropertyInfo p_kbCurrent;
         // Keyboard.this[Key]
-        private static PropertyInfo kbIndexer;
+        static PropertyInfo p_kbIndexer;
 
         // Mouse.current
-        private static object CurrentMouse => m_currentMouse ??= mouseCurrentProp.GetValue(null, null);
-        private static object m_currentMouse;
-        private static PropertyInfo mouseCurrentProp;
+        static object CurrentMouse => currentMouse ??= p_mouseCurrent.GetValue(null, null);
+        static object currentMouse;
+        static PropertyInfo p_mouseCurrent;
 
         // Mouse.current.leftButton
-        private static object LeftMouseButton => m_lmb ??= leftButtonProp.GetValue(CurrentMouse, null);
-        private static object m_lmb;
-        private static PropertyInfo leftButtonProp;
+        static object LeftMouseButton => lmb ??= p_leftButton.GetValue(CurrentMouse, null);
+        static object lmb;
+        static PropertyInfo p_leftButton;
 
         // Mouse.current.rightButton
-        private static object RightMouseButton => m_rmb ??= rightButtonProp.GetValue(CurrentMouse, null);
-        private static object m_rmb;
-        private static PropertyInfo rightButtonProp;
+        static object RightMouseButton => rmb ??= p_rightButton.GetValue(CurrentMouse, null);
+        static object rmb;
+        static PropertyInfo p_rightButton;
 
         // InputSystem.InputControl<Vector2>.ReadValue()
-        private static MethodInfo ReadV2ControlMethod;
+        static MethodInfo m_ReadV2Control;
 
         // Mouse.current.position
-        private static object MousePositionInfo => m_pos ??= positionProp.GetValue(CurrentMouse, null);
-        private static object m_pos;
-        private static PropertyInfo positionProp;
+        static object MousePositionInfo => mousePosInfo ??= p_position.GetValue(CurrentMouse, null);
+        static object mousePosInfo;
+        static PropertyInfo p_position;
 
         // Mouse.current.scroll
-        private static object MouseScrollInfo => m_scrollInfo ??= scrollDeltaProp.GetValue(CurrentMouse, null);
-        private static object m_scrollInfo;
-        private static PropertyInfo scrollDeltaProp;
+        static object MouseScrollInfo => mouseScrollInfo ??= p_scrollDelta.GetValue(CurrentMouse, null);
+        static object mouseScrollInfo;
+        static PropertyInfo p_scrollDelta;
 
         // typeof(InputSystem.UI.InputSystemUIInputModule)
-        public Type TInputSystemUIInputModule => typeOfUIInputModule
+        public Type TInputSystemUIInputModule => t_UIInputModule
                                               ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.UI.InputSystemUIInputModule");
-        internal Type typeOfUIInputModule;
+        internal Type t_UIInputModule;
 
         // Our UI input module
         public BaseInputModule UIInputModule => newInputModule;
         internal BaseInputModule newInputModule;
 
         // UI input action maps
-        private Type typeofInputExtensions;
-        private object UIActionMap;
-        private MethodInfo mi_UI_Enable;
-        private PropertyInfo pi_actionsAsset;
+        Type t_InputExtensions;
+        object UIActionMap;
+        MethodInfo m_UI_Enable;
+        PropertyInfo p_actionsAsset;
 
         #endregion
 
@@ -86,22 +90,23 @@ namespace UniverseLib.Input
         {
             SetupSupportedDevices();
 
-            kbCurrentProp = TKeyboard.GetProperty("current");
-            kbIndexer = TKeyboard.GetProperty("Item", new Type[] { TKey });
+            p_kbCurrent = TKeyboard.GetProperty("current");
+            p_kbIndexer = TKeyboard.GetProperty("Item", new Type[] { TKey });
 
-            Type btnControl = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Controls.ButtonControl");
-            btnIsPressedProp = btnControl.GetProperty("isPressed");
-            btnWasPressedProp = btnControl.GetProperty("wasPressedThisFrame");
+            Type t_btnControl = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Controls.ButtonControl");
+            p_btnIsPressed = t_btnControl.GetProperty("isPressed");
+            p_btnWasPressed = t_btnControl.GetProperty("wasPressedThisFrame");
+            p_btnWasReleased = t_btnControl.GetProperty("wasReleasedThisFrame");
 
-            mouseCurrentProp = TMouse.GetProperty("current");
-            leftButtonProp = TMouse.GetProperty("leftButton");
-            rightButtonProp = TMouse.GetProperty("rightButton");
-            scrollDeltaProp = TMouse.GetProperty("scroll");
+            p_mouseCurrent = TMouse.GetProperty("current");
+            p_leftButton = TMouse.GetProperty("leftButton");
+            p_rightButton = TMouse.GetProperty("rightButton");
+            p_scrollDelta = TMouse.GetProperty("scroll");
 
-            positionProp = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Pointer")
+            p_position = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Pointer")
                            .GetProperty("position");
 
-            ReadV2ControlMethod = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputControl`1")
+            m_ReadV2Control = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputControl`1")
                                       .MakeGenericType(typeof(Vector2))
                                       .GetMethod("ReadValue");
         }
@@ -111,13 +116,13 @@ namespace UniverseLib.Input
             try
             {
                 // typeof(InputSystem)
-                Type TInputSystem = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputSystem");
+                Type t_InputSystem = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputSystem");
                 // InputSystem.settings
-                object settings = TInputSystem.GetProperty("settings", BindingFlags.Public | BindingFlags.Static).GetValue(null, null);
+                object settings = t_InputSystem.GetProperty("settings", BindingFlags.Public | BindingFlags.Static).GetValue(null, null);
                 // typeof(InputSettings)
-                Type TSettings = settings.GetActualType();
+                Type t_Settings = settings.GetActualType();
                 // InputSettings.supportedDevices
-                PropertyInfo supportedProp = TSettings.GetProperty("supportedDevices", BindingFlags.Public | BindingFlags.Instance);
+                PropertyInfo supportedProp = t_Settings.GetProperty("supportedDevices", BindingFlags.Public | BindingFlags.Instance);
                 object supportedDevices = supportedProp.GetValue(settings, null);
                 // An empty supportedDevices list means all devices are supported.
 #if CPP
@@ -138,16 +143,16 @@ namespace UniverseLib.Input
 
         // Input API
 
-        public Vector2 MousePosition => (Vector2)ReadV2ControlMethod.Invoke(MousePositionInfo, ArgumentUtility.EmptyArgs);
+        public Vector2 MousePosition => (Vector2)m_ReadV2Control.Invoke(MousePositionInfo, ArgumentUtility.EmptyArgs);
 
-        public Vector2 MouseScrollDelta => (Vector2)ReadV2ControlMethod.Invoke(MouseScrollInfo, ArgumentUtility.EmptyArgs);
+        public Vector2 MouseScrollDelta => (Vector2)m_ReadV2Control.Invoke(MouseScrollInfo, ArgumentUtility.EmptyArgs);
 
         public bool GetMouseButtonDown(int btn)
         {
             return btn switch
             {
-                0 => (bool)btnWasPressedProp.GetValue(LeftMouseButton, null),
-                1 => (bool)btnWasPressedProp.GetValue(RightMouseButton, null),
+                0 => (bool)p_btnWasPressed.GetValue(LeftMouseButton, null),
+                1 => (bool)p_btnWasPressed.GetValue(RightMouseButton, null),
                 // case 2: return (bool)_btnWasPressedProp.GetValue(MiddleMouseButton, null);
                 _ => throw new NotImplementedException(),
             };
@@ -157,9 +162,19 @@ namespace UniverseLib.Input
         {
             return btn switch
             {
-                0 => (bool)btnIsPressedProp.GetValue(LeftMouseButton, null),
-                1 => (bool)btnIsPressedProp.GetValue(RightMouseButton, null),
+                0 => (bool)p_btnIsPressed.GetValue(LeftMouseButton, null),
+                1 => (bool)p_btnIsPressed.GetValue(RightMouseButton, null),
                 // case 2: return (bool)_btnIsPressedProp.GetValue(MiddleMouseButton, null);
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        public bool GetMouseButtonUp(int btn)
+        {
+            return btn switch
+            {
+                0 => (bool)p_btnWasReleased.GetValue(LeftMouseButton, null),
+                1 => (bool)p_btnWasReleased.GetValue(RightMouseButton, null),
                 _ => throw new NotImplementedException(),
             };
         }
@@ -187,7 +202,7 @@ namespace UniverseLib.Input
                 try
                 {
                     object parsed = KeyCodeToKeyEnum(key);
-                    object actualKey = kbIndexer.GetValue(CurrentKeyboard, new object[] { parsed });
+                    object actualKey = p_kbIndexer.GetValue(CurrentKeyboard, new object[] { parsed });
                     KeyCodeToKeyDict.Add(key, actualKey);
                 }
                 catch
@@ -231,7 +246,7 @@ namespace UniverseLib.Input
         {
             try
             {
-                return (bool)btnWasPressedProp.GetValue(KeyCodeToActualKey(key), null);
+                return (bool)p_btnWasPressed.GetValue(KeyCodeToActualKey(key), null);
             }
             catch
             {
@@ -243,12 +258,30 @@ namespace UniverseLib.Input
         {
             try
             {
-                return (bool)btnIsPressedProp.GetValue(KeyCodeToActualKey(key), null);
+                return (bool)p_btnIsPressed.GetValue(KeyCodeToActualKey(key), null);
             }
             catch
             {
                 return false;
             }
+        }
+
+        public bool GetKeyUp(KeyCode key)
+        {
+            try
+            {
+                return (bool)p_btnWasReleased.GetValue(KeyCodeToActualKey(key), null);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // InputSystem has no equivalent API for "ResetInputAxes".
+
+        public void ResetInputAxes()
+        {
         }
 
         // UI Input
@@ -265,9 +298,9 @@ namespace UniverseLib.Input
             newInputModule = RuntimeHelper.AddComponent<BaseInputModule>(UniversalUI.CanvasRoot, TInputSystemUIInputModule);
             object asset = RuntimeHelper.CreateScriptable(assetType).TryCast(assetType);
 
-            typeofInputExtensions = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionSetupExtensions");
+            t_InputExtensions = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionSetupExtensions");
 
-            MethodInfo addMap = typeofInputExtensions.GetMethod("AddActionMap", new Type[] { assetType, typeof(string) });
+            MethodInfo addMap = t_InputExtensions.GetMethod("AddActionMap", new Type[] { assetType, typeof(string) });
             object map = addMap.Invoke(null, new object[] { asset, "UI" })
                 .TryCast(ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionMap"));
 
@@ -276,11 +309,11 @@ namespace UniverseLib.Input
             CreateAction(map, "rightClick", new[] { "<Mouse>/rightButton" }, "rightClick");
             CreateAction(map, "scrollWheel", new[] { "<Mouse>/scroll" }, "scrollWheel");
 
-            mi_UI_Enable = map.GetType().GetMethod("Enable");
-            mi_UI_Enable.Invoke(map, ArgumentUtility.EmptyArgs);
+            m_UI_Enable = map.GetType().GetMethod("Enable");
+            m_UI_Enable.Invoke(map, ArgumentUtility.EmptyArgs);
             UIActionMap = map;
 
-            pi_actionsAsset = TInputSystemUIInputModule.GetProperty("actionsAsset");
+            p_actionsAsset = TInputSystemUIInputModule.GetProperty("actionsAsset");
         }
 
         private void CreateAction(object map, string actionName, string[] bindings, string propertyName)
@@ -289,11 +322,11 @@ namespace UniverseLib.Input
             disable.Invoke(map, ArgumentUtility.EmptyArgs);
 
             Type inputActionType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputAction");
-            MethodInfo addAction = typeofInputExtensions.GetMethod("AddAction");
+            MethodInfo addAction = t_InputExtensions.GetMethod("AddAction");
             object action = addAction.Invoke(null, new object[] { map, actionName, default, null, null, null, null, null })
                 .TryCast(inputActionType);
 
-            MethodInfo addBinding = typeofInputExtensions.GetMethod("AddBinding",
+            MethodInfo addBinding = t_InputExtensions.GetMethod("AddBinding",
                 new Type[] { inputActionType, typeof(string), typeof(string), typeof(string), typeof(string) });
 
             foreach (string binding in bindings)
@@ -315,10 +348,10 @@ namespace UniverseLib.Input
             {
                 newInputModule.m_EventSystem = UniversalUI.EventSys;
                 newInputModule.ActivateModule();
-                mi_UI_Enable.Invoke(UIActionMap, ArgumentUtility.EmptyArgs);
+                m_UI_Enable.Invoke(UIActionMap, ArgumentUtility.EmptyArgs);
 
                 // if the actionsAsset is null, call the AssignDefaultActions method.
-                if (pi_actionsAsset.GetValue(newInputModule, null) == null)
+                if (p_actionsAsset.GetValue(newInputModule, null) == null)
                 {
                     newInputModule.GetType()
                         .GetMethod("AssignDefaultActions")
