@@ -107,6 +107,21 @@ namespace UniverseLib.Utility
         }
 
         /// <summary>
+        /// Returns true if ParseUtility is able to parse the provided Type.
+        /// </summary>
+        public static bool CanParse<T>() => CanParse(typeof(T));
+
+        /// <summary>
+        /// Attempt to parse the provided input into an object of the provided Type. Returns true if successful, false if not.
+        /// </summary>
+        public static bool TryParse<T>(string input, out T obj, out Exception parseException)
+        {
+            bool result = TryParse(input, typeof(T), out object parsed, out parseException);
+            obj = (T)parsed;
+            return result;
+        }
+
+        /// <summary>
         /// Attempt to parse the provided input into an object of the provided Type. Returns true if successful, false if not.
         /// </summary>
         public static bool TryParse(string input, Type type, out object obj, out Exception parseException)
@@ -163,6 +178,12 @@ namespace UniverseLib.Utility
         /// <summary>
         /// Returns the obj.ToString() result, formatted into the format which ParseUtility would expect for user input.
         /// </summary>
+        public static string ToStringForInput<T>(object obj)
+            => ToStringForInput(obj, typeof(T));
+
+        /// <summary>
+        /// Returns the obj.ToString() result, formatted into the format which ParseUtility would expect for user input.
+        /// </summary>
         public static string ToStringForInput(object obj, Type type)
         {
             if (type == null || obj == null)
@@ -200,6 +221,11 @@ namespace UniverseLib.Utility
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets a default example input which can be displayed to users, for example for Vector2 this would return "0 0".
+        /// </summary>
+        public static string GetExampleInput<T>() => GetExampleInput(typeof(T));
 
         /// <summary>
         /// Gets a default example input which can be displayed to users, for example for Vector2 this would return "0 0".
