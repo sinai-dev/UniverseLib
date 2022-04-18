@@ -17,7 +17,7 @@ namespace UniverseLib.Input
         /// </summary>
         public static InputType CurrentType { get; private set; }
 
-        static IHandleInput inputHandler;
+        internal static IHandleInput inputHandler;
 
         #region Internal Init
 
@@ -26,6 +26,7 @@ namespace UniverseLib.Input
             InitHandler();
             InitKeycodes();
             CursorUnlocker.Init();
+            EventSystemHelper.Init();
         }
 
         private static void InitHandler()
@@ -203,53 +204,6 @@ namespace UniverseLib.Input
                 return;
 
             inputHandler.ResetInputAxes();
-        }
-
-        // UI
-
-        /// <summary>
-        /// The current BaseInputModule being used for the UI.
-        /// </summary>
-        public static BaseInputModule UIInput => inputHandler.UIInputModule;
-
-        internal static void AddUIModule()
-        {
-            inputHandler.AddUIInputModule();
-            ActivateUIModule();
-        }
-
-        internal static void ActivateUIModule()
-        {
-            UniversalUI.EventSys.m_CurrentInputModule = UIInput;
-            inputHandler.ActivateModule();
-        }
-
-        // ~~~~~~ EventSystem helper ~~~~~~
-
-        /// <summary>
-        /// The current EventSystem being used by the game (uses safe API to handle differences between games).
-        /// </summary>
-        public static EventSystem CurrentEventSystem => CursorUnlocker.CurrentEventSystem;
-
-        /// <summary>
-        /// Helper to call EventSystem.SetSelectedGameObject and bypass UniverseLib's override patch.
-        /// </summary>
-        public static void SetSelectedEventSystemGameObject(GameObject obj)
-        {
-            try
-            {
-                EventSystem system = CursorUnlocker.CurrentEventSystem;
-                BaseEventData pointer = new(system);
-
-                ExecuteEvents.Execute(system.m_CurrentSelected, pointer, ExecuteEvents.deselectHandler);
-
-                system.m_CurrentSelected = obj;
-                ExecuteEvents.Execute(obj, pointer, ExecuteEvents.selectHandler);
-            }
-            catch (Exception e)
-            {
-                Universe.LogWarning($"Exception setting current selected GameObject: {e}");
-            }
         }
 
         // ~~~~~~ Rebinding ~~~~~~
