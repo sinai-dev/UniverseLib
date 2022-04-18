@@ -133,16 +133,18 @@ namespace UniverseLib.UI.Panels
             Rect = this.uiRoot.GetComponent<RectTransform>();
 
             UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.ContentRoot, false, false, true, true, 2, 2, 2, 2, 2, TextAnchor.UpperLeft);
+            UIFactory.SetLayoutElement(ContentRoot, 0, 0, flexibleWidth: 9999, flexibleHeight: 9999);
 
             // Title bar
             TitleBar = UIFactory.CreateHorizontalGroup(ContentRoot, "TitleBar", false, true, true, true, 2,
                 new Vector4(2, 2, 2, 2), new Color(0.06f, 0.06f, 0.06f));
             UIFactory.SetLayoutElement(TitleBar, minHeight: 25, flexibleHeight: 0);
 
+
             // Title text
 
             Text titleTxt = UIFactory.CreateLabel(TitleBar, "TitleBar", Name, TextAnchor.MiddleLeft);
-            UIFactory.SetLayoutElement(titleTxt.gameObject, minWidth: 250, minHeight: 25, flexibleHeight: 0);
+            UIFactory.SetLayoutElement(titleTxt.gameObject, 50, 25, 9999, 0);
 
             // close button
 

@@ -750,6 +750,7 @@ namespace UniverseLib.UI
             GameObject mainObj = CreateUIObject(name, parent, new Vector2(1, 1));
             mainObj.AddComponent<Image>().color = bgColor ?? new Color(0.12f, 0.12f, 0.12f);
             SetLayoutGroup<HorizontalLayoutGroup>(mainObj, false, true, true, true);
+            SetLayoutElement(mainObj, flexibleHeight: 9999, flexibleWidth: 9999);
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
             SetLayoutElement(viewportObj, flexibleWidth: 9999, flexibleHeight: 9999);
@@ -886,6 +887,8 @@ namespace UniverseLib.UI
             Image mainImage = mainObj.AddComponent<Image>();
             mainImage.type = Image.Type.Filled;
             mainImage.color = (color == default) ? new Color(0.3f, 0.3f, 0.3f, 1f) : color;
+
+            SetLayoutElement(mainObj, flexibleHeight: 9999, flexibleWidth: 9999);
 
             GameObject viewportObj = CreateUIObject("Viewport", mainObj);
             RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
