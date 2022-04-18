@@ -1,8 +1,10 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib;
@@ -23,7 +25,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.3.5";
+        public const string VERSION = "1.3.6";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -162,6 +164,98 @@ namespace UniverseLib
         private static void Log(object message, LogType logType)
         {
             logHandler?.Invoke(message?.ToString() ?? string.Empty, logType);
+        }
+
+        // Patching helpers
+
+        internal static bool Patch(Type type, string methodName, MethodType methodType, Type[] arguments = null,
+            MethodInfo prefix = null, MethodInfo postfix = null, MethodInfo finalizer = null)
+        {
+            try
+            {
+                string namePrefix = methodType switch
+                {
+                    MethodType.Getter => "get_",
+                    MethodType.Setter => "set_",
+                    _ => string.Empty
+                };
+
+                MethodInfo target;
+                if (arguments != null)
+                    target = type.GetMethod($"{namePrefix}{methodName}", AccessTools.all, null, arguments, null);
+                else
+                    target = type.GetMethod($"{namePrefix}{methodName}", AccessTools.all);
+
+                if (target == null)
+                {
+                    // LogWarning($"\t Couldn't find any method on type {type.FullName} called {methodName}!");
+                    return false;
+                }
+
+#if CPP
+                // if IL2CPP, ensure method wasn't stripped
+                if (UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target) == null)
+                {
+                    // LogWarning($"\t IL2CPP method has no corresponding pointer, aborting patch!");
+                    return false;
+                }
+#endif
+
+                PatchProcessor processor = Harmony.CreateProcessor(target);
+
+                if (prefix != null)
+                    processor.AddPrefix(new HarmonyMethod(prefix));
+                if (postfix != null)
+                    processor.AddPostfix(new HarmonyMethod(postfix));
+                if (finalizer != null)
+                    processor.AddFinalizer(new HarmonyMethod(finalizer));
+
+                processor.Patch();
+
+                // Log($"\t Successfully patched {type.FullName}.{methodName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogWarning($"\t Exception patching {type.FullName}.{methodName}: {ex}");
+                return false;
+            }
+        }
+
+        internal static bool Patch(Type type, string[] possibleNames, MethodType methodType, Type[] arguments = null,
+            MethodInfo prefix = null, MethodInfo postfix = null, MethodInfo finalizer = null)
+        {
+            foreach (var name in possibleNames)
+            {
+                if (Patch(type, name, methodType, arguments, prefix, postfix, finalizer))
+                    return true;
+            }
+            return false;
+        }
+
+        internal static bool Patch(Type type, string[] possibleNames, MethodType methodType, Type[][] possibleArguments,
+            MethodInfo prefix = null, MethodInfo postfix = null, MethodInfo finalizer = null)
+        {
+            foreach (var name in possibleNames)
+            {
+                foreach (var arguments in possibleArguments)
+                {
+                    if (Patch(type, name, methodType, arguments, prefix, postfix, finalizer))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        internal static bool Patch(Type type, string methodName, MethodType methodType, Type[][] possibleArguments,
+            MethodInfo prefix = null, MethodInfo postfix = null, MethodInfo finalizer = null)
+        {
+            foreach (var arguments in possibleArguments)
+            {
+                if (Patch(type, methodName, methodType, arguments, prefix, postfix, finalizer))
+                    return true;
+            }
+            return false;
         }
     }
 }

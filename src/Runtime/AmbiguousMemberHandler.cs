@@ -14,8 +14,8 @@ namespace UniverseLib.Runtime
     /// <typeparam name="TValue">The Type of the value for the member.</typeparam>
     public class AmbiguousMemberHandler<TClass, TValue>
     {
-        private readonly MemberInfo member;
-        private readonly MemberTypes memberType;
+        public readonly MemberInfo member;
+        public readonly MemberTypes memberType;
 
         public AmbiguousMemberHandler(bool canWrite, bool canRead, params string[] possibleNames)
         {

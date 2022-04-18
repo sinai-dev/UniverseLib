@@ -8,24 +8,18 @@ using UniverseLib.Utility;
 
 namespace UniverseLib
 {
-    public static class ReflectionPatches
+    internal static class ReflectionPatches
     {
-        public static void Init()
+        internal static void Init()
         {
-            try
-            {
-                MethodInfo method = typeof(Assembly).GetMethod(nameof(Assembly.GetTypes), new Type[0]);
-                PatchProcessor processor = Universe.Harmony.CreateProcessor(method);
-                processor.AddFinalizer(typeof(ReflectionPatches).GetMethod(nameof(Assembly_GetTypes)));
-                processor.Patch();
-            }
-            catch (Exception ex)
-            {
-                Universe.LogWarning($"Exception setting up Reflection patch: {ex}");
-            }
+            Universe.Patch(typeof(Assembly),
+                nameof(Assembly.GetTypes),
+                MethodType.Normal,
+                new Type[0],
+                finalizer: AccessTools.Method(typeof(ReflectionPatches), nameof(Finalizer_Assembly_GetTypes)));
         }
 
-        public static Exception Assembly_GetTypes(Assembly __instance, Exception __exception, ref Type[] __result)
+        public static Exception Finalizer_Assembly_GetTypes(Assembly __instance, Exception __exception, ref Type[] __result)
         {
             if (__exception != null)
             {

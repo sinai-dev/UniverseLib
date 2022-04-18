@@ -167,7 +167,7 @@ namespace UniverseLib.UI
             CanvasRoot.SetActive(false);
 
             EventSys = CanvasRoot.AddComponent<EventSystem>();
-            InputManager.AddUIModule();
+            EventSystemHelper.AddUIModule();
             EventSys.enabled = false;
 
             CanvasRoot.SetActive(true);
@@ -257,29 +257,13 @@ namespace UniverseLib.UI
 
         // AssetBundle patch
 
-        private static Type TypeofAssetBundle => ReflectionUtility.GetTypeByName("UnityEngine.AssetBundle");
-
-        private static void SetupAssetBundlePatches()
+        static void SetupAssetBundlePatches()
         {
-            try
-            {
-                if (TypeofAssetBundle.GetMethod("UnloadAllAssetBundles", AccessTools.all) is MethodInfo unloadAllBundles)
-                {
-#if CPP
-                    // if IL2CPP, ensure method wasn't stripped
-                    if (UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(unloadAllBundles) == null)
-                        return;
-#endif
-                    PatchProcessor processor = Universe.Harmony.CreateProcessor(unloadAllBundles);
-                    HarmonyMethod prefix = new(typeof(UniversalUI).GetMethod(nameof(Prefix_UnloadAllAssetBundles), AccessTools.all));
-                    processor.AddPrefix(prefix);
-                    processor.Patch();
-                }
-            }
-            catch (Exception ex)
-            {
-                Universe.LogWarning($"Exception setting up AssetBundle.UnloadAllAssetBundles patch: {ex}");
-            }
+            Universe.Patch(
+                ReflectionUtility.GetTypeByName("UnityEngine.AssetBundle"), 
+                "UnloadAllAssetBundles", 
+                MethodType.Normal, 
+                prefix: AccessTools.Method(typeof(UniversalUI), nameof(Prefix_UnloadAllAssetBundles)));
         }
 
         static bool Prefix_UnloadAllAssetBundles(bool unloadAllObjects)
