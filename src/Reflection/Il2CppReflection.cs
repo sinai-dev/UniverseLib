@@ -61,11 +61,8 @@ namespace UniverseLib
 
             try
             {
-                if (IsString(obj))
-                    return typeof(string);
-
-                if (IsIl2CppPrimitive(type))
-                    return il2cppPrimitivesToMono[type.FullName];
+                if (il2cppPrimitivesToMono.TryGetValue(type.FullName, out Type systemPrimitive))
+                    return systemPrimitive;
 
                 if (obj is Il2CppObjectBase cppBase)
                 {
@@ -81,10 +78,6 @@ namespace UniverseLib
                         cppType = cppObject.GetIl2CppType();
                     else
                         cppType = Il2CppType.TypeFromPointer(classPtr);
-
-                    // Check for boxed primitives (Unhollower will return "System.*" for Il2CppSystem types.
-                    if (AllTypes.TryGetValue(cppType.FullName, out Type primitive) && primitive.IsPrimitive)
-                        return primitive;
 
                     return GetUnhollowedType(cppType) ?? type;
                 }
@@ -102,6 +95,16 @@ namespace UniverseLib
         /// </summary>
         public static Type GetUnhollowedType(Il2CppSystem.Type cppType)
         {
+            if (cppType.IsArray)
+                return GetArrayBaseForArray(cppType);
+
+            // Check for primitives (Unhollower will return "System.*" for Il2CppSystem types.
+            if (AllTypes.TryGetValue(cppType.FullName, out Type primitive) && primitive.IsPrimitive)
+                return primitive;
+
+            if (IsString(cppType))
+                return typeof(string);
+
             string fullname = cppType.FullName;
 
             if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullname, out Type deob))
@@ -134,6 +137,21 @@ namespace UniverseLib
             }
 
             return monoType;
+        }
+
+        internal static Type GetArrayBaseForArray(Il2CppSystem.Type cppType)
+        {
+            Type elementType = GetUnhollowedType(cppType.GetElementType());
+
+            if (elementType == null)
+                throw new Exception($"Could not get unhollowed Element type for Array: {cppType.FullName}");
+
+            if (elementType.IsValueType)
+                return typeof(Il2CppStructArray<>).MakeGenericType(elementType);
+            else if (elementType == typeof(string))
+                return typeof(Il2CppStringArray);
+            else
+                return typeof(Il2CppReferenceArray<>).MakeGenericType(elementType);
         }
 
         #endregion
@@ -386,6 +404,22 @@ namespace UniverseLib
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns true if the type is string or Il2CppSystem.String
+        /// </summary>
+        public static bool IsString(Type type)
+        {
+            return type == typeof(string) || type == typeof(Il2CppSystem.String);
+        }
+
+        /// <summary>
+        /// Returns true if the type is string or Il2CppSystem.String
+        /// </summary>
+        public static bool IsString(Il2CppSystem.Type cppType)
+        {
+            return cppType.FullName == STRING_FULLNAME || cppType.FullName == IL2CPP_STRING_FULLNAME;
         }
 
         /// <summary>
@@ -662,14 +696,18 @@ namespace UniverseLib
             if (!getEnumeratorMethods.ContainsKey(key))
             {
                 MethodInfo method = type.GetMethod("GetEnumerator")
-                             ?? type.GetMethod("System_Collections_IEnumerable_GetEnumerator", FLAGS);
+                                 ?? type.GetMethod("System_Collections_IEnumerable_GetEnumerator", FLAGS);
                 getEnumeratorMethods.Add(key, method);
 
                 // ensure the enumerator type is supported
                 try
                 {
-                    object test = getEnumeratorMethods[key].Invoke(list, null);
-                    test.GetActualType().GetMethod("MoveNext").Invoke(test, null);
+                    MethodInfo testGetEnumerator = getEnumeratorMethods[key];
+                    Type testType = testGetEnumerator.DeclaringType;
+                    object testInstance = testGetEnumerator.Invoke(list.TryCast(testType), null);
+                    MethodInfo testMove = testInstance.GetActualType().GetMethod("MoveNext");
+                    testType = testMove.DeclaringType;
+                    testMove.Invoke(testInstance.TryCast(testType), null);
                 }
                 catch (Exception ex)
                 {
@@ -681,7 +719,9 @@ namespace UniverseLib
             if (notSupportedTypes.Contains(key))
                 throw new NotSupportedException($"The IEnumerable type '{type.FullName}' does not support MoveNext.");
 
-            cppEnumerator = getEnumeratorMethods[key].Invoke(list, null);
+            MethodInfo getEnumerator = getEnumeratorMethods[key];
+            Type declaring = getEnumerator.DeclaringType;
+            cppEnumerator = getEnumerator.Invoke(list.TryCast(declaring), null);
             Type enumeratorType = cppEnumerator.GetActualType();
 
             string enumInfoKey = enumeratorType.AssemblyQualifiedName;
@@ -700,6 +740,9 @@ namespace UniverseLib
 
         internal static IEnumerator EnumerateCppList(EnumeratorInfo info, object enumerator)
         {
+            Type declaring = info.moveNext.DeclaringType;
+            enumerator = enumerator.TryCast(declaring);
+
             // Yield and return the actual entries
             while ((bool)info.moveNext.Invoke(enumerator, null))
                 yield return info.current.GetValue(enumerator);
@@ -774,14 +817,19 @@ namespace UniverseLib
                 if (!getEnumeratorMethods.ContainsKey(cacheKey))
                 {
                     MethodInfo method = keyCollType.GetMethod("GetEnumerator")
-                                 ?? keyCollType.GetMethod("System_Collections_IDictionary_GetEnumerator", FLAGS);
+                                     ?? keyCollType.GetMethod("System_Collections_IDictionary_GetEnumerator", FLAGS);
                     getEnumeratorMethods.Add(cacheKey, method);
 
                     // test support
                     try
                     {
-                        object test = getEnumeratorMethods[cacheKey].Invoke(keys, null);
-                        test.GetActualType().GetMethod("MoveNext").Invoke(test, null);
+                        MethodInfo testMethod = getEnumeratorMethods[cacheKey];
+                        Type testType = testMethod.DeclaringType;
+                        object test = testMethod.Invoke(keys.TryCast(testType), null);
+
+                        testMethod = test.GetActualType().GetMethod("MoveNext");
+                        testType = testMethod.DeclaringType;
+                        testMethod.Invoke(test.TryCast(testType), null);
                     }
                     catch (Exception ex)
                     {
@@ -793,7 +841,9 @@ namespace UniverseLib
                 if (notSupportedTypes.Contains(cacheKey))
                     throw new Exception($"The IDictionary type '{type.FullName}' does not support MoveNext.");
 
-                object keyEnumerator = getEnumeratorMethods[cacheKey].Invoke(keys, null);
+                MethodInfo keyEnumeratorMethod = getEnumeratorMethods[cacheKey];
+                Type keyEnumeratorDeclaring = keyEnumeratorMethod.DeclaringType;
+                object keyEnumerator = keyEnumeratorMethod.Invoke(keys.TryCast(keyEnumeratorDeclaring), null);
                 EnumeratorInfo keyInfo = new()
                 {
                     current = keyEnumerator.GetActualType().GetProperty("Current"),
@@ -801,7 +851,9 @@ namespace UniverseLib
                 };
 
                 object values = type.GetProperty("Values").GetValue(dictionary, null);
-                object valueEnumerator = values.GetActualType().GetMethod("GetEnumerator").Invoke(values, null);
+                MethodInfo valuesEnumeratorMethod = values.GetActualType().GetMethod("GetEnumerator");
+                Type valuesDeclaring = valuesEnumeratorMethod.DeclaringType;
+                object valueEnumerator = valuesEnumeratorMethod.Invoke(values.TryCast(valuesDeclaring), null);
                 EnumeratorInfo valueInfo = new()
                 {
                     current = valueEnumerator.GetActualType().GetProperty("Current"),
@@ -822,6 +874,9 @@ namespace UniverseLib
         internal static IEnumerator<DictionaryEntry> EnumerateCppDict(EnumeratorInfo keyInfo, object keyEnumerator, 
             EnumeratorInfo valueInfo, object valueEnumerator)
         {
+            keyEnumerator = keyEnumerator.TryCast(keyInfo.moveNext.DeclaringType);
+            valueEnumerator = valueEnumerator.TryCast(valueInfo.moveNext.DeclaringType);
+
             while ((bool)keyInfo.moveNext.Invoke(keyEnumerator, null))
             {
                 valueInfo.moveNext.Invoke(valueEnumerator, null);
