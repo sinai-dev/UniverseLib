@@ -1,13 +1,8 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
-using UniverseLib;
 using UniverseLib.Config;
 using UniverseLib.Input;
 using UniverseLib.Runtime;
@@ -35,7 +30,7 @@ namespace UniverseLib
         /// <summary>The current setup state of UniverseLib.</summary>
         public static GlobalState CurrentGlobalState { get; private set; }
 
-        internal static HarmonyLib.Harmony Harmony { get; } = new HarmonyLib.Harmony(GUID);
+        internal static Harmony Harmony { get; } = new Harmony(GUID);
 
         private static event Action OnInitialized;
 
