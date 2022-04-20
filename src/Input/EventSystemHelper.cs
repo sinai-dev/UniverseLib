@@ -78,9 +78,9 @@ namespace UniverseLib.Input
 
                 ExecuteEvents.Execute(obj, pointer, ExecuteEvents.selectHandler);
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
-                Universe.LogWarning($"Exception setting current selected GameObject: {e}");
+                //Universe.LogWarning($"Exception setting current selected GameObject: {e}");
             }
         }
 
@@ -243,7 +243,7 @@ namespace UniverseLib.Input
                     new Type[] { typeof(GameObject), typeof(BaseEventData), typeof(int) },
                     new Type[] { typeof(GameObject), typeof(BaseEventData) }
                 },
-                AccessTools.Method(typeof(EventSystemHelper), nameof(Prefix_EventSystem_SetSelectedGameObject)));
+                prefix: AccessTools.Method(typeof(EventSystemHelper), nameof(Prefix_EventSystem_SetSelectedGameObject)));
         }
 
         // Prevent setting non-UniverseLib objects as selected when a menu is open
