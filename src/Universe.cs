@@ -20,7 +20,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.3.6";
+        public const string VERSION = "1.3.7";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -188,10 +188,11 @@ namespace UniverseLib
                 }
 
 #if CPP
-                // if IL2CPP, ensure method wasn't stripped
-                if (UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target) == null)
+                // if this is an IL2CPP type, ensure method wasn't stripped.
+                if (UnhollowerRuntimeLib.Il2CppType.From(type, false) != null
+                    && UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target) == null)
                 {
-                    // LogWarning($"\t IL2CPP method has no corresponding pointer, aborting patch!");
+                    Log($"\t IL2CPP method has no corresponding pointer, aborting patch of {type.FullName}.{methodName}");
                     return false;
                 }
 #endif
