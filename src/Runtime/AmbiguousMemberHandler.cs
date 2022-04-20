@@ -78,9 +78,9 @@ namespace UniverseLib.Runtime
 
                 return value == null ? default : (TValue)value;
             }
-            catch (Exception ex)
+            catch // (Exception ex)
             {
-                Universe.LogWarning($"Exception getting value from member {member}: {ex}");
+                // Universe.LogWarning($"Exception getting value from member {member}: {ex}");
                 return default;
             }
         }
@@ -118,9 +118,9 @@ namespace UniverseLib.Runtime
                         break;
                 }
             }
-            catch (Exception ex)
+            catch // (Exception ex)
             {
-                Universe.LogWarning($"Exception setting value '{value}' to member {member.DeclaringType.Name}.{member}: {ex}");
+                // Universe.LogWarning($"Exception setting value '{value}' to member {member.DeclaringType.Name}.{member}: {ex}");
             }
         }
     }
