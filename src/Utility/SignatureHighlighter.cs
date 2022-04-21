@@ -106,9 +106,9 @@ namespace UniverseLib.Utility
                 throw new ArgumentNullException("type");
 
             if (memberInfo is MethodInfo mi)
-                return HighlightMethod(mi);
+                return ParseMethod(mi);
             else if (memberInfo is ConstructorInfo ci)
-                return HighlightConstructor(ci);
+                return ParseConstructor(ci);
 
             StringBuilder sb = new();
 
@@ -318,10 +318,13 @@ namespace UniverseLib.Utility
             return _string;
         }
 
+        [Obsolete("Use 'ParseMethod(MethodInfo)' instead (rename).")]
+        public static string HighlightMethod(MethodInfo method) => ParseMethod(method);
+
         /// <summary>
         /// Highlight the provided method's signature with it's containing Type, and all arguments.
         /// </summary>
-        public static string HighlightMethod(MethodInfo method)
+        public static string ParseMethod(MethodInfo method)
         {
             string sig = method.FullDescription();
             if (highlightedMethods.ContainsKey(sig))
@@ -340,7 +343,7 @@ namespace UniverseLib.Utility
             sb.Append($"<color={color}>{method.Name}</color>");
 
             // generic arguments
-            if (method.ContainsGenericParameters)
+            if (method.IsGenericMethod)
             {
                 sb.Append("<");
                 Type[] genericArgs = method.GetGenericArguments();
@@ -370,10 +373,13 @@ namespace UniverseLib.Utility
             return ret;
         }
 
+        [Obsolete("Use 'ParseConstructor(ConstructorInfo)' instead (rename).")]
+        public static string HighlightConstructor(ConstructorInfo ctor) => ParseConstructor(ctor);
+
         /// <summary>
         /// Highlight the provided constructors's signature with it's containing Type, and all arguments.
         /// </summary>
-        public static string HighlightConstructor(ConstructorInfo ctor)
+        public static string ParseConstructor(ConstructorInfo ctor)
         {
             string sig = ctor.FullDescription();
             if (highlightedMethods.ContainsKey(sig))
@@ -449,33 +455,5 @@ namespace UniverseLib.Utility
 
             throw new NotImplementedException(memberInfo.GetType().Name + " is not supported");
         }
-
-
-
-        [Obsolete("No longer maintained or used.")]
-        public static string ParseGenericArgs(Type[] args, bool isGenericParams = false)
-        {
-            if (args.Length < 1)
-                return string.Empty;
-
-            StringBuilder sb = new();
-
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (i > 0)
-                    sb.Append(',').Append(' ');
-
-                if (isGenericParams)
-                {
-                    sb.Append(OPEN_COLOR).Append(CONST).Append('>').Append(args[i].Name).Append(CLOSE_COLOR);
-                    continue;
-                }
-
-                sb.Append(ProcessType(args[i]));
-            }
-
-            return sb.ToString();
-        }
-
     }
 }
