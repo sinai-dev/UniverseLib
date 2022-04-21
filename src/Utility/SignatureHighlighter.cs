@@ -44,6 +44,8 @@ namespace UniverseLib.Utility
 
         public static readonly Regex ArrayTokenRegex = new(@"\[,*?\]");
 
+        static readonly Regex colorTagRegex = new(@"<color=#?[\d|\w]*>");
+
         public static readonly Color StringOrange = new(0.83f, 0.61f, 0.52f);
         public static readonly Color EnumGreen = new(0.57f, 0.76f, 0.43f);
         public static readonly Color KeywordBlue = new(0.3f, 0.61f, 0.83f);
@@ -72,30 +74,6 @@ namespace UniverseLib.Utility
             { typeof(ushort),  "ushort" },
             { typeof(void),    "void" },
         };
-
-        internal static string GetClassColor(Type type)
-        {
-            if (type.IsAbstract && type.IsSealed)
-                return CLASS_STATIC;
-            else if (type.IsEnum || type.IsGenericParameter)
-                return CONST;
-            else if (type.IsValueType)
-                return STRUCT;
-            else if (type.IsInterface)
-                return INTERFACE;
-            else
-                return CLASS_INSTANCE;
-        }
-
-        private static bool TryGetNamespace(Type type, out string ns)
-            => !string.IsNullOrEmpty(ns = type.Namespace?.Trim());
-
-        private static StringBuilder AppendOpenColor(StringBuilder sb, string color)
-        {
-            return sb.Append(OPEN_COLOR)
-                .Append(color)
-                .Append('>');
-        }
 
         /// <summary>
         /// Highlight the full signature of the Type, including optionally the Namespace, and optionally combined with a MemberInfo.
@@ -190,6 +168,32 @@ namespace UniverseLib.Utility
             string ret = sb.ToString();
             typeToRichType.Add(key, ret);
             return ret;
+        }
+
+        internal static string GetClassColor(Type type)
+        {
+            if (type.IsAbstract && type.IsSealed)
+                return CLASS_STATIC;
+            else if (type.IsEnum || type.IsGenericParameter)
+                return CONST;
+            else if (type.IsValueType)
+                return STRUCT;
+            else if (type.IsInterface)
+                return INTERFACE;
+            else
+                return CLASS_INSTANCE;
+        }
+
+        static bool TryGetNamespace(Type type, out string ns)
+        {
+            return !string.IsNullOrEmpty(ns = type.Namespace?.Trim());
+        }
+
+        static StringBuilder AppendOpenColor(StringBuilder sb, string color)
+        {
+            return sb.Append(OPEN_COLOR)
+                .Append(color)
+                .Append('>');
         }
 
         static string HighlightType(Type type)
@@ -299,8 +303,6 @@ namespace UniverseLib.Utility
             }
         }
 
-        static readonly Regex colorTagRegex = new(@"<color=#?[\d|\w]*>");
-
         /// <summary>
         /// Removes highlighting from the string (color and italics only, as that is all this class handles).
         /// </summary>
@@ -349,7 +351,12 @@ namespace UniverseLib.Utility
                 Type[] genericArgs = method.GetGenericArguments();
                 for (int i = 0; i < genericArgs.Length; i++)
                 {
-                    sb.Append($"<color={CONST}>{genericArgs[i].Name}</color>");
+                    Type arg = genericArgs[i];
+                    if (arg.IsGenericParameter)
+                        sb.Append($"<color={CONST}>{genericArgs[i].Name}</color>");
+                    else
+                        sb.Append(Parse(arg, false));
+
                     if (i < genericArgs.Length - 1)
                         sb.Append(", ");
                 }
@@ -409,7 +416,6 @@ namespace UniverseLib.Utility
             highlightedMethods.Add(sig, ret);
             return ret;
         }
-
 
         /// <summary>
         /// Get the color used by SignatureHighlighter for the provided member, and whether it is static or not.
