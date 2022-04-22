@@ -27,13 +27,14 @@ namespace UniverseLib
 
         internal static void Init()
         {
+            ReflectionPatches.Init();
+
             Instance =
 #if CPP
                 new Il2CppReflection();
 #else
                 new ReflectionUtility();
 #endif
-            ReflectionPatches.Init();
 
             Instance.Initialize();
         }
@@ -142,9 +143,32 @@ namespace UniverseLib
 
         internal virtual Type Internal_GetTypeByName(string fullName)
         {
+            if (shorthandToType.TryGetValue(fullName, out Type shorthand))
+                return shorthand;
+
             AllTypes.TryGetValue(fullName, out Type type);
             return type;
         }
+
+        static readonly Dictionary<string, Type> shorthandToType = new()
+        {
+            { "object", typeof(object) },
+            { "string", typeof(string) },
+            { "bool", typeof(bool) },
+            { "byte", typeof(byte) },
+            { "sbyte", typeof(sbyte) },
+            { "char", typeof(char) },
+            { "decimal", typeof(decimal) },
+            { "double", typeof(double) },
+            { "float", typeof(float) },
+            { "int", typeof(int) },
+            { "uint", typeof(uint) },
+            { "long", typeof(long) },
+            { "ulong", typeof(ulong) },
+            { "short", typeof(short) },
+            { "ushort", typeof(ushort) },
+            { "void", typeof(void) },
+        };
 
         // Getting the actual type of an object
         internal virtual Type Internal_GetActualType(object obj)
@@ -310,9 +334,9 @@ namespace UniverseLib
                         Type type = AllTypes[name];
 
                         if (set.Contains(type)
-                            || (type.IsAbstract && type.IsSealed) // ignore static classes
+                            //|| (type.IsAbstract && type.IsSealed) // ignore static classes
                             || (!allowAbstract && type.IsAbstract)
-                            || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition))
+                            || (!allowGeneric && type.IsGenericType)
                             || (!allowEnum && type.IsEnum))
                             continue;
 
