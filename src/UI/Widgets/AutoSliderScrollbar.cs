@@ -35,6 +35,8 @@ namespace UniverseLib.UI.Widgets
 
             //this.RefreshVisibility();
             this.Slider.Set(0f, false);
+
+            UpdateSliderHandle();
         }
 
         private float lastAnchorPosition;
