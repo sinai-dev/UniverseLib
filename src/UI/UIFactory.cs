@@ -815,7 +815,7 @@ namespace UniverseLib.UI
         {
             GameObject mainObj = CreateUIObject("SliderScrollbar", parent, smallElementSize);
             mainObj.AddComponent<Mask>().showMaskGraphic = false;
-            mainObj.AddComponent<Image>().color = Color.white;
+            mainObj.AddComponent<Image>().color = new(0.1f, 0.1f, 0.1f, 1);
 
             GameObject bgImageObj = CreateUIObject("Background", mainObj);
             GameObject handleSlideAreaObj = CreateUIObject("Handle Slide Area", mainObj);
@@ -896,7 +896,7 @@ namespace UniverseLib.UI
             viewportRect.anchorMax = Vector2.one;
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
             viewportRect.offsetMax = new Vector2(-28, 0);
-            viewportObj.AddComponent<Image>().color = Color.white;
+            viewportObj.AddComponent<Image>().color = new(0.1f, 0.1f, 0.1f, 1);
             viewportObj.AddComponent<Mask>().showMaskGraphic = false;
 
             content = CreateUIObject("Content", viewportObj);
@@ -916,7 +916,7 @@ namespace UniverseLib.UI
             scrollBarRect.anchorMax = Vector2.one;
             scrollBarRect.offsetMin = new Vector2(-25, 0);
             SetLayoutGroup<VerticalLayoutGroup>(scrollBarObj, false, true, true, true);
-            scrollBarObj.AddComponent<Image>().color = Color.white;
+            scrollBarObj.AddComponent<Image>().color = new(0.1f, 0.1f, 0.1f, 1);
             scrollBarObj.AddComponent<Mask>().showMaskGraphic = false;
 
             GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out Scrollbar hiddenScrollbar);
@@ -978,7 +978,7 @@ namespace UniverseLib.UI
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
             viewportRect.pivot = new Vector2(0.0f, 1.0f);
-            viewportObj.AddComponent<Image>().color = Color.white;
+            viewportObj.AddComponent<Image>().color = new(0.1f, 0.1f, 0.1f, 1);
             viewportObj.AddComponent<Mask>().showMaskGraphic = false;
 
             // Input Field
@@ -1011,7 +1011,7 @@ namespace UniverseLib.UI
             GameObject scrollBarObj = CreateUIObject("AutoSliderScrollbar", mainObj);
             SetLayoutGroup<VerticalLayoutGroup>(scrollBarObj, true, true, true, true);
             SetLayoutElement(scrollBarObj, minWidth: 25, flexibleWidth: 0, flexibleHeight: 9999);
-            scrollBarObj.AddComponent<Image>().color = Color.white;
+            scrollBarObj.AddComponent<Image>().color = new(0.1f, 0.1f, 0.1f, 1);
             scrollBarObj.AddComponent<Mask>().showMaskGraphic = false;
 
             GameObject hiddenBar = CreateScrollbar(scrollBarObj, "HiddenScrollviewScroller", out Scrollbar hiddenScrollbar);
