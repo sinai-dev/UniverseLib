@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,6 @@ using UnityEngine;
 using UniverseLib.Config;
 using UniverseLib.Runtime;
 using UniverseLib.Utility;
-using BF = System.Reflection.BindingFlags;
 
 namespace UniverseLib
 {
@@ -18,10 +18,9 @@ namespace UniverseLib
     /// </summary>
     public class ReflectionUtility
     {
-        /// <summary>
-        /// Shorthand for BF.Public | BF.Instance | BF.NonPublic | BF.Static
-        /// </summary>
-        public const BF FLAGS = BF.Public | BF.Instance | BF.NonPublic | BF.Static;
+        public static bool Initializing;
+
+        public const BindingFlags FLAGS = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static;
 
         internal static ReflectionUtility Instance { get; private set; }
 
@@ -42,55 +41,80 @@ namespace UniverseLib
         protected virtual void Initialize()
         {
             SetupTypeCache();
+            Initializing = false;
         }
 
         #region Type cache
 
-        public static Action<Type> OnTypeLoaded;
+        public static event Action<Type> OnTypeLoaded;
 
         /// <summary>Key: Type.FullName, Value: Type</summary>
         public static readonly SortedDictionary<string, Type> AllTypes = new(StringComparer.OrdinalIgnoreCase);
 
         public static readonly List<string> AllNamespaces = new();
-        private static readonly HashSet<string> uniqueNamespaces = new();
+        static readonly HashSet<string> uniqueNamespaces = new();
 
-        private static string[] allTypesArray;
+        static string[] allTypeNamesArray;
+
+        /// <summary>
+        /// Returns an alphabetically-ordered array of all Type names in the AppDomain.
+        /// </summary>
         public static string[] GetTypeNameArray()
         {
-            if (allTypesArray == null || allTypesArray.Length != AllTypes.Count)
+            if (allTypeNamesArray == null || allTypeNamesArray.Length != AllTypes.Count)
             {
-                allTypesArray = new string[AllTypes.Count];
+                allTypeNamesArray = new string[AllTypes.Count];
                 int i = 0;
                 foreach (string name in AllTypes.Keys)
                 {
-                    allTypesArray[i] = name;
+                    allTypeNamesArray[i] = name;
                     i++;
                 }
             }
-            return allTypesArray;
+            return allTypeNamesArray;
         }
 
-        private static void SetupTypeCache()
+        static void SetupTypeCache()
         {
-            float start = Time.realtimeSinceStartup;
+            // For mono games, force load all 'Managed/' assemblies on startup.
+            if (Universe.Context == RuntimeContext.Mono)
+                ForceLoadManagedAssemblies();
 
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                 CacheTypes(asm);
 
             AppDomain.CurrentDomain.AssemblyLoad += AssemblyLoaded;
-
-            Universe.Log($"Cached AppDomain assemblies in {Time.realtimeSinceStartup - start} seconds");
         }
 
-        private static void AssemblyLoaded(object sender, AssemblyLoadEventArgs args)
+        static void AssemblyLoaded(object sender, AssemblyLoadEventArgs args)
         {
             if (args.LoadedAssembly == null || args.LoadedAssembly.GetName().Name == "completions")
                 return;
 
+            // Universe.Log($"\t - Assembly loaded: {args.LoadedAssembly.GetName().Name}");
+
             CacheTypes(args.LoadedAssembly);
         }
 
-        private static void CacheTypes(Assembly asm)
+        static void ForceLoadManagedAssemblies()
+        {
+            string path = Path.Combine(Application.dataPath, "Managed");
+            if (Directory.Exists(path))
+            {
+                foreach (string dllPath in Directory.GetFiles(path, "*.dll"))
+                {
+                    try
+                    {
+                        // load and resolve the assembly's types.
+                        Assembly asm = Assembly.LoadFile(dllPath);
+                        asm.TryGetTypes();
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        static void CacheTypes(Assembly asm)
         {
             foreach (Type type in asm.TryGetTypes())
             {
@@ -113,18 +137,6 @@ namespace UniverseLib
 
                 // Invoke listener
                 OnTypeLoaded?.Invoke(type);
-
-                // Check type inheritance cache, add this to any lists it should be in
-                foreach (string key in typeInheritance.Keys)
-                {
-                    try
-                    {
-                        Type baseType = AllTypes[key];
-                        if (baseType.IsAssignableFrom(type) && !typeInheritance[key].Contains(type))
-                            typeInheritance[key].Add(type);
-                    }
-                    catch { }
-                }
             }
         }
 
@@ -191,10 +203,10 @@ namespace UniverseLib
         /// Used by UnityExplorer's Singleton search. Checks all <paramref name="possibleNames"/> as field members (and properties in IL2CPP) for instances of the <paramref name="type"/>, 
         /// and populates the <paramref name="instances"/> list with non-null values.
         /// </summary>
-        public static void FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
+        public static void FindSingleton(string[] possibleNames, Type type, BindingFlags flags, List<object> instances)
             => Instance.Internal_FindSingleton(possibleNames, type, flags, instances);
 
-        internal virtual void Internal_FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
+        internal virtual void Internal_FindSingleton(string[] possibleNames, Type type, BindingFlags flags, List<object> instances)
         {
             // Look for a typical Instance backing field.
             FieldInfo fi;
@@ -272,29 +284,7 @@ namespace UniverseLib
         #endregion
 
 
-        #region Type and Generic Parameter implementation cache
-
-        // cache for GetImplementationsOf
-        internal static readonly Dictionary<string, HashSet<Type>> typeInheritance = new();
-        internal static readonly Dictionary<string, HashSet<Type>> genericParameterInheritance = new();
-
-        /// <summary>
-        /// Returns the key used for checking implementations of this type.
-        /// </summary>
-        public static string GetImplementationKey(Type type)
-        {
-            if (!type.IsGenericParameter)
-                return type.FullName;
-            else
-            {
-                StringBuilder sb = new();
-                sb.Append(type.GenericParameterAttributes)
-                    .Append('|');
-                foreach (Type c in type.GetGenericParameterConstraints())
-                    sb.Append(c.FullName).Append(',');
-                return sb.ToString();
-            }
-        }
+        #region GetImplementationsOf
 
         /// <summary>
         /// Get all implementations of the provided type (include itself, if not abstract) in the current AppDomain.
@@ -302,106 +292,99 @@ namespace UniverseLib
         /// </summary>
         /// <param name="baseType">The base type, which can optionally be abstract / interface.</param>
         /// <returns>All implementations of the type in the current AppDomain.</returns>
-        public static HashSet<Type> GetImplementationsOf(Type baseType, bool allowAbstract, bool allowGeneric, bool allowEnum, bool allowRecursive = true)
+        public static void GetImplementationsOf(Type baseType, Action<HashSet<Type>> onResultsFetched,
+            bool allowAbstract, bool allowGeneric, bool allowEnum)
         {
-            string key = GetImplementationKey(baseType);
-
-            int count = AllTypes.Count;
-            HashSet<Type> ret;
-            if (!baseType.IsGenericParameter)
-                ret = GetImplementations(key, baseType, allowAbstract, allowGeneric, allowEnum);
-            else
-                ret = GetGenericParameterImplementations(key, baseType, allowAbstract, allowGeneric);
-
-            // types were resolved during the parse, do it again if we're not already rebuilding.
-            if (allowRecursive && AllTypes.Count != count)
-                ret = GetImplementationsOf(baseType, allowAbstract, allowGeneric, false);
-
-            return ret;
+            RuntimeHelper.StartCoroutine(DoGetImplementations(onResultsFetched, baseType, allowAbstract, allowGeneric, allowEnum));
         }
 
-        private static HashSet<Type> GetImplementations(string key, Type baseType, bool allowAbstract, bool allowGeneric, bool allowEnum)
+        static IEnumerator DoGetImplementations(Action<HashSet<Type>> onResultsFetched, Type baseType,
+            bool allowAbstract, bool allowGeneric, bool allowEnum)
         {
-            if (!typeInheritance.ContainsKey(key))
+            List<Type> resolvedTypes = new();
+            void ourListener(Type t) { resolvedTypes.Add(t); }
+            OnTypeLoaded += ourListener;
+
+            HashSet<Type> set = new();
+
+            IEnumerator coro = GetImplementationsAsync(baseType, set, allowAbstract, allowGeneric, allowEnum, DefaultTypesEnumerator());
+            while (coro.MoveNext())
+                yield return null;
+
+            OnTypeLoaded -= ourListener;
+            if (resolvedTypes.Count > 0)
             {
-                HashSet<Type> set = new();
-                string[] names = GetTypeNameArray();
-                for (int i = 0; i < names.Length; i++)
-                {
-                    string name = names[i];
-                    try
-                    {
-                        Type type = AllTypes[name];
-
-                        if (set.Contains(type)
-                            //|| (type.IsAbstract && type.IsSealed) // ignore static classes
-                            || (!allowAbstract && type.IsAbstract)
-                            || (!allowGeneric && type.IsGenericType)
-                            || (!allowEnum && type.IsEnum))
-                            continue;
-
-                        if (type.FullName.Contains("PrivateImplementationDetails")
-                            || type.FullName.Contains("DisplayClass")
-                            || type.FullName.Contains('<'))
-                            continue;
-
-                        if (baseType.IsAssignableFrom(type))
-                            set.Add(type);
-                    }
-                    catch { }
-                }
-
-                typeInheritance.Add(key, set);
+                coro = GetImplementationsAsync(baseType, set, allowAbstract, allowGeneric, allowEnum, resolvedTypes.GetEnumerator());
+                while (coro.MoveNext())
+                    yield return null;
             }
 
-            return typeInheritance[key];
+            onResultsFetched(set);
         }
 
-        private static HashSet<Type> GetGenericParameterImplementations(string key, Type baseType, bool allowAbstract, bool allowGeneric)
+        static IEnumerator<Type> DefaultTypesEnumerator()
         {
-            if (!genericParameterInheritance.ContainsKey(key))
+            string[] names = GetTypeNameArray();
+            for (int i = 0; i < names.Length; i++)
             {
-                HashSet<Type> set = new();
+                string name = names[i];
+                yield return AllTypes[name];
+            }
+        }
 
-                string[] names = GetTypeNameArray();
-                for (int i = 0; i < names.Length; i++)
+        static IEnumerator GetImplementationsAsync(Type baseType, HashSet<Type> set, bool allowAbstract, bool allowGeneric, bool allowEnum, 
+            IEnumerator<Type> enumerator)
+        {
+            Stopwatch sw = new();
+            sw.Start();
+
+            bool isGenericParam = baseType != null && baseType.IsGenericParameter;
+
+            while (enumerator.MoveNext())
+            {
+                if (sw.ElapsedMilliseconds > 10)
                 {
-                    string name = names[i];
-                    try
+                    yield return null;
+                    sw.Reset();
+                    sw.Start();
+                }
+
+                try
+                {
+                    Type type = enumerator.Current;
+
+                    if (set.Contains(type)
+                        || (!allowAbstract && type.IsAbstract)
+                        || (!allowGeneric && type.IsGenericType)
+                        || (!allowEnum && type.IsEnum)
+                        || type.FullName.Contains("PrivateImplementationDetails")
+                        || type.FullName.Contains("DisplayClass")
+                        || type.FullName.Contains('<'))
+                        continue;
+
+                    if (!isGenericParam)
                     {
-                        Type type = AllTypes[name];
-
-                        if (set.Contains(type)
-                            || (type.IsAbstract && type.IsSealed) // ignore static classes
-                            || (!allowAbstract && type.IsAbstract)
-                            || (!allowGeneric && (type.IsGenericType || type.IsGenericTypeDefinition)))
+                        if (baseType != null && !baseType.IsAssignableFrom(type))
+                            continue;
+                    }
+                    else
+                    {
+                        if (type.IsClass
+                            && baseType.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
                             continue;
 
-                        if (type.FullName.Contains("PrivateImplementationDetails")
-                            || type.FullName.Contains("DisplayClass")
-                            || type.FullName.Contains('<'))
-                            continue;
-
-                        if (baseType.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint)
-                            && type.IsClass)
-                            continue;
-
-                        if (baseType.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint)
-                            && type.IsValueType)
+                        if (type.IsValueType
+                            && baseType.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint))
                             continue;
 
                         if (baseType.GetGenericParameterConstraints().Any(it => !it.IsAssignableFrom(type)))
                             continue;
-
-                        set.Add(type);
                     }
-                    catch { }
+
+                    set.Add(type);
                 }
-
-                genericParameterInheritance.Add(key, set);
+                catch { }
             }
-
-            return genericParameterInheritance[key];
         }
 
         #endregion
