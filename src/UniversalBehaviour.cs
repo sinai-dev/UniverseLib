@@ -13,10 +13,6 @@ namespace UniverseLib
     {
         internal static UniversalBehaviour Instance { get; private set; }
 
-#if CPP
-        public UniversalBehaviour(IntPtr ptr) : base(ptr) { }
-#endif
-
         internal static void Setup()
         {
 #if CPP
@@ -33,5 +29,31 @@ namespace UniverseLib
         {
             Universe.Update();
         }
+
+#if CPP
+        public UniversalBehaviour(IntPtr ptr) : base(ptr) { }
+
+        static Delegate queuedDelegate;
+
+        internal static void InvokeDelegate(Delegate method)
+        {
+            queuedDelegate = method;
+            Instance.Invoke(nameof(InvokeQueuedAction), 0f);
+        }
+
+        static void InvokeQueuedAction()
+        {
+            try
+            {
+                Delegate method = queuedDelegate;
+                queuedDelegate = null;
+                method?.DynamicInvoke();
+            }
+            catch (Exception ex)
+            {
+                Universe.LogWarning($"Exception invoking action from IL2CPP thread: {ex}");
+            }
+        }
+#endif
     }
 }
