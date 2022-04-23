@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
 using UniverseLib.Config;
@@ -20,12 +21,17 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.3.8";
+        public const string VERSION = "1.3.9";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
         /// <summary>The current runtime context (Mono or IL2CPP).</summary>
-        public static RuntimeContext Context { get; internal set; }
+        public static RuntimeContext Context { get; internal set; } =
+#if MONO
+            RuntimeContext.Mono;
+#else
+            RuntimeContext.IL2CPP;
+#endif
 
         /// <summary>The current setup state of UniverseLib.</summary>
         public static GlobalState CurrentGlobalState { get; private set; }
@@ -91,7 +97,7 @@ namespace UniverseLib
                 // Begin the startup delay coroutine
                 RuntimeHelper.Instance.Internal_StartCoroutine(SetupCoroutine());
 
-                Log($"Finished UniverseLib initial setup");
+                Log($"Finished UniverseLib initial setup.");
             }
         }
 
@@ -106,15 +112,10 @@ namespace UniverseLib
             // not allow other Init calls to set a higher delay.
             yield return null;
 
-            float prevRealTime = Time.realtimeSinceStartup;
-            while (startupDelay > 0)
-            {
-                // In some games, Time.realtimeSinceStartup can give strange values during startup and cause this to break.
-                // So instead, we take the higher of either the realtime delta or the game's Time.deltaTime.
-                startupDelay -= Math.Max(Time.deltaTime, Time.realtimeSinceStartup - prevRealTime);
-                prevRealTime = Time.realtimeSinceStartup;
+            Stopwatch sw = new();
+            sw.Start();
+            while (ReflectionUtility.Initializing || sw.ElapsedMilliseconds * 0.001f < startupDelay)
                 yield return null;
-            }
 
             // Initialize late startup processes
             InputManager.Init();

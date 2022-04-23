@@ -19,7 +19,6 @@ namespace UniverseLib.Runtime.Mono
     {
         protected internal override void OnInitialize()
         {
-            Universe.Context = RuntimeContext.Mono;
             new MonoTextureHelper();
         }
 

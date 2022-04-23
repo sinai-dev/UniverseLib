@@ -34,7 +34,6 @@ namespace UniverseLib.Runtime.Il2Cpp
 
         protected internal override void OnInitialize()
         {
-            Universe.Context = RuntimeContext.IL2CPP;
             new Il2CppTextureHelper();
         }
 
