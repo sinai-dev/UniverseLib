@@ -33,6 +33,10 @@ namespace UniverseLib.UI.Panels
         /// <summary>Force any current Resizing to immediately end.</summary>
         public static void ForceEndResize()
         {
+            if (!resizeCursor || resizeCursorUIBase == null)
+                return;
+
+            resizeCursorUIBase.Enabled = false;
             resizeCursor.SetActive(false);
             wasAnyDragging = false;
             Resizing = false;

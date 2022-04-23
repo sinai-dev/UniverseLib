@@ -92,6 +92,9 @@ namespace UniverseLib.UI
                 uiBase.RootObject.SetActive(active);
                 if (active)
                     uiBase.SetOnTop();
+                else if (uiBase != PanelManager.resizeCursorUIBase)
+                    PanelManager.ForceEndResize();
+
                 CursorUnlocker.UpdateCursorControl();
                 return;
             }
