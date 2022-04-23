@@ -521,7 +521,7 @@ namespace UniverseLib
         {
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (Type type in asm.TryGetTypes())
+                foreach (Type type in asm.GetTypes())
                     TryCacheDeobfuscatedType(type);
             }
         }

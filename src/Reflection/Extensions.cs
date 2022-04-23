@@ -43,9 +43,7 @@ namespace UniverseLib
 
         // ------- Misc extensions --------
 
-        /// <summary>
-        /// Safely try to get all Types inside an Assembly, catching any and all exceptions, and with fallback methods should exceptions occur.
-        /// </summary>
+        [Obsolete("This method is no longer necessary, just use Assembly.GetTypes().", false)]
         public static IEnumerable<Type> TryGetTypes(this Assembly asm)
         {
             // This is redundant since we patch Assembly.GetTypes with a Finalizer anyway.

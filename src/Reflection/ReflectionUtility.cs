@@ -107,7 +107,7 @@ namespace UniverseLib
                     {
                         // load and resolve the assembly's types.
                         Assembly asm = Assembly.LoadFile(dllPath);
-                        asm.TryGetTypes();
+                        asm.GetTypes();
                     }
                     catch { }
                 }
@@ -116,7 +116,7 @@ namespace UniverseLib
 
         static void CacheTypes(Assembly asm)
         {
-            foreach (Type type in asm.TryGetTypes())
+            foreach (Type type in asm.GetTypes())
             {
                 // Cache namespace if there is one
                 if (!string.IsNullOrEmpty(type.Namespace) && !uniqueNamespaces.Contains(type.Namespace))
