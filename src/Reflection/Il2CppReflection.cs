@@ -21,6 +21,8 @@ using UniverseLib.Utility;
 using System.Text.RegularExpressions;
 using UniverseLib.Reflection;
 using UnhollowerBaseLib.Runtime;
+using System.Diagnostics;
+using UniverseLib.Runtime.Il2Cpp;
 
 namespace UniverseLib
 {
@@ -29,16 +31,35 @@ namespace UniverseLib
         protected override void Initialize()
         {
             base.Initialize();
+            Initializing = true;
 
-            float start = Time.realtimeSinceStartup;
-            TryLoadGameModules();
-            Universe.Log($"Loaded Unhollowed modules in {Time.realtimeSinceStartup - start} seconds");
+            UniversalBehaviour.Instance.StartCoroutine(InitCoroutine().WrapToIl2Cpp());
+        }
 
-            start = Time.realtimeSinceStartup;
+        internal Stopwatch initStopwatch = new();
+
+        IEnumerator InitCoroutine()
+        {
+            initStopwatch.Start();
+            Stopwatch sw = new();
+            sw.Start();
+
+            IEnumerator coro = TryLoadGameModules();
+            while (coro.MoveNext())
+                yield return null;
+
+            Universe.Log($"Loaded Unhollowed modules in {sw.ElapsedMilliseconds * 0.001f} seconds.");
+
+            sw.Reset();
+            sw.Start();
+
             BuildDeobfuscationCache();
+
+            Universe.Log($"Setup deobfuscation cache in {sw.ElapsedMilliseconds * 0.001f} seconds.");
+
             OnTypeLoaded += TryCacheDeobfuscatedType;
-            Universe.Log($"Setup IL2CPP reflection in {Time.realtimeSinceStartup - start} seconds, " +
-                $"deobfuscated types count: {obfuscatedToDeobfuscatedTypes.Count}");
+
+            Initializing = false;
         }
 
         internal override Type Internal_GetTypeByName(string fullName)
@@ -570,13 +591,22 @@ namespace UniverseLib
 
         // Force loading all il2cpp modules
 
-        internal void TryLoadGameModules()
+        internal IEnumerator TryLoadGameModules()
         {
             string dir = ConfigManager.Unhollowed_Modules_Folder;
             if (Directory.Exists(dir))
             {
                 foreach (string filePath in Directory.GetFiles(dir, "*.dll"))
+                {
+                    if (initStopwatch.ElapsedMilliseconds > 10)
+                    {
+                        yield return null;
+                        initStopwatch.Reset();
+                        initStopwatch.Start();
+                    }
+
                     DoLoadModule(filePath);
+                }
             }
             else
                 Universe.LogWarning($"Expected Unhollowed folder path does not exist: '{dir}'. " +
