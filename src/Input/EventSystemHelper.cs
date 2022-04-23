@@ -128,8 +128,8 @@ namespace UniverseLib.Input
                 // Set to our current system
                 settingEventSystem = true;
                 UniversalUI.EventSys.enabled = true;
-                CurrentEventSystem = UniversalUI.EventSys;
                 ActivateUIModule();
+                CurrentEventSystem = UniversalUI.EventSys;
                 settingEventSystem = false;
             }
 
@@ -176,9 +176,17 @@ namespace UniverseLib.Input
 
                 if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
                 {
+                    if (lastInputModule)
+                    {
+                        lastInputModule.ActivateModule();
+                        lastEventSystem.m_CurrentInputModule = lastInputModule;
+                    }
+
+                    if (!EventSystem.m_EventSystems.Contains(lastEventSystem))
+                        EventSystem.m_EventSystems.Add(lastEventSystem);
+
                     CurrentEventSystem = lastEventSystem;
                     lastEventSystem.enabled = true;
-                    lastInputModule?.ActivateModule();
                 }
 
                 settingEventSystem = false;
@@ -271,6 +279,7 @@ namespace UniverseLib.Input
 
             if (!settingEventSystem && CursorUnlocker.ShouldUnlock && !ConfigManager.Disable_EventSystem_Override)
             {
+                ActivateUIModule();
                 value = UniversalUI.EventSys;
                 value.enabled = true;
             }
