@@ -156,6 +156,10 @@ namespace UniverseLib.Input
                 }
             }
         }
+#if MONO
+        static readonly AmbiguousMemberHandler<EventSystem, List<EventSystem>> m_EventSystems_handler
+            = new(true, true, "m_EventSystems", "m_eventSystems");
+#endif
 
         /// <summary>
         /// If the UniverseLib EventSystem is enabled, this disables it and sets EventSystem.current to the previous EventSystem which was enabled.
@@ -182,9 +186,18 @@ namespace UniverseLib.Input
                         lastEventSystem.m_CurrentInputModule = lastInputModule;
                     }
 
-                    if (!EventSystem.m_EventSystems.Contains(lastEventSystem))
+#if MONO
+                    if (m_EventSystems_handler.member != null)
+                    {
+                        List<EventSystem> list = m_EventSystems_handler.GetValue();
+                        if (list != null && !list.Contains(lastEventSystem))
+                            list.Add(lastEventSystem);
+                    }
+#else
+                    if (EventSystem.m_EventSystems != null && !EventSystem.m_EventSystems.Contains(lastEventSystem))
                         EventSystem.m_EventSystems.Add(lastEventSystem);
 
+#endif
                     CurrentEventSystem = lastEventSystem;
                     lastEventSystem.enabled = true;
                 }
