@@ -59,7 +59,7 @@ namespace UniverseLib.Input
             while (true)
             {
                 yield return waitForEndOfFrame ??= new WaitForEndOfFrame();
-                if (UniversalUI.AnyUIShowing)
+                if (UniversalUI.AnyUIShowing || !EventSystemHelper.lastEventSystem)
                     UpdateCursorControl();
             }
         }

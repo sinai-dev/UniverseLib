@@ -27,9 +27,9 @@ namespace UniverseLib.Input
         /// </summary>
         public static BaseInputModule UIInput => InputManager.inputHandler.UIInputModule;
 
-        static bool settingEventSystem;
-        static EventSystem lastEventSystem;
+        internal static EventSystem lastEventSystem;
         static BaseInputModule lastInputModule;
+        static bool settingEventSystem;
         static float timeOfLastEventSystemSearch;
 
         static readonly AmbiguousMemberHandler<EventSystem, EventSystem> EventSystemCurrent_Handler = new(true, true, "current", "main");
@@ -171,39 +171,48 @@ namespace UniverseLib.Input
 
             CheckVRChatEventSystemFix();
 
-            if (UniversalUI.EventSys.enabled)
+            if (!lastEventSystem
+                && !ConfigManager.Disable_Fallback_EventSystem_Search)
             {
-                settingEventSystem = true;
+                FallbackEventSystemSearch();
+            }
 
-                UniversalUI.EventSys.enabled = false;
-                UniversalUI.EventSys.currentInputModule?.DeactivateModule();
+            if (!lastEventSystem)
+            {
+                Universe.LogWarning($"No previous EventSystem found to set back to!");
+                return;
+            }
 
-                if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
+            settingEventSystem = true;
+
+            UniversalUI.EventSys.enabled = false;
+            UniversalUI.EventSys.currentInputModule?.DeactivateModule();
+
+            if (lastEventSystem && lastEventSystem.gameObject.activeSelf)
+            {
+                if (lastInputModule)
                 {
-                    if (lastInputModule)
-                    {
-                        lastInputModule.ActivateModule();
-                        lastEventSystem.m_CurrentInputModule = lastInputModule;
-                    }
+                    lastInputModule.ActivateModule();
+                    lastEventSystem.m_CurrentInputModule = lastInputModule;
+                }
 
 #if MONO
-                    if (m_EventSystems_handler.member != null)
-                    {
-                        List<EventSystem> list = m_EventSystems_handler.GetValue();
-                        if (list != null && !list.Contains(lastEventSystem))
-                            list.Add(lastEventSystem);
-                    }
+                if (m_EventSystems_handler.member != null)
+                {
+                    List<EventSystem> list = m_EventSystems_handler.GetValue();
+                    if (list != null && !list.Contains(lastEventSystem))
+                        list.Add(lastEventSystem);
+                }
 #else
                     if (EventSystem.m_EventSystems != null && !EventSystem.m_EventSystems.Contains(lastEventSystem))
                         EventSystem.m_EventSystems.Add(lastEventSystem);
 
 #endif
-                    CurrentEventSystem = lastEventSystem;
-                    lastEventSystem.enabled = true;
-                }
-
-                settingEventSystem = false;
+                CurrentEventSystem = lastEventSystem;
+                lastEventSystem.enabled = true;
             }
+
+            settingEventSystem = false;
         }
 
         // UI Input Module
