@@ -121,6 +121,7 @@ namespace UniverseLib.Input
                 && Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
             {
                 FallbackEventSystemSearch();
+                lastEventSystem.enabled = false;
             }
 
             if (!UniversalUI.EventSys.enabled)
@@ -151,7 +152,7 @@ namespace UniverseLib.Input
                 {
                     lastEventSystem = system;
                     lastInputModule = system.currentInputModule;
-                    lastEventSystem.enabled = false;
+                    //lastEventSystem.enabled = false;
                     break;
                 }
             }
@@ -172,14 +173,15 @@ namespace UniverseLib.Input
             CheckVRChatEventSystemFix();
 
             if (!lastEventSystem
-                && !ConfigManager.Disable_Fallback_EventSystem_Search)
+                && !ConfigManager.Disable_Fallback_EventSystem_Search
+                && Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
             {
                 FallbackEventSystemSearch();
             }
 
             if (!lastEventSystem)
             {
-                Universe.LogWarning($"No previous EventSystem found to set back to!");
+                //Universe.LogWarning($"No previous EventSystem found to set back to!");
                 return;
             }
 

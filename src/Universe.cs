@@ -21,12 +21,12 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.3.11";
+        public const string VERSION = "1.3.12";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
         /// <summary>The current runtime context (Mono or IL2CPP).</summary>
-        public static RuntimeContext Context { get; internal set; } =
+        public static RuntimeContext Context { get; } =
 #if MONO
             RuntimeContext.Mono;
 #else
