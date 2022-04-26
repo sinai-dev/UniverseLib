@@ -160,7 +160,7 @@ namespace UniverseLib.Input
                 {
                     return (Vector2)m_ReadV2Control.Invoke(MouseScrollInfo, ArgumentUtility.EmptyArgs);
                 }
-                catch (Exception ex)
+                catch
                 {
                     return default;
                 }
