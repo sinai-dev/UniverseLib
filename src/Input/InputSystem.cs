@@ -35,38 +35,32 @@ namespace UniverseLib.Input
         static PropertyInfo p_btnWasReleased;
 
         // Keyboard.current
-        static object CurrentKeyboard => currentKeyboard ??= p_kbCurrent.GetValue(null, null);
-        static object currentKeyboard;
+        static object CurrentKeyboard => p_kbCurrent.GetValue(null, null);
         static PropertyInfo p_kbCurrent;
         // Keyboard.this[Key]
         static PropertyInfo p_kbIndexer;
 
         // Mouse.current
-        static object CurrentMouse => currentMouse ??= p_mouseCurrent.GetValue(null, null);
-        static object currentMouse;
+        static object CurrentMouse => p_mouseCurrent.GetValue(null, null);
         static PropertyInfo p_mouseCurrent;
 
         // Mouse.current.leftButton
-        static object LeftMouseButton => lmb ??= p_leftButton.GetValue(CurrentMouse, null);
-        static object lmb;
+        static object LeftMouseButton => p_leftButton.GetValue(CurrentMouse, null);
         static PropertyInfo p_leftButton;
 
         // Mouse.current.rightButton
-        static object RightMouseButton => rmb ??= p_rightButton.GetValue(CurrentMouse, null);
-        static object rmb;
+        static object RightMouseButton => p_rightButton.GetValue(CurrentMouse, null);
         static PropertyInfo p_rightButton;
 
         // InputSystem.InputControl<Vector2>.ReadValue()
         static MethodInfo m_ReadV2Control;
 
         // Mouse.current.position
-        static object MousePositionInfo => mousePosInfo ??= p_position.GetValue(CurrentMouse, null);
-        static object mousePosInfo;
+        static object MousePositionInfo => p_position.GetValue(CurrentMouse, null);
         static PropertyInfo p_position;
 
         // Mouse.current.scroll
-        static object MouseScrollInfo => mouseScrollInfo ??= p_scrollDelta.GetValue(CurrentMouse, null);
-        static object mouseScrollInfo;
+        static object MouseScrollInfo => p_scrollDelta.GetValue(CurrentMouse, null);
         static PropertyInfo p_scrollDelta;
 
         // typeof(InputSystem.UI.InputSystemUIInputModule)
@@ -143,40 +137,87 @@ namespace UniverseLib.Input
 
         // Input API
 
-        public Vector2 MousePosition => (Vector2)m_ReadV2Control.Invoke(MousePositionInfo, ArgumentUtility.EmptyArgs);
+        public Vector2 MousePosition
+        {
+            get
+            {
+                try
+                {
+                    return (Vector2)m_ReadV2Control.Invoke(MousePositionInfo, ArgumentUtility.EmptyArgs);
+                }
+                catch
+                {
+                    return default;
+                }
+            }
+        }
 
-        public Vector2 MouseScrollDelta => (Vector2)m_ReadV2Control.Invoke(MouseScrollInfo, ArgumentUtility.EmptyArgs);
+        public Vector2 MouseScrollDelta
+        {
+            get
+            {
+                try
+                {
+                    return (Vector2)m_ReadV2Control.Invoke(MouseScrollInfo, ArgumentUtility.EmptyArgs);
+                }
+                catch (Exception ex)
+                {
+                    return default;
+                }
+            }
+        }
 
         public bool GetMouseButtonDown(int btn)
         {
-            return btn switch
+            try
             {
-                0 => (bool)p_btnWasPressed.GetValue(LeftMouseButton, null),
-                1 => (bool)p_btnWasPressed.GetValue(RightMouseButton, null),
-                // case 2: return (bool)_btnWasPressedProp.GetValue(MiddleMouseButton, null);
-                _ => throw new NotImplementedException(),
-            };
+                return btn switch
+                {
+                    0 => (bool)p_btnWasPressed.GetValue(LeftMouseButton, null),
+                    1 => (bool)p_btnWasPressed.GetValue(RightMouseButton, null),
+                    // case 2: return (bool)_btnWasPressedProp.GetValue(MiddleMouseButton, null);
+                    _ => throw new NotImplementedException(),
+                };
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool GetMouseButton(int btn)
         {
-            return btn switch
+            try
             {
-                0 => (bool)p_btnIsPressed.GetValue(LeftMouseButton, null),
-                1 => (bool)p_btnIsPressed.GetValue(RightMouseButton, null),
-                // case 2: return (bool)_btnIsPressedProp.GetValue(MiddleMouseButton, null);
-                _ => throw new NotImplementedException(),
-            };
+                return btn switch
+                {
+                    0 => (bool)p_btnIsPressed.GetValue(LeftMouseButton, null),
+                    1 => (bool)p_btnIsPressed.GetValue(RightMouseButton, null),
+                    // case 2: return (bool)_btnIsPressedProp.GetValue(MiddleMouseButton, null);
+                    _ => throw new NotImplementedException(),
+                };
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool GetMouseButtonUp(int btn)
         {
-            return btn switch
+            try
             {
-                0 => (bool)p_btnWasReleased.GetValue(LeftMouseButton, null),
-                1 => (bool)p_btnWasReleased.GetValue(RightMouseButton, null),
-                _ => throw new NotImplementedException(),
-            };
+                return btn switch
+                {
+                    0 => (bool)p_btnWasReleased.GetValue(LeftMouseButton, null),
+                    1 => (bool)p_btnWasReleased.GetValue(RightMouseButton, null),
+                    _ => throw new NotImplementedException(),
+                };
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #region KeyCode <-> Key Helpers
@@ -346,16 +387,17 @@ namespace UniverseLib.Input
         {
             try
             {
-                newInputModule.m_EventSystem = UniversalUI.EventSys;
-                newInputModule.ActivateModule();
+                BaseInputModule newInput = (BaseInputModule)newInputModule.TryCast(TInputSystemUIInputModule);
+                newInput.m_EventSystem = UniversalUI.EventSys;
+                newInput.ActivateModule();
                 m_UI_Enable.Invoke(UIActionMap, ArgumentUtility.EmptyArgs);
 
                 // if the actionsAsset is null, call the AssignDefaultActions method.
-                if (p_actionsAsset.GetValue(newInputModule, null) == null)
+                if (p_actionsAsset.GetValue(newInput.TryCast(p_actionsAsset.DeclaringType), null) == null)
                 {
-                    newInputModule.GetType()
-                        .GetMethod("AssignDefaultActions")
-                        .Invoke(newInputModule, new object[0]);
+                    MethodInfo assignDefaultMethod = newInput.GetType()
+                        .GetMethod("AssignDefaultActions");
+                    assignDefaultMethod.Invoke(newInput.TryCast(assignDefaultMethod.DeclaringType), new object[0]);
                 }
             }
             catch (Exception ex)
