@@ -41,7 +41,7 @@ namespace UniverseLib
             Instance.Invoke(nameof(InvokeQueuedAction), 0f);
         }
 
-        static void InvokeQueuedAction()
+        void InvokeQueuedAction()
         {
             try
             {
