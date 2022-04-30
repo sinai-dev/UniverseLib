@@ -94,7 +94,7 @@ namespace UniverseLib.Input
             }
             catch (Exception e)
             {
-                Universe.Log($"Exception setting Cursor state: {e.GetType()}, {e.Message}");
+                Universe.Log($"Exception setting Cursor state: {e}");
             }
         }
 
