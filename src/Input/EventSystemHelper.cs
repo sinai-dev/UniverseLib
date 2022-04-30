@@ -121,7 +121,8 @@ namespace UniverseLib.Input
                 && Time.realtimeSinceStartup - timeOfLastEventSystemSearch > 10f)
             {
                 FallbackEventSystemSearch();
-                lastEventSystem.enabled = false;
+                if (lastEventSystem)
+                    lastEventSystem.enabled = false;
             }
 
             if (!UniversalUI.EventSys.enabled)
