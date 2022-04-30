@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UniverseLib.Config;
@@ -38,10 +40,10 @@ namespace UniverseLib
 
         internal static Harmony Harmony { get; } = new Harmony(GUID);
 
-        private static event Action OnInitialized;
+        static float startupDelay;
+        static event Action OnInitialized;
 
-        private static float startupDelay;
-        private static Action<string, LogType> logHandler;
+        static readonly Dictionary<Assembly, Action<string, LogType>> logHandlers = new();
 
         /// <summary>
         /// Initialize UniverseLib with default settings, if you don't require any finer control over the startup process.
@@ -74,16 +76,13 @@ namespace UniverseLib
             if (startupDelay > Universe.startupDelay)
                 Universe.startupDelay = startupDelay;
 
-            // Try to load the supplied configuration
             ConfigManager.LoadConfig(config);
 
             OnInitialized += onInitialized;
 
-            // We only need one log handler, it would be redundant to have multiple things logging UniverseLib's internal logs
-            if (Universe.logHandler == null)
-                Universe.logHandler = logHandler;
+            if (logHandler != null)
+                logHandlers[logHandler.Method.DeclaringType.Assembly] = logHandler;
 
-            // If this is the first Init call, begin the startup process
             if (CurrentGlobalState == GlobalState.WaitingToSetup)
             {
                 CurrentGlobalState = GlobalState.SettingUp;
@@ -148,6 +147,8 @@ namespace UniverseLib
         // UniverseLib internal logging. These are assumed to be handled by a logHandler supplied to Init().
         // Not for external use.
 
+        static readonly Assembly thisAssembly = typeof(Universe).Assembly;
+
         internal static void Log(object message)
             => Log(message, LogType.Log);
 
@@ -157,9 +158,32 @@ namespace UniverseLib
         internal static void LogError(object message)
             => Log(message, LogType.Error);
 
-        private static void Log(object message, LogType logType)
+        static void Log(object message, LogType logType)
         {
-            logHandler?.Invoke(message?.ToString() ?? string.Empty, logType);
+            if (!logHandlers.Any())
+                return;
+
+            // Get the calling assembly and use their log handler, if possible.
+            // Not the best way to do this, but the best we can do without a huge refactor of the whole project.
+            // We would require giving an instance of Universe to each Init caller and having all
+            // functionality of UniverseLib go through that instance, instead of being static.
+            Assembly callingAssembly = null;
+            StackTrace trace = new(false);
+            for (int i = 0; i < trace.FrameCount; i++)
+            {
+                StackFrame frame = trace.GetFrame(i);
+                Assembly ass = frame.GetMethod().DeclaringType.Assembly;
+                if (ass != thisAssembly)
+                {
+                    callingAssembly = ass;
+                    break;
+                }
+            }
+
+            if (callingAssembly == null || !logHandlers.TryGetValue(callingAssembly, out Action<string, LogType> handler))
+                handler = logHandlers.First().Value;
+
+            handler.Invoke($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
         }
 
         // Patching helpers
