@@ -117,7 +117,10 @@ namespace UniverseLib.Utility
         public static bool TryParse<T>(string input, out T obj, out Exception parseException)
         {
             bool result = TryParse(input, typeof(T), out object parsed, out parseException);
-            obj = (T)parsed;
+            if (parsed != null)
+                obj = (T)parsed;
+            else
+                obj = default;
             return result;
         }
 
