@@ -119,24 +119,32 @@ namespace UniverseLib.Input
 
         internal static void Prefix_set_lockState(ref CursorLockMode value)
         {
-            if (!currentlySettingCursor)
+            try
             {
-                lastLockMode = value;
+                if (!currentlySettingCursor)
+                {
+                    lastLockMode = value;
 
-                if (ShouldUnlock)
-                    value = CursorLockMode.None;
+                    if (ShouldUnlock)
+                        value = CursorLockMode.None;
+                }
             }
+            catch { }
         }
 
         internal static void Prefix_set_visible(ref bool value)
         {
-            if (!currentlySettingCursor)
+            try
             {
-                lastVisibleState = value;
+                if (!currentlySettingCursor)
+                {
+                    lastVisibleState = value;
 
-                if (ShouldUnlock)
-                    value = true; 
+                    if (ShouldUnlock)
+                        value = true;
+                }
             }
+            catch { }
         }
     }
 }
