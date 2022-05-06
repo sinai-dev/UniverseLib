@@ -49,6 +49,7 @@ namespace UniverseLib.UI.Widgets
         bool needRefreshUI;
         int displayIndex;
         int prevDisplayIndex;
+        int rootIndex;
 
         Coroutine refreshCoroutine;
         readonly Stopwatch traversedThisFrame = new();
@@ -212,6 +213,7 @@ namespace UniverseLib.UI.Widgets
 
             visited.Clear();
             displayIndex = 0;
+            rootIndex = 0;
             needRefreshUI = false;
             traversedThisFrame.Reset();
             traversedThisFrame.Start();
@@ -291,12 +293,23 @@ namespace UniverseLib.UI.Widgets
 
             visited.Add(instanceID);
 
+            bool isRootObject = transform.parent == null;
+
             CachedTransform cached;
             if (cachedTransforms.Contains(instanceID))
             {
                 cached = (CachedTransform)cachedTransforms[(object)instanceID];
                 int prevSiblingIdx = cached.SiblingIndex;
-                if (cached.Update(transform, depth))
+
+                bool updated = cached.Update(transform, depth);
+
+                if (isRootObject)
+                {
+                    cached.SiblingIndex = rootIndex;
+                    rootIndex++;
+                }
+
+                if (updated || cached.SiblingIndex != prevSiblingIdx)
                 {
                     needRefreshUI = true;
 
@@ -319,6 +332,12 @@ namespace UniverseLib.UI.Widgets
                     cachedTransforms.Add(instanceID, cached);
                 else
                     cachedTransforms.Insert(displayIndex, instanceID, cached);
+
+                if (isRootObject)
+                {
+                    cached.SiblingIndex = rootIndex;
+                    rootIndex++;
+                }
             }
 
             displayIndex++;

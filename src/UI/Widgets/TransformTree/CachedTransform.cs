@@ -32,12 +32,12 @@ namespace UniverseLib.UI.Widgets
         {
             bool changed = false;
 
-            if (Value != transform
+            if (!Value.ReferenceEqual(transform)
                 || depth != Depth
                 || ChildCount != transform.childCount
                 || Name != transform.name
                 || Enabled != transform.gameObject.activeSelf
-                || SiblingIndex != transform.GetSiblingIndex())
+                || (transform.parent != null && SiblingIndex != transform.GetSiblingIndex()))
             {
                 changed = true;
 
