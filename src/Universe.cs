@@ -23,7 +23,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.3.15";
+        public const string VERSION = "1.4.0";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -43,7 +43,7 @@ namespace UniverseLib
         static float startupDelay;
         static event Action OnInitialized;
 
-        static readonly Dictionary<Assembly, Action<string, LogType>> logHandlers = new();
+        static Action<string, LogType> logHandler;
 
         /// <summary>
         /// Initialize UniverseLib with default settings, if you don't require any finer control over the startup process.
@@ -80,8 +80,8 @@ namespace UniverseLib
 
             OnInitialized += onInitialized;
 
-            if (logHandler != null)
-                logHandlers[logHandler.Method.DeclaringType.Assembly] = logHandler;
+            if (logHandler != null && Universe.logHandler == null)
+                Universe.logHandler = logHandler;
 
             if (CurrentGlobalState == GlobalState.WaitingToSetup)
             {
@@ -147,8 +147,6 @@ namespace UniverseLib
         // UniverseLib internal logging. These are assumed to be handled by a logHandler supplied to Init().
         // Not for external use.
 
-        static readonly Assembly thisAssembly = typeof(Universe).Assembly;
-
         internal static void Log(object message)
             => Log(message, LogType.Log);
 
@@ -158,32 +156,36 @@ namespace UniverseLib
         internal static void LogError(object message)
             => Log(message, LogType.Error);
 
+        // static readonly Assembly thisAssembly = typeof(Universe).Assembly;
+
         static void Log(object message, LogType logType)
         {
-            if (!logHandlers.Any())
-                return;
+            logHandler($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
 
-            // Get the calling assembly and use their log handler, if possible.
-            // Not the best way to do this, but the best we can do without a huge refactor of the whole project.
-            // We would require giving an instance of Universe to each Init caller and having all
-            // functionality of UniverseLib go through that instance, instead of being static.
-            Assembly callingAssembly = null;
-            StackTrace trace = new(false);
-            for (int i = 0; i < trace.FrameCount; i++)
-            {
-                StackFrame frame = trace.GetFrame(i);
-                Assembly ass = frame.GetMethod().DeclaringType.Assembly;
-                if (ass != thisAssembly)
-                {
-                    callingAssembly = ass;
-                    break;
-                }
-            }
-
-            if (callingAssembly == null || !logHandlers.TryGetValue(callingAssembly, out Action<string, LogType> handler))
-                handler = logHandlers.First().Value;
-
-            handler.Invoke($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
+            //if (!logHandlers.Any())
+            //    return;
+            //
+            //// Get the calling assembly and use their log handler, if possible.
+            //// Not the best way to do this, but the best we can do without a huge refactor of the whole project.
+            //// We would require giving an instance of Universe to each Init caller and having all
+            //// functionality of UniverseLib go through that instance, instead of being static.
+            //Assembly callingAssembly = null;
+            //StackTrace trace = new(false);
+            //for (int i = 0; i < trace.FrameCount; i++)
+            //{
+            //    StackFrame frame = trace.GetFrame(i);
+            //    Assembly ass = frame.GetMethod().DeclaringType.Assembly;
+            //    if (ass != thisAssembly)
+            //    {
+            //        callingAssembly = ass;
+            //        break;
+            //    }
+            //}
+            //
+            //if (callingAssembly == null || !logHandlers.TryGetValue(callingAssembly, out Action<string, LogType> handler))
+            //    handler = logHandlers.First().Value;
+            //
+            //handler.Invoke($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
         }
 
         // Patching helpers
