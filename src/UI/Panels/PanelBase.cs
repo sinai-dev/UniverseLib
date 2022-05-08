@@ -172,6 +172,7 @@ namespace UniverseLib.UI.Panels
             // content (abstract)
 
             ConstructPanelContent();
+            SetDefaultSizeAndPosition();
 
             RuntimeHelper.StartCoroutine(LateSetupCoroutine());
         }
