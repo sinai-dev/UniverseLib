@@ -156,21 +156,15 @@ namespace UniverseLib.Runtime
                 if (dimensions == default)
                     dimensions = new(0, 0, source.width, source.height);
 
-                try
+                if (source.TryCast<Texture2D>() is Texture2D texture2D)
+                {
+                    return CopyToARGB32(texture2D, dimensions, dstX, dstY);
+                }
+                else
                 {
                     Instance.Internal_CopyTexture(source, cubemapFace, 0, 0, 0, source.width, source.height, destination, 0, 0, dstX, dstY);
                     return destination;
                 }
-                catch
-                {
-                    if (source.TryCast<Texture2D>() is Texture2D tex2d)
-                    {
-                        return CopyToARGB32(tex2d, dimensions);
-                    }
-                    else
-                        throw new NotSupportedException("Unable to force-read the non-readable Cubemap.");
-                }
-
             }
             catch (Exception e)
             {
@@ -212,7 +206,7 @@ namespace UniverseLib.Runtime
         /// Converts the <paramref name="origTex"/> into a readable <see cref="TextureFormat.ARGB32"/>-format <see cref="Texture2D"/>.
         /// <br /><br />Supports non-readable Textures.
         /// </summary>
-        public static Texture2D CopyToARGB32(Texture2D origTex, Rect dimensions = default)
+        public static Texture2D CopyToARGB32(Texture2D origTex, Rect dimensions = default, int dstX = 0, int dstY = 0)
         {
             if (dimensions == default && origTex.format == TextureFormat.ARGB32 && IsReadable(origTex))
                 return origTex;
@@ -232,7 +226,7 @@ namespace UniverseLib.Runtime
             Instance.Internal_Blit(origTex, rt);
 
             Texture2D newTex = Instance.Internal_NewTexture2D((int)dimensions.width, (int)dimensions.height);
-            newTex.ReadPixels(dimensions, 0, 0);
+            newTex.ReadPixels(dimensions, dstX, dstY);
             newTex.Apply(false, false);
 
             RenderTexture.active = origRenderTexture;
