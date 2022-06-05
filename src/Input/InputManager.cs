@@ -163,7 +163,8 @@ namespace UniverseLib.Input
         }
 
         /// <summary>
-        /// Returns true if the provided mouse button was pressed this frame. 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// Returns true if the provided mouse button was pressed this frame.
+        /// <br/>0 = left, 1 = right, 2 = middle, 3 = back, 4 = forward.
         /// </summary>
         public static bool GetMouseButtonDown(int btn)
         {
@@ -174,7 +175,8 @@ namespace UniverseLib.Input
         }
 
         /// <summary>
-        /// Returns true if the provided mouse button is being held down (not necessarily just pressed). 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// Returns true if the provided mouse button is being held down (not necessarily just pressed).
+        /// <br/>0 = left, 1 = right, 2 = middle, 3 = back, 4 = forward.
         /// </summary>
         public static bool GetMouseButton(int btn)
         {
@@ -185,7 +187,8 @@ namespace UniverseLib.Input
         }
 
         /// <summary>
-        /// Returns true if the provided mouse button was released this frame. 0 is left click, 1 is right button, 2 is middle button, etc.
+        /// Returns true if the provided mouse button was released this frame. 
+        /// <br/>0 = left, 1 = right, 2 = middle, 3 = back, 4 = forward.
         /// </summary>
         public static bool GetMouseButtonUp(int btn)
         {

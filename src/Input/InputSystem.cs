@@ -52,6 +52,18 @@ namespace UniverseLib.Input
         static object RightMouseButton => p_rightButton.GetValue(CurrentMouse, null);
         static PropertyInfo p_rightButton;
 
+        // Mouse.current.middleButton
+        static object MiddleMouseButton => p_middleButton.GetValue(CurrentMouse, null);
+        static PropertyInfo p_middleButton;
+
+        // Mouse.current.forwardButton
+        static object ForwardMouseButton => p_forwardButton.GetValue(CurrentMouse, null);
+        static PropertyInfo p_forwardButton;
+
+        // Mouse.current.backButton
+        static object BackMouseButton => p_backButton.GetValue(CurrentMouse, null);
+        static PropertyInfo p_backButton;
+
         // InputSystem.InputControl<Vector2>.ReadValue()
         static MethodInfo m_ReadV2Control;
 
@@ -95,6 +107,9 @@ namespace UniverseLib.Input
             p_mouseCurrent = TMouse.GetProperty("current");
             p_leftButton = TMouse.GetProperty("leftButton");
             p_rightButton = TMouse.GetProperty("rightButton");
+            p_middleButton = TMouse.GetProperty("middleButton");
+            p_backButton = TMouse.GetProperty("backButton");
+            p_forwardButton = TMouse.GetProperty("forwardButton");
             p_scrollDelta = TMouse.GetProperty("scroll");
 
             p_position = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Pointer")
@@ -167,17 +182,21 @@ namespace UniverseLib.Input
             }
         }
 
+        static object GetMouseButtonObject(int btn) => btn switch
+        {
+            0 => LeftMouseButton,
+            1 => RightMouseButton,
+            2 => MiddleMouseButton,
+            3 => BackMouseButton, 
+            4 => ForwardMouseButton,
+            _ => throw new NotImplementedException()
+        };
+
         public bool GetMouseButtonDown(int btn)
         {
             try
             {
-                return btn switch
-                {
-                    0 => (bool)p_btnWasPressed.GetValue(LeftMouseButton, null),
-                    1 => (bool)p_btnWasPressed.GetValue(RightMouseButton, null),
-                    // case 2: return (bool)_btnWasPressedProp.GetValue(MiddleMouseButton, null);
-                    _ => throw new NotImplementedException(),
-                };
+                return (bool)p_btnWasPressed.GetValue(GetMouseButtonObject(btn), null);
             }
             catch
             {
@@ -189,13 +208,7 @@ namespace UniverseLib.Input
         {
             try
             {
-                return btn switch
-                {
-                    0 => (bool)p_btnIsPressed.GetValue(LeftMouseButton, null),
-                    1 => (bool)p_btnIsPressed.GetValue(RightMouseButton, null),
-                    // case 2: return (bool)_btnIsPressedProp.GetValue(MiddleMouseButton, null);
-                    _ => throw new NotImplementedException(),
-                };
+                return (bool)p_btnIsPressed.GetValue(GetMouseButtonObject(btn), null);
             }
             catch
             {
@@ -207,12 +220,7 @@ namespace UniverseLib.Input
         {
             try
             {
-                return btn switch
-                {
-                    0 => (bool)p_btnWasReleased.GetValue(LeftMouseButton, null),
-                    1 => (bool)p_btnWasReleased.GetValue(RightMouseButton, null),
-                    _ => throw new NotImplementedException(),
-                };
+                return (bool)p_btnWasReleased.GetValue(GetMouseButtonObject(btn), null);
             }
             catch
             {
