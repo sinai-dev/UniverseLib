@@ -159,8 +159,6 @@ namespace UniverseLib.UI
 
         private static void CreateRootCanvas()
         {
-
-
             CanvasRoot = new GameObject("UniverseLibCanvas");
             UnityEngine.Object.DontDestroyOnLoad(CanvasRoot);
             CanvasRoot.hideFlags |= HideFlags.HideAndDontSave;
@@ -190,32 +188,29 @@ namespace UniverseLib.UI
                 string[] split = Application.unityVersion.Split('.');
                 int major = int.Parse(split[0]);
                 int minor = int.Parse(split[1]);
+                int patch = int.Parse(split[2][0].ToString()); // get first digit of patch, thats all we need.
 
                 // Use appropriate AssetBundle for Unity version
-                // >= 2017
-                if (major >= 2017)
+                // 2017 or newer
+                if (major > 5)
                     UIBundle = LoadBundle("modern");
-                // 5.6.0 to <2017
+                // 5.6.X
                 else if (major == 5 && minor >= 6)
                     UIBundle = LoadBundle("legacy.5.6");
-                // < 5.6.0
+                // 5.3.4 to 5.5.X
+                else if (major == 5 && ((minor == 3 && patch >= 4) || minor > 3))
+                    UIBundle = LoadBundle("legacy.5.3.4");
+                // 5.2.5 to <5.3.4
                 else
                     UIBundle = LoadBundle("legacy");
             }
             catch
             {
                 Universe.LogWarning($"Exception parsing Unity version, falling back to old AssetBundle load method...");
-                UIBundle = LoadBundle("modern") ?? LoadBundle("legacy.5.6") ?? LoadBundle("legacy");
-            }
-
-            static AssetBundle LoadBundle(string id)
-            {
-                AssetBundle bundle = AssetBundle.LoadFromMemory(ReadFully(typeof(Universe)
-                        .Assembly
-                        .GetManifestResourceStream($"UniverseLib.Resources.{id}.bundle")));
-                if (bundle)
-                    Universe.Log($"Loaded {id} bundle for Unity {Application.unityVersion}");
-                return bundle;
+                UIBundle = LoadBundle("modern") 
+                    ?? LoadBundle("legacy.5.6")
+                    ?? LoadBundle("legacy.5.3.4")
+                    ?? LoadBundle("legacy");
             }
 
             if (UIBundle == null)
@@ -248,7 +243,17 @@ namespace UniverseLib.UI
                 BackupShader = Graphic.defaultGraphicMaterial.shader;
         }
 
-        private static byte[] ReadFully(Stream input)
+        static AssetBundle LoadBundle(string id)
+        {
+            AssetBundle bundle = AssetBundle.LoadFromMemory(ReadFully(typeof(Universe)
+                    .Assembly
+                    .GetManifestResourceStream($"UniverseLib.Resources.{id}.bundle")));
+            if (bundle)
+                Universe.Log($"Loaded {id} bundle for Unity {Application.unityVersion}");
+            return bundle;
+        }
+
+        static byte[] ReadFully(Stream input)
         {
             using MemoryStream ms = new();
             byte[] buffer = new byte[81920];
