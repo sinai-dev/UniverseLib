@@ -21,12 +21,14 @@ namespace UniverseLib.UI
 
         public PanelManager Panels { get; }
 
+        internal static readonly int TOP_SORTORDER = 30000;
+
         /// <summary>
         /// Whether this UI is currently being displayed or not. Disabled UIs will not receive Update calls.
         /// </summary>
         public bool Enabled
         {
-            get => RootObject.activeSelf;
+            get => RootObject && RootObject.activeSelf;
             set => UniversalUI.SetUIActive(this.ID, value);
         }
 
@@ -49,7 +51,7 @@ namespace UniverseLib.UI
             this.Canvas = RootObject.AddComponent<Canvas>();
             this.Canvas.renderMode = RenderMode.ScreenSpaceCamera;
             this.Canvas.referencePixelsPerUnit = 100;
-            this.Canvas.sortingOrder = 9999;
+            this.Canvas.sortingOrder = TOP_SORTORDER;
             this.Canvas.overrideSorting = true;
 
             CanvasScaler scaler = RootObject.AddComponent<CanvasScaler>();
@@ -76,7 +78,6 @@ namespace UniverseLib.UI
         /// </summary>
         protected virtual PanelManager CreatePanelManager() => new(this);
 
-        internal const int TOP_SORTORDER = 9999;
 
         /// <summary>
         /// Set this UIBase to be on top of all others.
