@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Release_IL2CPP</Configuration>
         <OutputType>Library</OutputType>
-        <LangVersion>9.0</LangVersion>
+        <LangVersion>10.0</LangVersion>
         <DefineConstants>
         </DefineConstants>
         <DebugSymbols>false</DebugSymbols>
