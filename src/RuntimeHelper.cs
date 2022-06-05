@@ -73,15 +73,17 @@ namespace UniverseLib
         /// <summary>
         /// Helper to invoke Unity's <see cref="Resources.FindObjectsOfTypeAll"/> method.
         /// </summary>
-        public static UnityEngine.Object[] FindObjectsOfTypeAll<T>()
-            => Instance.Internal_FindObjectsOfTypeAll(typeof(T));
+        public static T[] FindObjectsOfTypeAll<T>() where T : UnityEngine.Object
+            => Instance.Internal_FindObjectsOfTypeAll<T>();
 
         /// <summary>
         /// Helper to invoke Unity's <see cref="Resources.FindObjectsOfTypeAll}"/> method.
         /// </summary>
         public static UnityEngine.Object[] FindObjectsOfTypeAll(Type type)
             => Instance.Internal_FindObjectsOfTypeAll(type);
-        
+
+        protected internal abstract T[] Internal_FindObjectsOfTypeAll<T>() where T : UnityEngine.Object;
+
         protected internal abstract UnityEngine.Object[] Internal_FindObjectsOfTypeAll(Type type);
 
         /// <summary>

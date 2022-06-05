@@ -50,6 +50,9 @@ namespace UniverseLib.Runtime.Mono
         protected internal override UnityEngine.Object[] Internal_FindObjectsOfTypeAll(Type type) 
             => Resources.FindObjectsOfTypeAll(type);
 
+        protected internal override T[] Internal_FindObjectsOfTypeAll<T>()
+            => Resources.FindObjectsOfTypeAll<T>();
+
         /// <inheritdoc/>
         protected internal override GameObject[] Internal_GetRootGameObjects(Scene scene) 
             => scene.isLoaded ? scene.GetRootGameObjects() : new GameObject[0];
@@ -108,14 +111,14 @@ public static class MonoExtensions
 
     // These properties don't exist in some earlier games, so null check before trying to set them.
 
-    public static void SetChildControlHeight(this HorizontalOrVerticalLayoutGroup group, bool value)
-        => AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlHeight")
-            ?.SetValue(group, value, null);
+    static PropertyInfo p_childControlHeight = AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlHeight");
+    static PropertyInfo p_childControlWidth = AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlWidth");
 
+    public static void SetChildControlHeight(this HorizontalOrVerticalLayoutGroup group, bool value)
+        => p_childControlHeight?.SetValue(group, value, null);
 
     public static void SetChildControlWidth(this HorizontalOrVerticalLayoutGroup group, bool value)
-        => AccessTools.Property(typeof(HorizontalOrVerticalLayoutGroup), "childControlWidth")
-            ?.SetValue(group, value, null);
+        => p_childControlWidth?.SetValue(group, value, null);
 }
 
 #endif

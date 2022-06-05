@@ -82,6 +82,16 @@ namespace UniverseLib.Runtime.Il2Cpp
         }
 
         /// <inheritdoc/>
+        protected internal override T[] Internal_FindObjectsOfTypeAll<T>()
+        {
+            return new Il2CppReferenceArray<T>(
+                    ICallManager.GetICallUnreliable<d_FindObjectsOfTypeAll>(
+                        "UnityEngine.Resources::FindObjectsOfTypeAll",
+                        "UnityEngine.ResourcesAPIInternal::FindObjectsOfTypeAll") // Unity 2020+ updated to this
+                    .Invoke(Il2CppType.From(typeof(T)).Pointer));
+        }
+
+        /// <inheritdoc/>
         protected internal override GameObject[] Internal_GetRootGameObjects(Scene scene)
         {
             if (!scene.isLoaded || scene.handle == -1)
