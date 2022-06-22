@@ -4,7 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if INTEROP
+using Il2CppInterop.Runtime;
+#else
 using UnhollowerBaseLib;
+#endif
 
 namespace UniverseLib.Runtime.Il2Cpp
 {

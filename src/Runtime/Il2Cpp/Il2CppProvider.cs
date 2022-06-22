@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnhollowerBaseLib;
-using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -14,6 +12,13 @@ using UniverseLib.Input;
 using UnityEngine.EventSystems;
 using HarmonyLib;
 using UniverseLib.Utility;
+#if INTEROP
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#else
+using UnhollowerRuntimeLib;
+using UnhollowerBaseLib;
+#endif
 
 namespace UniverseLib.Runtime.Il2Cpp
 {

@@ -10,6 +10,15 @@ using UniverseLib.Config;
 using UniverseLib.Input;
 using UniverseLib.Runtime;
 using UniverseLib.UI;
+#if INTEROP
+using Il2CppInterop.Runtime;
+using IL2CPPUtils = Il2CppInterop.Common.Il2CppInteropUtils;
+#endif
+#if UNHOLLOWER
+using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
+using IL2CPPUtils = UnhollowerBaseLib.UnhollowerUtils;
+#endif
 
 namespace UniverseLib
 {
@@ -23,7 +32,7 @@ namespace UniverseLib
         }
 
         public const string NAME = "UniverseLib";
-        public const string VERSION = "1.4.3";
+        public const string VERSION = "1.5.0";
         public const string AUTHOR = "Sinai";
         public const string GUID = "com.sinai.universelib";
 
@@ -156,36 +165,9 @@ namespace UniverseLib
         internal static void LogError(object message)
             => Log(message, LogType.Error);
 
-        // static readonly Assembly thisAssembly = typeof(Universe).Assembly;
-
         static void Log(object message, LogType logType)
         {
             logHandler($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
-
-            //if (!logHandlers.Any())
-            //    return;
-            //
-            //// Get the calling assembly and use their log handler, if possible.
-            //// Not the best way to do this, but the best we can do without a huge refactor of the whole project.
-            //// We would require giving an instance of Universe to each Init caller and having all
-            //// functionality of UniverseLib go through that instance, instead of being static.
-            //Assembly callingAssembly = null;
-            //StackTrace trace = new(false);
-            //for (int i = 0; i < trace.FrameCount; i++)
-            //{
-            //    StackFrame frame = trace.GetFrame(i);
-            //    Assembly ass = frame.GetMethod().DeclaringType.Assembly;
-            //    if (ass != thisAssembly)
-            //    {
-            //        callingAssembly = ass;
-            //        break;
-            //    }
-            //}
-            //
-            //if (callingAssembly == null || !logHandlers.TryGetValue(callingAssembly, out Action<string, LogType> handler))
-            //    handler = logHandlers.First().Value;
-            //
-            //handler.Invoke($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
         }
 
         // Patching helpers
@@ -216,8 +198,8 @@ namespace UniverseLib
 
 #if CPP
                 // if this is an IL2CPP type, ensure method wasn't stripped.
-                if (UnhollowerRuntimeLib.Il2CppType.From(type, false) != null
-                    && UnhollowerBaseLib.UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target) == null)
+                if (Il2CppType.From(type, false) != null
+                    && IL2CPPUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(target) == null)
                 {
                     Log($"\t IL2CPP method has no corresponding pointer, aborting patch of {type.FullName}.{methodName}");
                     return false;

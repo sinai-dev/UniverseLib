@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnhollowerBaseLib;
-using UnhollowerRuntimeLib;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Collections;
@@ -13,16 +11,27 @@ using System.IO;
 using System.Diagnostics.CodeAnalysis;
 using UniverseLib;
 using BF = System.Reflection.BindingFlags;
-using UnhollowerBaseLib.Attributes;
 using UnityEngine;
 using UniverseLib.Config;
 using HarmonyLib;
 using UniverseLib.Utility;
 using System.Text.RegularExpressions;
 using UniverseLib.Reflection;
-using UnhollowerBaseLib.Runtime;
 using System.Diagnostics;
 using UniverseLib.Runtime.Il2Cpp;
+#if INTEROP
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.Runtime;
+using Il2CppInterop.Common.Attributes;
+#endif
+#if UNHOLLOWER
+using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
+using UnhollowerBaseLib.Runtime;
+using UnhollowerBaseLib.Attributes;
+#endif
 
 namespace UniverseLib
 {
@@ -71,7 +80,7 @@ namespace UniverseLib
         }
 
 
-        #region Get Actual type
+#region Get Actual type
 
         internal override Type Internal_GetActualType(object obj)
         {
@@ -186,10 +195,10 @@ namespace UniverseLib
                 return typeof(Il2CppReferenceArray<>).MakeGenericType(elementType);
         }
 
-        #endregion
+#endregion
 
 
-        #region Casting
+#region Casting
 
         internal override object Internal_TryCast(object obj, Type toType)
         {
@@ -273,7 +282,7 @@ namespace UniverseLib
 #endregion
 
 
-        #region Boxing and unboxing ValueTypes
+#region Boxing and unboxing ValueTypes
 
         // cached il2cpp unbox methods
         internal static readonly Dictionary<string, MethodInfo> unboxMethods = new();
@@ -416,7 +425,7 @@ namespace UniverseLib
 #endregion
 
 
-        #region String boxing/unboxing
+#region String boxing/unboxing
 
         private const string IL2CPP_STRING_FULLNAME = "Il2CppSystem.String";
         private const string STRING_FULLNAME = "System.String";
@@ -490,10 +499,10 @@ namespace UniverseLib
             return ret;
         }
 
-        #endregion
+#endregion
 
 
-        #region IL2CPP Extern and pointers
+#region IL2CPP Extern and pointers
 
         private static readonly Dictionary<string, IntPtr> cppClassPointers = new();
 
@@ -520,10 +529,10 @@ namespace UniverseLib
             return il2cppPtr != IntPtr.Zero;
         }
 
-        #endregion
+#endregion
 
 
-        #region Deobfuscation cache
+#region Deobfuscation cache
 
         private static readonly Dictionary<string, Type> obfuscatedToDeobfuscatedTypes = new();
         private static readonly Dictionary<string, string> deobfuscatedToObfuscatedNames = new();
@@ -568,10 +577,10 @@ namespace UniverseLib
             return theString;
         }
 
-        #endregion
+#endregion
 
 
-        #region Singleton finder
+#region Singleton finder
 
         internal override void Internal_FindSingleton(string[] possibleNames, Type type, BF flags, List<object> instances)
         {
@@ -596,7 +605,7 @@ namespace UniverseLib
 #endregion
 
 
-        #region Force-loading game modules
+#region Force-loading game modules
 
         // Helper for IL2CPP to try to make sure the Unhollowed game assemblies are actually loaded.
 
@@ -641,10 +650,10 @@ namespace UniverseLib
             }
         }
 
-        #endregion
+#endregion
 
 
-        #region IL2CPP IEnumerable and IDictionary
+#region IL2CPP IEnumerable and IDictionary
 
         // IEnumerables
 

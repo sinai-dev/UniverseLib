@@ -8,12 +8,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UniverseLib.UI;
 using UniverseLib.Utility;
+#if INTEROP
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#endif
+#if UNHOLLOWER
+using UnhollowerBaseLib;
+#endif
 
 namespace UniverseLib.Input
 {
     public class InputSystem : IHandleInput
     {
-        #region Reflection cache
+#region Reflection cache
 
         // typeof(InputSystem.Keyboard)
         public static Type TKeyboard => t_Keyboard ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Keyboard");
@@ -90,7 +96,7 @@ namespace UniverseLib.Input
         MethodInfo m_UI_Enable;
         PropertyInfo p_actionsAsset;
 
-        #endregion
+#endregion
 
         public InputSystem()
         {
@@ -136,7 +142,7 @@ namespace UniverseLib.Input
                 // An empty supportedDevices list means all devices are supported.
 #if CPP
                 // weird hack for il2cpp, use the implicit operator and cast Il2CppStringArray to ReadOnlyArray<string>
-                object[] emptyStringArray = new object[] { new UnhollowerBaseLib.Il2CppStringArray(0) };
+                object[] emptyStringArray = new object[] { new Il2CppStringArray(0) };
                 MethodInfo op_implicit = supportedDevices.GetActualType().GetMethod("op_Implicit", BindingFlags.Static | BindingFlags.Public);
                 supportedProp.SetValue(settings, op_implicit.Invoke(null, emptyStringArray), null);
 #else
@@ -228,7 +234,7 @@ namespace UniverseLib.Input
             }
         }
 
-        #region KeyCode <-> Key Helpers
+#region KeyCode <-> Key Helpers
 
         public static Dictionary<KeyCode, object> KeyCodeToKeyDict = new();
         public static Dictionary<KeyCode, object> KeyCodeToKeyEnumDict = new();
@@ -289,7 +295,7 @@ namespace UniverseLib.Input
             return KeyCodeToKeyEnumDict[key];
         }
 
-        #endregion
+#endregion
 
         public bool GetKeyDown(KeyCode key)
         {

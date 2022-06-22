@@ -3,11 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnhollowerBaseLib;
-using UnhollowerBaseLib.Attributes;
-using UnhollowerRuntimeLib;
 using UnityEngine;
 using UniverseLib.Runtime.Il2Cpp;
+#if INTEROP
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.Attributes;
+using Il2CppInterop.Runtime.Injection;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using IL2CPPType = Il2CppInterop.Runtime.Il2CppType;
+#else
+using UnhollowerRuntimeLib;
+using UnhollowerBaseLib;
+using UnhollowerBaseLib.Attributes;
+using IL2CPPType = UnhollowerRuntimeLib.Il2CppType;
+#endif
 
 namespace UniverseLib
 {
@@ -80,7 +89,7 @@ namespace UniverseLib
         public UnityEngine.Object[] LoadAllAssets()
         {
             IntPtr ptr = ICallManager.GetICall<d_LoadAssetWithSubAssets_Internal>("UnityEngine.AssetBundle::LoadAssetWithSubAssets_Internal")
-                .Invoke(m_bundlePtr, IL2CPP.ManagedStringToIl2Cpp(""), UnhollowerRuntimeLib.Il2CppType.Of<UnityEngine.Object>().Pointer);
+                .Invoke(m_bundlePtr, IL2CPP.ManagedStringToIl2Cpp(""), IL2CPPType.Of<UnityEngine.Object>().Pointer);
 
             return ptr != IntPtr.Zero ? (UnityEngine.Object[])new Il2CppReferenceArray<UnityEngine.Object>(ptr) : new UnityEngine.Object[0];
         }
@@ -93,7 +102,7 @@ namespace UniverseLib
         public T LoadAsset<T>(string name) where T : UnityEngine.Object
         {
             IntPtr ptr = ICallManager.GetICall<d_LoadAsset_Internal>("UnityEngine.AssetBundle::LoadAsset_Internal")
-                .Invoke(m_bundlePtr, IL2CPP.ManagedStringToIl2Cpp(name), UnhollowerRuntimeLib.Il2CppType.Of<T>().Pointer);
+                .Invoke(m_bundlePtr, IL2CPP.ManagedStringToIl2Cpp(name), IL2CPPType.Of<T>().Pointer);
 
             return ptr != IntPtr.Zero ? new UnityEngine.Object(ptr).TryCast<T>() : null;
         }

@@ -8,7 +8,10 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UniverseLib.UI.Models;
-#if CPP
+#if INTEROP
+using Il2CppInterop.Runtime;
+#endif
+#if UNHOLLOWER
 using UnhollowerRuntimeLib;
 #endif
 

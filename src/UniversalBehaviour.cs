@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+#if INTEROP
+using Il2CppInterop.Runtime.Injection;
+#endif
+#if UNHOLLOWER
+using UnhollowerRuntimeLib;
+#endif
 
 namespace UniverseLib
 {
@@ -16,7 +22,7 @@ namespace UniverseLib
         internal static void Setup()
         {
 #if CPP
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<UniversalBehaviour>();
+            ClassInjector.RegisterTypeInIl2Cpp<UniversalBehaviour>();
 #endif
 
             GameObject obj = new("UniverseLibBehaviour");

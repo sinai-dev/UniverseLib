@@ -4,13 +4,18 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Il2CppSystem;
-using UnhollowerBaseLib;
-using UnhollowerRuntimeLib;
 using IntPtr = System.IntPtr;
 using Type = System.Type;
 using ArgumentNullException = System.ArgumentNullException;
 using NotSupportedException = System.NotSupportedException;
 using Il2CppIEnumerator = Il2CppSystem.Collections.IEnumerator;
+#if INTEROP
+using Il2CppInterop.Runtime.Injection;
+using Il2CppInterop.Runtime;
+#else
+using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
+#endif
 
 // Credit to Horse/BepInEx for this wrapper.
 // https://github.com/BepInEx/BepInEx/tree/master/BepInEx.IL2CPP/Utils/Collections

@@ -3,6 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if INTEROP
+using Il2CppInterop.Runtime;
+#else
+using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
+#endif
 
 namespace UniverseLib.Runtime.Il2Cpp
 {
@@ -26,9 +32,9 @@ namespace UniverseLib.Runtime.Il2Cpp
 
             System.Threading.ThreadStart entry = new(entryPoint);
             Il2CppSystem.Threading.Thread thread
-                = new(UnhollowerRuntimeLib.DelegateSupport.ConvertDelegate<Il2CppSystem.Threading.ThreadStart>(entry));
+                = new(DelegateSupport.ConvertDelegate<Il2CppSystem.Threading.ThreadStart>(entry));
             thread.Start();
-            UnhollowerBaseLib.IL2CPP.il2cpp_thread_attach(thread.Pointer);
+            IL2CPP.il2cpp_thread_attach(thread.Pointer);
             return thread;
         }
     }

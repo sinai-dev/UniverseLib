@@ -4,8 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnhollowerBaseLib;
 using UnityEngine;
+#if INTEROP
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#else
+using UnhollowerBaseLib;
+#endif
 
 namespace UniverseLib.Runtime.Il2Cpp
 {
