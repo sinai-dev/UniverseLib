@@ -25,7 +25,7 @@
         <DocumentationFile>..\Release\UniverseLib.Il2Cpp.Unhollower\UniverseLib.IL2CPP.Unhollower.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_IL2CPP_Interop' ">
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>net6</TargetFramework>
         <OutputPath>..\Release\UniverseLib.Il2Cpp.Interop\</OutputPath>
         <DefineConstants>CPP,INTEROP</DefineConstants>
         <AssemblyName>UniverseLib.IL2CPP.Interop</AssemblyName>
@@ -45,6 +45,10 @@
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Unhollower'">
         <PackageReference Include="Il2CppAssemblyUnhollower.BaseLib" Version="0.4.22" IncludeAssets="compile" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'">
+        <PackageReference Include="Il2CppInterop.Common" Version="1.0.0" />
+        <PackageReference Include="Il2CppInterop.Runtime" Version="1.0.0" />
     </ItemGroup>
     <!-- Assembly References -->
     <ItemGroup Condition="'$(Configuration)' == 'Release_Mono'">
@@ -96,14 +100,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'">
-        <Reference Include="Il2CppInterop.Common">
-            <HintPath>..\lib\interop\Il2CppInterop.Common.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="Il2CppInterop.Runtime">
-            <HintPath>..\lib\interop\Il2CppInterop.Runtime.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
         <Reference Include="Il2Cppmscorlib">
             <HintPath>..\lib\interop\Il2Cppmscorlib.dll</HintPath>
             <Private>False</Private>
