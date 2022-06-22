@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UniverseLib.UI;
@@ -34,6 +35,20 @@ namespace UniverseLib.Input
             // First, just try to use the legacy input, see if its working.
             // The InputSystem package may be present but not actually activated, so we can find out this way.
 
+            // With BepInEx Il2CppInterop, for some reason InputLegacyModule may be loaded but our ReflectionUtility doesn't cache it?
+            // No idea why or what is happening but this solves it for now.
+            if (ReflectionUtility.GetTypeByName("UnityEngine.Input") == null)
+            {
+                foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (asm.FullName.Contains("UnityEngine.InputLegacyModule"))
+                    {
+                        ReflectionUtility.CacheTypes(asm);
+                        break;
+                    }
+                } 
+            }
+
             if (LegacyInput.TInput != null)
             {
                 try
@@ -47,7 +62,7 @@ namespace UniverseLib.Input
                     Universe.Log("Initialized Legacy Input support");
                     return;
                 }
-                catch
+                catch 
                 {
                     // It's not working, we'll fall back to InputSystem.
                 }

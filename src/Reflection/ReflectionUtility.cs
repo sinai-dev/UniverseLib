@@ -114,7 +114,7 @@ namespace UniverseLib
             }
         }
 
-        static void CacheTypes(Assembly asm)
+        internal static void CacheTypes(Assembly asm)
         {
             foreach (Type type in asm.GetTypes())
             {
@@ -159,6 +159,10 @@ namespace UniverseLib
                 return shorthand;
 
             AllTypes.TryGetValue(fullName, out Type type);
+
+            if (type == null)
+                type = Type.GetType(fullName);
+
             return type;
         }
 

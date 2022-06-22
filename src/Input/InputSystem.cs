@@ -279,15 +279,16 @@ namespace UniverseLib.Input
                     if (keycodeToKeyFixes.First(it => s.Contains(it.Key)) is KeyValuePair<string, string> entry)
                         s = s.Replace(entry.Key, entry.Value);
                 }
-                catch { }
+                catch { /* suppressed */ }
 
                 try
                 {
                     object parsed = Enum.Parse(TKey, s);
                     KeyCodeToKeyEnumDict.Add(key, parsed);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Universe.Log(ex);
                     KeyCodeToKeyEnumDict.Add(key, default);
                 }
             }
@@ -301,9 +302,10 @@ namespace UniverseLib.Input
         {
             try
             {
-                return (bool)p_btnWasPressed.GetValue(KeyCodeToActualKey(key), null);
+                object actual = KeyCodeToActualKey(key);
+                return (bool)p_btnWasPressed.GetValue(actual, null);
             }
-            catch
+            catch 
             {
                 return false;
             }
@@ -411,7 +413,10 @@ namespace UniverseLib.Input
                 {
                     MethodInfo assignDefaultMethod = newInput.GetType()
                         .GetMethod("AssignDefaultActions");
-                    assignDefaultMethod.Invoke(newInput.TryCast(assignDefaultMethod.DeclaringType), new object[0]);
+                    if (assignDefaultMethod != null)
+                        assignDefaultMethod.Invoke(newInput.TryCast(assignDefaultMethod.DeclaringType), new object[0]);
+                    else
+                        Universe.Log("AssignDefaultActions method is null!");
                 }
             }
             catch (Exception ex)

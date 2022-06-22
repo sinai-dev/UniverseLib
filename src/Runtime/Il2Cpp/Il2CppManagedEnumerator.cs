@@ -42,8 +42,16 @@ namespace UniverseLib.Runtime.Il2Cpp
                 // This method is just obsoleted in BepInEx's branch, but still works.
 
                 // ClassInjector.RegisterTypeInIl2CppWithInterfaces(typeof(Il2CppManagedEnumerator), true, typeof(Il2CppIEnumerator));
+#if UNHOLLOWER
                 AccessTools.Method(typeof(ClassInjector), "RegisterTypeInIl2CppWithInterfaces", new Type[] { typeof(Type), typeof(bool), typeof(Type[]) })
                     .Invoke(null, new object[] { typeof(Il2CppManagedEnumerator), true, new[] { typeof(Il2CppSystem.Collections.IEnumerator) } });
+#else
+                ClassInjector.RegisterTypeInIl2Cpp<Il2CppManagedEnumerator>(new RegisterTypeOptions
+                {
+                    Interfaces = new[] { typeof(Il2CppIEnumerator) }
+                });
+#endif
+
             }
             catch (System.Exception ex)
             {

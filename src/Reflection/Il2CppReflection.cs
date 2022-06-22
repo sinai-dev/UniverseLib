@@ -640,12 +640,13 @@ namespace UniverseLib
 
             try
             {
+                //Universe.Log($"Loading assembly '{Path.GetFileName(fullPath)}'");
                 Assembly.LoadFile(fullPath);
                 return true;
             }
-            catch //(Exception e)
+            catch
             {
-                //UniverseLib.LogWarning($"Failed loading module '{Path.GetFileName(fullPath)}'! {e.ReflectionExToString()}");
+                //Universe.LogWarning($"Failed loading module '{Path.GetFileName(fullPath)}'! {e.ReflectionExToString()}");
                 return false;
             }
         }
