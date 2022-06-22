@@ -6,7 +6,9 @@ UniverseLib is a library for making plugins which target IL2CPP and Mono Unity g
 
 [![](https://img.shields.io/nuget/v/UniverseLib.Mono?label=UniverseLib.Mono)](https://www.nuget.org/packages/UniverseLib.Mono)  
 
-[![](https://img.shields.io/nuget/v/UniverseLib.IL2CPP?label=UniverseLib.IL2CPP)](https://www.nuget.org/packages/UniverseLib.IL2CPP)
+[![](https://img.shields.io/nuget/v/UniverseLib.IL2CPP.Unhollower?label=UniverseLib.IL2CPP.Unhollower)](https://www.nuget.org/packages/UniverseLib.IL2CPP.Unhollower)
+
+[![](https://img.shields.io/nuget/v/UniverseLib.IL2CPP.Interop?label=UniverseLib.IL2CPP.Interop)](https://www.nuget.org/packages/UniverseLib.IL2CPP.Interop)
 
 ## Documentation
 
