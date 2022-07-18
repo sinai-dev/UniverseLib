@@ -167,6 +167,8 @@ namespace UniverseLib
 
         static void Log(object message, LogType logType)
         {
+            if (logHandler == null)
+                return;
             logHandler($"[UniverseLib] {message?.ToString() ?? string.Empty}", logType);
         }
 
