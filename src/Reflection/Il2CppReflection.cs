@@ -641,14 +641,7 @@ namespace UniverseLib
             try
             {
                 //Universe.Log($"Loading assembly '{Path.GetFileName(fullPath)}'");
-#if INTEROP
-                // Using LoadFile (on .NET Core 1.0+) will load the Assembly in a new AssemblyLoadContext
-                // which leads to unexpected behavior in Il2CppInterop due to multiple 
-                // of the same assembly being loaded in the runtime.
                 Assembly.LoadFrom(fullPath);
-#else
-                Assembly.LoadFile(fullPath);
-#endif
                 return true;
             }
             catch
