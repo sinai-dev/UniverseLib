@@ -5,9 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
-using UniverseLib.Config;
 using UniverseLib.Runtime;
 using UniverseLib.Utility;
 
@@ -116,24 +114,40 @@ namespace UniverseLib
 
         internal static void CacheTypes(Assembly asm)
         {
+            string last_err = "";
             foreach (Type type in asm.GetTypes())
             {
-                // Cache namespace if there is one
-                if (!string.IsNullOrEmpty(type.Namespace) && !uniqueNamespaces.Contains(type.Namespace))
+                string ns, fn;
+                try
                 {
-                    uniqueNamespaces.Add(type.Namespace);
+                    ns = type.Namespace;
+                    fn = type.FullName;
+                }
+                catch(Exception e)
+                {
+                    if (last_err != e.Message)
+                    {
+                        last_err = e.Message;
+                        Universe.LogWarning($"CacheTypes() thrown error during Namespace acquisition:\n{last_err}");
+                    }
+                    continue;
+                }
+                // Cache namespace if there is one
+                if (!string.IsNullOrEmpty(ns) && !uniqueNamespaces.Contains(ns))
+                {
+                    uniqueNamespaces.Add(ns);
                     int i = 0;
                     while (i < AllNamespaces.Count)
                     {
-                        if (type.Namespace.CompareTo(AllNamespaces[i]) < 0)
+                        if (ns.CompareTo(AllNamespaces[i]) < 0)
                             break;
                         i++;
                     }
-                    AllNamespaces.Insert(i, type.Namespace);
+                    AllNamespaces.Insert(i, ns);
                 }
 
                 // Cache the type. Overwrite type if one exists with the full name
-                AllTypes[type.FullName] = type;
+                AllTypes[fn] = type;
 
                 // Invoke listener
                 OnTypeLoaded?.Invoke(type);

@@ -49,6 +49,7 @@ namespace UniverseLib.Input
                 } 
             }
 
+            string last_error = "";
             if (LegacyInput.TInput != null)
             {
                 try
@@ -62,9 +63,10 @@ namespace UniverseLib.Input
                     Universe.Log("Initialized Legacy Input support");
                     return;
                 }
-                catch 
+                catch (Exception ex)
                 {
                     // It's not working, we'll fall back to InputSystem.
+                    last_error += '\n' + ex.Message;
                 }
             }
 
@@ -79,11 +81,11 @@ namespace UniverseLib.Input
                 }
                 catch (Exception ex)
                 {
-                    Universe.Log(ex);
+                    last_error += '\n' + ex.Message;
                 }
             }
 
-            Universe.LogWarning("Could not find any Input Module Type!");
+            Universe.LogWarning($"Could not find any Input Module Type:\n{last_error}");
             inputHandler = new NoInput();
             CurrentType = InputType.None;
         }
