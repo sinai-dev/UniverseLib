@@ -29,6 +29,8 @@ namespace UniverseLib.Reflection
                 return;
             }
 
+#if ML
+
             if (string.IsNullOrEmpty(type.Namespace) || !type.Namespace.StartsWith("Unity"))
             {
                 sb.Append("Il2Cpp")
@@ -37,6 +39,19 @@ namespace UniverseLib.Reflection
             } else
                 sb.Append(type.Namespace)
                   .Append('.');
+
+#else
+
+            if (!string.IsNullOrEmpty(type.Namespace))
+            {
+                if (type.FullName.StartsWith("System."))
+                    sb.Append("Il2Cpp");
+
+                sb.Append(type.Namespace)
+                  .Append('.');
+            }
+
+#endif
 
             int start = sb.Length;
             Il2CppSystem.Type declaring = type.DeclaringType;
@@ -70,15 +85,33 @@ namespace UniverseLib.Reflection
             // Append the assembly signature
             sb.Append(", ");
 
+#if ML
+
             string assemblyFullName = type.Assembly.FullName;
             if (!assemblyFullName.StartsWith("Unity") && !assemblyFullName.StartsWith("Assembly-CSharp")) {
                 sb.Append("Il2Cpp");
             }
             sb.Append(assemblyFullName);
+
+#else
+
+            if (type.FullName.StartsWith("System."))
+            {
+                if (!redirectors.ContainsKey(type.Assembly.FullName) && !TryRedirectSystemType(type))
+                    // No redirect found for type?
+                    throw new TypeLoadException($"No Il2CppSystem redirect found for system type: {type.AssemblyQualifiedName}");
+                else
+                    // Type redirect was set up
+                    sb.Append(redirectors[type.Assembly.FullName]);
+
+            }
+            else // no redirect required
+                sb.Append(type.Assembly.FullName);
+
+#endif
         }
 
-        // To remove
-        /*static bool TryRedirectSystemType(Il2CppSystem.Type type)
+        static bool TryRedirectSystemType(Il2CppSystem.Type type)
         {
             if (type.IsGenericType && !type.IsGenericTypeDefinition)
                 type = type.GetGenericTypeDefinition();
@@ -90,7 +123,7 @@ namespace UniverseLib.Reflection
             }
 
             return false;
-        }*/
+        }
     }
 }
 
