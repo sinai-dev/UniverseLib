@@ -140,14 +140,6 @@
     <ItemGroup>
         <EmbeddedResource Include="Resources\*" />
     </ItemGroup>
-    <ItemGroup>
-      <Reference Include="Il2CppInterop.Common">
-        <HintPath>..\..\..\..\..\Games\steamapps\steamapps\common\BloonsTD6\MelonLoader\net6\Il2CppInterop.Common.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppInterop.Runtime">
-        <HintPath>..\..\..\..\..\Games\steamapps\steamapps\common\BloonsTD6\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>
-      </Reference>
-    </ItemGroup>
     <Target Name="CopyNuget" AfterTargets="build">
         <!-- if IL2CPP Unhollower -->
         <Message Text="Copying IL2CPP Unhollower files..." Importance="high" Condition="'$(Configuration)' == 'Release_IL2CPP_Unhollower'" />
