@@ -70,21 +70,15 @@ namespace UniverseLib.Reflection
             // Append the assembly signature
             sb.Append(", ");
 
-            if (!type.Assembly.FullName.StartsWith("Unity") && !type.Assembly.FullName.StartsWith("Assembly-CSharp"))
-            {
-                if (!redirectors.ContainsKey(type.Assembly.FullName) && !TryRedirectSystemType(type))
-                    // No redirect found for type?
-                    throw new TypeLoadException($"No Il2CppSystem redirect found for system type: {type.AssemblyQualifiedName}");
-                else
-                    // Type redirect was set up
-                    sb.Append(redirectors[type.Assembly.FullName]);
-
+            string assemblyFullName = type.Assembly.FullName;
+            if (!assemblyFullName.StartsWith("Unity") && !assemblyFullName.StartsWith("Assembly-CSharp")) {
+                sb.Append("Il2Cpp");
             }
-            else // no redirect required
-                sb.Append(type.Assembly.FullName);
+            sb.Append(assemblyFullName);
         }
 
-        static bool TryRedirectSystemType(Il2CppSystem.Type type)
+        // To remove
+        /*static bool TryRedirectSystemType(Il2CppSystem.Type type)
         {
             if (type.IsGenericType && !type.IsGenericTypeDefinition)
                 type = type.GetGenericTypeDefinition();
@@ -96,7 +90,7 @@ namespace UniverseLib.Reflection
             }
 
             return false;
-        }
+        }*/
     }
 }
 
