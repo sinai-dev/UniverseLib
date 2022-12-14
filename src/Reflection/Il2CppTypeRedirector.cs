@@ -29,10 +29,12 @@ namespace UniverseLib.Reflection
                 return;
             }
 
-            if (string.IsNullOrEmpty(type.Namespace) || !type.Namespace.StartsWith("Unity"))
+            if (string.IsNullOrEmpty(type.Namespace))
             {
-                sb.Append("Il2Cpp")
-                  .Append(type.Namespace)
+                if (!type.FullName.StartsWith("Unity."))
+                    sb.Append("Il2Cpp");
+                  
+                sb.Append(type.Namespace)
                   .Append('.');
             }
 
