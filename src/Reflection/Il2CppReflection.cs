@@ -141,8 +141,12 @@ namespace UniverseLib
                 return deob;
 
             // The new melonloader prepends Il2Cpp in front of most namespaces
-            if (!fullname.StartsWith("Unity"))
-                fullname = $"Il2Cpp{fullname}";
+            bool isUnityType = fullname.StartsWith("Unity") && fullname.Contains('.');
+            if (!isUnityType)
+                if (fullname.Contains('.'))
+                    fullname = $"Il2Cpp{fullname}";
+                else
+                    fullname = $"Il2Cpp.{fullname}";
 
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
             {
