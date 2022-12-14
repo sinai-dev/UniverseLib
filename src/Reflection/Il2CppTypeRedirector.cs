@@ -70,7 +70,7 @@ namespace UniverseLib.Reflection
             // Append the assembly signature
             sb.Append(", ");
 
-            if (type.FullName.StartsWith("System."))
+            if (!type.Assembly.FullName.StartsWith("Unity") && !type.Assembly.FullName.StartsWith("Assembly-CSharp"))
             {
                 if (!redirectors.ContainsKey(type.Assembly.FullName) && !TryRedirectSystemType(type))
                     // No redirect found for type?
