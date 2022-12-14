@@ -146,6 +146,10 @@ namespace UniverseLib
             if (fullname.StartsWith("System."))
                 fullname = $"Il2Cpp{fullname}";
 
+            // The new melonloader prepends Il2Cpp in front of the Assets namespaces
+            if (fullname.StartsWith("Assets.") && !AllTypes.ContainsKey(fullname))
+                fullname = $"Il2Cpp{fullname}";
+
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
             {
                 // If it's not in our dictionary, it's most likely a bound generic type.
