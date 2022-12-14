@@ -140,14 +140,8 @@ namespace UniverseLib
             if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullname, out Type deob))
                 return deob;
 
-            // An Il2CppType cannot ever be a System type.
-            // Unhollower returns Il2CppSystem types and System for some reason.
-            // Let's just manually fix that.
-            if (fullname.StartsWith("System."))
-                fullname = $"Il2Cpp{fullname}";
-
-            // The new melonloader prepends Il2Cpp in front of the Assets namespaces
-            if (fullname.StartsWith("Assets.") && !AllTypes.ContainsKey(fullname))
+            // The new melonloader prepends Il2Cpp in front of most namespaces
+            if (!fullname.StartsWith("Unity"))
                 fullname = $"Il2Cpp{fullname}";
 
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
