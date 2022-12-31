@@ -22,15 +22,39 @@ namespace UniverseLib.Input
 #region Reflection cache
 
         // typeof(InputSystem.Keyboard)
-        public static Type TKeyboard => t_Keyboard ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Keyboard");
+        public static Type TKeyboard
+        {
+            get
+            {
+                if (t_Keyboard is not null)
+                    return t_Keyboard;
+                
+                foreach (var assembly in AccessTools.AllAssemblies())
+                {
+                    if (assembly.GetName().Name is "Unity.InputSystem" or "UnityEngine.InputSystem")
+                    {
+                        InputSystemAssembly = assembly.GetTypes();
+                        break;
+                    }
+                }
+
+                if (InputSystemAssembly is null)
+                    return null;
+                t_Keyboard = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("Keyboard"));
+                return t_Keyboard;
+            }
+            // get { return t_Keyboard ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Keyboard"); }
+        }
+
         static Type t_Keyboard;
 
+        static Type[] InputSystemAssembly;
         // typeof(InputSystem.Mouse)
-        public static Type TMouse => t_Mouse ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Mouse");
+        public static Type TMouse => t_Mouse ??= InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("Mouse"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Mouse")));
         static Type t_Mouse;
 
         // typeof (InputSystem.Key)
-        public static Type TKey => t_Key ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Key");
+        public static Type TKey => t_Key ??= InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("Key"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Key");
         static Type t_Key;
 
         // InputSystem.Controls.ButtonControl.isPressed
@@ -83,7 +107,7 @@ namespace UniverseLib.Input
 
         // typeof(InputSystem.UI.InputSystemUIInputModule)
         public Type TInputSystemUIInputModule => t_UIInputModule
-                                              ??= ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.UI.InputSystemUIInputModule");
+            ??= InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputSystemUIInputModule"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.UI.InputSystemUIInputModule");
         internal Type t_UIInputModule;
 
         // Our UI input module
@@ -105,7 +129,7 @@ namespace UniverseLib.Input
             p_kbCurrent = TKeyboard.GetProperty("current");
             p_kbIndexer = TKeyboard.GetProperty("Item", new Type[] { TKey });
 
-            Type t_btnControl = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Controls.ButtonControl");
+            Type t_btnControl = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("ButtonControl"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Controls.ButtonControl");
             p_btnIsPressed = t_btnControl.GetProperty("isPressed");
             p_btnWasPressed = t_btnControl.GetProperty("wasPressedThisFrame");
             p_btnWasReleased = t_btnControl.GetProperty("wasReleasedThisFrame");
@@ -118,12 +142,13 @@ namespace UniverseLib.Input
             p_forwardButton = TMouse.GetProperty("forwardButton");
             p_scrollDelta = TMouse.GetProperty("scroll");
 
-            p_position = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Pointer")
-                           .GetProperty("position");
+            p_position = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("Pointer")).GetProperty("position");//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.Pointer")
+                           //.GetProperty("position");
 
-            m_ReadV2Control = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputControl`1")
+            m_ReadV2Control = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputControl`1")).MakeGenericType(typeof(Vector2)).GetMethod("ReadValue");/*ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputControl`1")
                                       .MakeGenericType(typeof(Vector2))
                                       .GetMethod("ReadValue");
+                                      */
         }
 
         internal static void SetupSupportedDevices()
@@ -131,7 +156,7 @@ namespace UniverseLib.Input
             try
             {
                 // typeof(InputSystem)
-                Type t_InputSystem = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputSystem");
+                Type t_InputSystem = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputSystem"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputSystem");
                 // InputSystem.settings
                 object settings = t_InputSystem.GetProperty("settings", BindingFlags.Public | BindingFlags.Static).GetValue(null, null);
                 // typeof(InputSettings)
@@ -351,16 +376,18 @@ namespace UniverseLib.Input
                 return;
             }
 
-            Type assetType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionAsset");
+            
+            Type assetType = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputActionAsset"));
             newInputModule = RuntimeHelper.AddComponent<BaseInputModule>(UniversalUI.CanvasRoot, TInputSystemUIInputModule);
             object asset = RuntimeHelper.CreateScriptable(assetType).TryCast(assetType);
 
-            t_InputExtensions = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionSetupExtensions");
+            
+            t_InputExtensions = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputActionSetupExtensions"));
 
             MethodInfo addMap = t_InputExtensions.GetMethod("AddActionMap", new Type[] { assetType, typeof(string) });
             object map = addMap.Invoke(null, new object[] { asset, "UI" })
-                .TryCast(ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionMap"));
-
+                .TryCast(InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputActionMap")));
+            
             CreateAction(map, "point", new[] { "<Mouse>/position" }, "point");
             CreateAction(map, "click", new[] { "<Mouse>/leftButton" }, "leftClick");
             CreateAction(map, "rightClick", new[] { "<Mouse>/rightButton" }, "rightClick");
@@ -378,7 +405,7 @@ namespace UniverseLib.Input
             MethodInfo disable = map.GetType().GetMethod("Disable");
             disable.Invoke(map, ArgumentUtility.EmptyArgs);
 
-            Type inputActionType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputAction");
+            Type inputActionType = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputAction"));//ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputAction");
             MethodInfo addAction = t_InputExtensions.GetMethod("AddAction");
             object action = addAction.Invoke(null, new object[] { map, actionName, default, null, null, null, null, null })
                 .TryCast(inputActionType);
@@ -389,7 +416,8 @@ namespace UniverseLib.Input
             foreach (string binding in bindings)
                 addBinding.Invoke(null, new object[] { action.TryCast(inputActionType), binding, null, null, null });
 
-            Type refType = ReflectionUtility.GetTypeByName("UnityEngine.InputSystem.InputActionReference");
+            
+            Type refType = InputSystemAssembly.FirstOrDefault(x => x.Name.Equals("InputActionReference"));
             object inputRef = refType.GetMethod("Create")
                             .Invoke(null, new object[] { action })
                             .TryCast(refType);
