@@ -38,7 +38,7 @@
 		<AssemblyName>UniverseLib.IL2CPP.Interop.ML</AssemblyName>
 		<DocumentationFile>..\Release\UniverseLib.Il2Cpp.Interop\UniverseLib.IL2CPP.Interop.ML.xml</DocumentationFile>
 		<DebugSymbols>true</DebugSymbols>
-		<DebugType>pdbonly</DebugType>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_Mono' ">
         <TargetFramework>net35</TargetFramework>
