@@ -108,5 +108,20 @@ namespace UniverseLib
 
             return e;
         }
+
+        /// <summary>
+        /// Gets all types that are able to be loaded in an assembly
+        /// </summary>
+        /// <param name="asm">The assembly</param>
+        /// <returns>The loadable types</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Type[] GetLoadableTypes(this Assembly asm) {
+            if (asm == null) throw new ArgumentNullException(nameof(asm));
+            try {
+                return asm.GetTypes();
+            } catch (ReflectionTypeLoadException e) {
+                return e.Types.Where(t => t != null).ToArray();
+            }
+        }
     }
 }

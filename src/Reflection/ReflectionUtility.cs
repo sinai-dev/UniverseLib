@@ -116,7 +116,7 @@ namespace UniverseLib
 
         internal static void CacheTypes(Assembly asm)
         {
-            foreach (Type type in asm.GetTypes())
+            foreach (Type type in asm.GetLoadableTypes())
             {
                 string namespaceType = string.Empty;
                 try
