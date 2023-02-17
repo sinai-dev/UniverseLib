@@ -15,6 +15,8 @@
         <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
         <Configurations>Release_Mono;Release_IL2CPP_Unhollower;Release_IL2CPP_Interop;Release_Il2CPP_Interop_ML</Configurations>
+		<Version>1.5.4</Version>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
     <!-- Configurations -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_IL2CPP_Unhollower' ">

@@ -152,7 +152,6 @@ namespace UniverseLib
                 else
                     fullname = $"Il2Cpp.{fullname}";
             }
-            Universe.Log(fullname);
 
 #else
 
