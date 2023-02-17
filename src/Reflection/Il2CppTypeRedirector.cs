@@ -31,7 +31,7 @@ namespace UniverseLib.Reflection
 
 #if ML
 
-            if (string.IsNullOrEmpty(type.Namespace) || !type.Namespace.StartsWith("Unity"))
+            if ((string.IsNullOrEmpty(type.Namespace) || !type.Namespace.StartsWith("Unity")) && !"InjectedMonoTypes".Equals(type.Assembly.GetName().Name))
             {
                 sb.Append("Il2Cpp")
                   .Append(type.Namespace)
@@ -88,7 +88,7 @@ namespace UniverseLib.Reflection
 #if ML
 
             string assemblyFullName = type.Assembly.FullName;
-            if (!assemblyFullName.StartsWith("Unity") && !assemblyFullName.StartsWith("Assembly-CSharp")) {
+            if (!assemblyFullName.StartsWith("Unity") && !assemblyFullName.StartsWith("Assembly-CSharp") && !assemblyFullName.StartsWith("InjectedMonoTypes")) {
                 sb.Append("Il2Cpp");
             }
             sb.Append(assemblyFullName);

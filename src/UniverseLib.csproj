@@ -5,8 +5,8 @@
         <LangVersion>10.0</LangVersion>
         <DefineConstants>
         </DefineConstants>
-        <DebugSymbols>false</DebugSymbols>
-        <DebugType>none</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
         <PlatformTarget>AnyCPU</PlatformTarget>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -37,8 +37,6 @@
 		<DefineConstants>CPP,INTEROP,ML</DefineConstants>
 		<AssemblyName>UniverseLib.IL2CPP.Interop.ML</AssemblyName>
 		<DocumentationFile>..\Release\UniverseLib.Il2Cpp.Interop\UniverseLib.IL2CPP.Interop.ML.xml</DocumentationFile>
-		<DebugSymbols>true</DebugSymbols>
-		<DebugType>embedded</DebugType>
 	</PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_Mono' ">
         <TargetFramework>net35</TargetFramework>
