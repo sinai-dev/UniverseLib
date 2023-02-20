@@ -140,11 +140,28 @@ namespace UniverseLib
             if (obfuscatedToDeobfuscatedTypes.TryGetValue(fullname, out Type deob))
                 return deob;
 
+#if ML
+
+            // The new melonloader prepends Il2Cpp in front of most namespaces
+            bool isUnityType = fullname.StartsWith("Unity") && fullname.Contains('.');
+            bool isInjected = "InjectedMonoTypes".Equals(cppType.Assembly.GetName().Name);
+            if (!isUnityType && !isInjected)
+            {
+                if (fullname.Contains('.'))
+                    fullname = $"Il2Cpp{fullname}";
+                else
+                    fullname = $"Il2Cpp.{fullname}";
+            }
+
+#else
+
             // An Il2CppType cannot ever be a System type.
             // Unhollower returns Il2CppSystem types and System for some reason.
             // Let's just manually fix that.
             if (fullname.StartsWith("System."))
                 fullname = $"Il2Cpp{fullname}";
+
+#endif
 
             if (!AllTypes.TryGetValue(fullname, out Type monoType))
             {
@@ -541,7 +558,7 @@ namespace UniverseLib
         {
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (Type type in asm.GetTypes())
+                foreach (Type type in asm.GetLoadableTypes())
                     TryCacheDeobfuscatedType(type);
             }
         }

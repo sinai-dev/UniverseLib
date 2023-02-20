@@ -116,10 +116,19 @@ namespace UniverseLib
 
         internal static void CacheTypes(Assembly asm)
         {
-            foreach (Type type in asm.GetTypes())
+            foreach (Type type in asm.GetLoadableTypes())
             {
+                string namespaceType = string.Empty;
+                try
+                {
+                    namespaceType = type.Namespace;
+                }
+                catch (Exception e)
+                {
+                    Universe.Log($"Can't cache type named {type.Name} Error: {e}");
+                }
                 // Cache namespace if there is one
-                if (!string.IsNullOrEmpty(type.Namespace) && !uniqueNamespaces.Contains(type.Namespace))
+                if (!string.IsNullOrEmpty(namespaceType) && !uniqueNamespaces.Contains(namespaceType))
                 {
                     uniqueNamespaces.Add(type.Namespace);
                     int i = 0;

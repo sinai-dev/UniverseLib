@@ -29,6 +29,19 @@ namespace UniverseLib.Reflection
                 return;
             }
 
+#if ML
+
+            if ((string.IsNullOrEmpty(type.Namespace) || !type.Namespace.StartsWith("Unity")) && !"InjectedMonoTypes".Equals(type.Assembly.GetName().Name))
+            {
+                sb.Append("Il2Cpp")
+                  .Append(type.Namespace)
+                  .Append('.');
+            } else
+                sb.Append(type.Namespace)
+                  .Append('.');
+
+#else
+
             if (!string.IsNullOrEmpty(type.Namespace))
             {
                 if (type.FullName.StartsWith("System."))
@@ -37,6 +50,8 @@ namespace UniverseLib.Reflection
                 sb.Append(type.Namespace)
                   .Append('.');
             }
+
+#endif
 
             int start = sb.Length;
             Il2CppSystem.Type declaring = type.DeclaringType;
@@ -70,6 +85,16 @@ namespace UniverseLib.Reflection
             // Append the assembly signature
             sb.Append(", ");
 
+#if ML
+
+            string assemblyFullName = type.Assembly.FullName;
+            if (!assemblyFullName.StartsWith("Unity") && !assemblyFullName.StartsWith("Assembly-CSharp") && !assemblyFullName.StartsWith("InjectedMonoTypes")) {
+                sb.Append("Il2Cpp");
+            }
+            sb.Append(assemblyFullName);
+
+#else
+
             if (type.FullName.StartsWith("System."))
             {
                 if (!redirectors.ContainsKey(type.Assembly.FullName) && !TryRedirectSystemType(type))
@@ -82,6 +107,8 @@ namespace UniverseLib.Reflection
             }
             else // no redirect required
                 sb.Append(type.Assembly.FullName);
+
+#endif
         }
 
         static bool TryRedirectSystemType(Il2CppSystem.Type type)

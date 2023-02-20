@@ -13,12 +13,15 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release_IL2CPP_Interop|Any CPU = Release_IL2CPP_Interop|Any CPU
+		Release_IL2CPP_Interop_ML|Any CPU = Release_IL2CPP_Interop_ML|Any CPU
 		Release_IL2CPP_Unhollower|Any CPU = Release_IL2CPP_Unhollower|Any CPU
 		Release_Mono|Any CPU = Release_Mono|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Interop|Any CPU.ActiveCfg = Release_IL2CPP_Interop|Any CPU
 		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Interop|Any CPU.Build.0 = Release_IL2CPP_Interop|Any CPU
+		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Interop_ML|Any CPU.ActiveCfg = Release_IL2CPP_Interop_ML|Any CPU
+		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Interop_ML|Any CPU.Build.0 = Release_IL2CPP_Interop_ML|Any CPU
 		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Unhollower|Any CPU.ActiveCfg = Release_IL2CPP_Unhollower|Any CPU
 		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_IL2CPP_Unhollower|Any CPU.Build.0 = Release_IL2CPP_Unhollower|Any CPU
 		{49736F05-474F-49DA-ADB5-ED85BA079FFD}.Release_Mono|Any CPU.ActiveCfg = Release_Mono|Any CPU

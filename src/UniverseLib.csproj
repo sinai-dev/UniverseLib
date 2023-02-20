@@ -5,8 +5,8 @@
         <LangVersion>10.0</LangVersion>
         <DefineConstants>
         </DefineConstants>
-        <DebugSymbols>false</DebugSymbols>
-        <DebugType>none</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
         <PlatformTarget>AnyCPU</PlatformTarget>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -14,7 +14,9 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
-        <Configurations>Release_Mono;Release_IL2CPP_Unhollower;Release_IL2CPP_Interop</Configurations>
+        <Configurations>Release_Mono;Release_IL2CPP_Unhollower;Release_IL2CPP_Interop;Release_Il2CPP_Interop_ML</Configurations>
+		<Version>1.5.4.1</Version>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
     <!-- Configurations -->
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_IL2CPP_Unhollower' ">
@@ -31,6 +33,13 @@
         <AssemblyName>UniverseLib.IL2CPP.Interop</AssemblyName>
         <DocumentationFile>..\Release\UniverseLib.Il2Cpp.Interop\UniverseLib.IL2CPP.Interop.xml</DocumentationFile>
     </PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release_IL2CPP_Interop_ML' ">
+		<TargetFramework>net6</TargetFramework>
+		<OutputPath>..\Release\UniverseLib.Il2Cpp.Interop.ML\</OutputPath>
+		<DefineConstants>CPP,INTEROP,ML</DefineConstants>
+		<AssemblyName>UniverseLib.IL2CPP.Interop.ML</AssemblyName>
+		<DocumentationFile>..\Release\UniverseLib.Il2Cpp.Interop\UniverseLib.IL2CPP.Interop.ML.xml</DocumentationFile>
+	</PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release_Mono' ">
         <TargetFramework>net35</TargetFramework>
         <OutputPath>..\Release\UniverseLib.Mono\</OutputPath>
@@ -46,7 +55,7 @@
     <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Unhollower'">
         <PackageReference Include="Il2CppAssemblyUnhollower.BaseLib" Version="0.4.22" IncludeAssets="compile" />
     </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'">
+    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop' or '$(Configuration)' == 'Release_IL2CPP_Interop_ML'">
         <PackageReference Include="Il2CppInterop.Common" Version="1.0.0" />
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.0.0" />
     </ItemGroup>
@@ -99,7 +108,7 @@
             <Private>False</Private>
         </Reference>
     </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'">
+    <ItemGroup Condition="'$(Configuration)' == 'Release_IL2CPP_Interop' or '$(Configuration)' == 'Release_IL2CPP_Interop_ML'">
         <Reference Include="Il2Cppmscorlib">
             <HintPath>..\lib\interop\Il2Cppmscorlib.dll</HintPath>
             <Private>False</Private>
@@ -153,6 +162,12 @@
         <Copy SourceFiles="$(OutputPath)$(AssemblyName).xml" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop\lib\net472" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'" />
         <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop\lib\net6.0" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'" />
         <Copy SourceFiles="$(OutputPath)$(AssemblyName).xml" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop\lib\net6.0" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop'" />
+		<!-- if IL2CPP Interop ML -->
+		<Message Text="Copying IL2CPP Interop files..." Importance="high" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop_ML'" />
+		<Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop_ML\lib\net472" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop_ML'" />
+		<Copy SourceFiles="$(OutputPath)$(AssemblyName).xml" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop_ML\lib\net472" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop_ML'" />
+		<Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop_ML\lib\net6.0" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop_ML'" />
+		<Copy SourceFiles="$(OutputPath)$(AssemblyName).xml" DestinationFolder="$(OutputPath)..\NuGet_IL2CPP_Interop_ML\lib\net6.0" Condition="'$(Configuration)' == 'Release_IL2CPP_Interop_ML'" />
         <!-- if Mono -->
         <Message Text="Copying Mono files..." Importance="high" Condition="'$(Configuration)' == 'Release_Mono'" />
         <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\NuGet_Mono\lib\net35" Condition="'$(Configuration)' == 'Release_Mono'" />
