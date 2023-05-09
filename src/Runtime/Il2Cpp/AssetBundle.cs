@@ -1,22 +1,15 @@
-﻿#if CPP
+﻿#if IL2CPP
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using UniverseLib.Runtime.Il2Cpp;
-#if INTEROP
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using IL2CPPType = Il2CppInterop.Runtime.Il2CppType;
-#else
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
-using UnhollowerBaseLib.Attributes;
-using IL2CPPType = UnhollowerRuntimeLib.Il2CppType;
-#endif
 
 namespace UniverseLib
 {

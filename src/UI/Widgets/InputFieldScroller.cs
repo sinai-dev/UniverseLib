@@ -8,12 +8,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UniverseLib.UI.Models;
-#if INTEROP
 using Il2CppInterop.Runtime;
-#endif
-#if UNHOLLOWER
-using UnhollowerRuntimeLib;
-#endif
 
 namespace UniverseLib.UI.Widgets
 {
@@ -56,7 +51,7 @@ namespace UniverseLib.UI.Widgets
             ViewportRect = ContentRect.transform.parent.GetComponent<RectTransform>();
 
             if (!RootScaler)
-#if CPP
+#if IL2CPP
                 RootScaler = inputField.Component.gameObject.GetComponentInParent(Il2CppType.Of<CanvasScaler>()).TryCast<CanvasScaler>();
 #else
                 RootScaler = inputField.Component.gameObject.GetComponentInParent<CanvasScaler>();

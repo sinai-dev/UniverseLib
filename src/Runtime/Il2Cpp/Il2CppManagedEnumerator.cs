@@ -1,4 +1,4 @@
-﻿#if CPP
+﻿#if IL2CPP
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -9,13 +9,8 @@ using Type = System.Type;
 using ArgumentNullException = System.ArgumentNullException;
 using NotSupportedException = System.NotSupportedException;
 using Il2CppIEnumerator = Il2CppSystem.Collections.IEnumerator;
-#if INTEROP
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime;
-#else
-using UnhollowerBaseLib;
-using UnhollowerRuntimeLib;
-#endif
 
 // Credit to Horse/BepInEx for this wrapper.
 // https://github.com/BepInEx/BepInEx/tree/master/BepInEx.IL2CPP/Utils/Collections
@@ -38,19 +33,10 @@ namespace UniverseLib.Runtime.Il2Cpp
         {
             try
             {
-                // Using reflection for this since API is different between BepInEx and the main branch.
-                // This method is just obsoleted in BepInEx's branch, but still works.
-
-                // ClassInjector.RegisterTypeInIl2CppWithInterfaces(typeof(Il2CppManagedEnumerator), true, typeof(Il2CppIEnumerator));
-#if UNHOLLOWER
-                AccessTools.Method(typeof(ClassInjector), "RegisterTypeInIl2CppWithInterfaces", new Type[] { typeof(Type), typeof(bool), typeof(Type[]) })
-                    .Invoke(null, new object[] { typeof(Il2CppManagedEnumerator), true, new[] { typeof(Il2CppSystem.Collections.IEnumerator) } });
-#else
                 ClassInjector.RegisterTypeInIl2Cpp<Il2CppManagedEnumerator>(new RegisterTypeOptions
                 {
                     Interfaces = new[] { typeof(Il2CppIEnumerator) }
                 });
-#endif
 
             }
             catch (System.Exception ex)

@@ -1,4 +1,4 @@
-﻿#if CPP
+﻿#if IL2CPP
 using System;
 using System.Collections.Generic;
 using System.Linq;

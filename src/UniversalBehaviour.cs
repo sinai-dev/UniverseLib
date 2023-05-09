@@ -3,12 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-#if INTEROP
 using Il2CppInterop.Runtime.Injection;
-#endif
-#if UNHOLLOWER
-using UnhollowerRuntimeLib;
-#endif
 
 namespace UniverseLib
 {
@@ -21,7 +16,7 @@ namespace UniverseLib
 
         internal static void Setup()
         {
-#if CPP
+#if IL2CPP
             ClassInjector.RegisterTypeInIl2Cpp<UniversalBehaviour>();
 #endif
 
@@ -36,7 +31,7 @@ namespace UniverseLib
             Universe.Update();
         }
 
-#if CPP
+#if IL2CPP
         public UniversalBehaviour(IntPtr ptr) : base(ptr) { }
 
         static Delegate queuedDelegate;
